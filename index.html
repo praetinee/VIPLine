@@ -25,7 +25,7 @@
         <p class="mt-4 text-gray-600">กำลังตรวจสอบข้อมูล...</p>
     </div>
 
-    <!-- **ปรับปรุง** Registration Section กลับไปเป็นแบบง่าย -->
+    <!-- Registration Section -->
     <div id="registration-section" class="container mx-auto p-4 max-w-lg hidden">
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <h1 class="text-2xl font-bold text-gray-800 text-center mb-2">ลงทะเบียนใช้งาน</h1>
@@ -47,7 +47,7 @@
         </div>
     </div>
 
-    <!-- Appointment Section (ไม่มีการเปลี่ยนแปลง) -->
+    <!-- Appointment Section -->
     <div id="appointment-section" class="container mx-auto p-4 max-w-lg hidden">
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <div class="mb-6 text-center">
@@ -96,19 +96,21 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXeKAyg2VNeeH69Yw4LsRWuRU-BGxCQ-ntY2qeQZLKf5ICmpXAOLOkAxaXpwQ4lOPTrg/exec';
-        const LIFF_ID = '2008050252-Dopb2KMZ';
+        // ** Important: Update this with your own deployed Apps Script URL **
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXeKAyg2VNeeH69Yw4LsRWuRU-BGxCQ-ntY2qeQZLKf5ICmpXAOLOkAxaXpwQ4lOPTrg/exec'; 
+        // ** Important: Update this with your own LIFF ID **
+        const LIFF_ID = '2008050252-Dopb2KMZ'; 
 
         let userProfile = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeLiff();
-            // **ปรับปรุง** ใช้ Event Listener สำหรับฟอร์มลงทะเบียนแบบง่าย
             document.getElementById('registration-form').addEventListener('submit', handleRegistration);
             document.getElementById('appointment-form').addEventListener('submit', handleAppointmentSubmit);
         });
 
         async function initializeLiff() {
+            toggleLoading(true, 'กำลังตรวจสอบข้อมูล...');
             try {
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) {
@@ -119,23 +121,23 @@
                 
                 const response = await apiCall({ requestType: 'checkRegistration', lineUserId: userProfile.userId });
 
-                if (response.registered) {
+                if (response.status === 'success' && response.registered) {
                     showAppointmentForm();
                 } else {
                     showRegistrationForm();
                 }
             } catch (error) {
-                showError('เกิดข้อผิดพลาดในการเริ่มต้นระบบ: ' + error.message);
+                showError('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง: ' + error.message);
+                console.error('LIFF initialization failed:', error);
             }
         }
 
-        // **ปรับปรุง** ฟังก์ชันสำหรับจัดการการลงทะเบียนแบบไม่มี OTP
         async function handleRegistration(event) {
             event.preventDefault();
             const name = document.getElementById('name-input').value.trim();
             const hn = document.getElementById('hn-input').value.trim();
             if (!name || !hn) {
-                alert('กรุณากรอกชื่อ-นามสกุล และหมายเลข HN ให้ครบถ้วน');
+                showError('กรุณากรอกชื่อ-นามสกุล และหมายเลข HN ให้ครบถ้วน');
                 return;
             }
             toggleLoading(true, 'กำลังลงทะเบียน...');
@@ -150,20 +152,20 @@
                 });
 
                 if (response.status === 'success') {
-                    alert('ลงทะเบียนสำเร็จ!');
+                    alert('ลงทะเบียนสำเร็จ!'); // ใช้ alert ชั่วคราวเพื่อให้ผู้ใช้เห็นข้อความ
                     showAppointmentForm();
                 } else {
-                    alert('ลงทะเบียนไม่สำเร็จ: ' + response.message);
+                    showError('ลงทะเบียนไม่สำเร็จ: ' + response.message);
                 }
             } catch (error) {
-                 alert('เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์');
+                showError('เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง');
+                console.error('Registration failed:', error);
             } finally {
                 toggleLoading(false);
             }
         }
 
         async function handleAppointmentSubmit(event) {
-            // (ฟังก์ชันนี้ไม่มีการเปลี่ยนแปลง)
             event.preventDefault();
             toggleLoading(true, 'กำลังส่งข้อมูลนัดหมาย...');
 
@@ -179,17 +181,22 @@
                 };
                 
                 if(!formData.physicalState || !formData.treatmentReason || !formData.appointmentType || !formData.desiredDate) {
-                    alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                    showError('กรุณากรอกข้อมูลให้ครบถ้วน');
                     toggleLoading(false);
                     return;
                 }
 
-                await apiCall(formData);
-                alert('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ค่ะ');
+                const response = await apiCall(formData);
+                if (response.status === 'success') {
+                     alert('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ค่ะ');
+                } else {
+                    showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + response.message);
+                }
                 liff.closeWindow();
 
             } catch (error) {
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
+                showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
+                console.error('Appointment submission failed:', error);
             } finally {
                 toggleLoading(false);
             }
@@ -210,7 +217,7 @@
         function showRegistrationForm() {
             document.getElementById('reg-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
             document.getElementById('registration-section').classList.remove('hidden');
-            toggleLoading(false);
+            document.getElementById('loading-overlay').classList.add('hidden');
         }
 
         function showAppointmentForm() {
@@ -222,13 +229,13 @@
             
             document.getElementById('registration-section').classList.add('hidden');
             document.getElementById('appointment-section').classList.remove('hidden');
-            toggleLoading(false);
+            document.getElementById('loading-overlay').classList.add('hidden');
         }
 
         function showError(message) {
             document.getElementById('error-text').innerText = message;
             document.getElementById('error-message').classList.remove('hidden');
-            toggleLoading(false);
+            document.getElementById('loading-overlay').classList.add('hidden');
         }
 
         function toggleLoading(isLoading, message = 'กำลังโหลด...') {
@@ -236,6 +243,9 @@
             if (isLoading) {
                 overlay.querySelector('p').innerText = message;
                 overlay.classList.remove('hidden');
+                document.getElementById('error-message').classList.add('hidden'); // ซ่อนข้อความ error
+                document.getElementById('registration-section').classList.add('hidden'); // ซ่อนฟอร์มลงทะเบียน
+                document.getElementById('appointment-section').classList.add('hidden'); // ซ่อนฟอร์มนัดหมาย
             } else {
                 overlay.classList.add('hidden');
             }
@@ -243,5 +253,3 @@
     </script>
 </body>
 </html>
-
-
