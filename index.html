@@ -20,7 +20,7 @@
 </head>
 <body class="bg-gray-100">
 
-    <div id="loading-overlay" class="hidden"> <!-- ** CHANGE: Start as hidden ** -->
+    <div id="loading-overlay">
         <div class="spinner"></div>
         <p class="mt-4 text-gray-600">กำลังตรวจสอบข้อมูล...</p>
     </div>
@@ -106,18 +106,18 @@
         });
 
         async function initializeLiff() {
-            toggleLoading(true, 'กำลังเริ่มต้น...'); // ** CHANGE: Show loading here **
+            toggleLoading(true, 'กำลังเริ่มต้น...');
             try {
                 await liff.init({ liffId: LIFF_ID });
 
                 if (!liff.isLoggedIn()) {
                     liff.login();
-                    return; // Stop execution to allow login redirect
+                    return; 
                 }
 
                 userProfile = await liff.getProfile();
                 
-                toggleLoading(true, 'กำลังตรวจสอบข้อมูล...'); // Keep loading visible
+                toggleLoading(true, 'กำลังตรวจสอบข้อมูล...');
                 const response = await apiCall({ requestType: 'checkRegistration', lineUserId: userProfile.userId });
                 
                 if (response && typeof response.registered !== 'undefined') {
@@ -131,9 +131,6 @@
                 }
             } catch (error) {
                 showError(`เกิดข้อผิดพลาดร้ายแรง: ${error.message}`); 
-            } finally {
-                // ** FINAL FIX: Ensure loading is always hidden after initialization logic is complete **
-                toggleLoading(false); 
             }
         }
         
@@ -217,6 +214,7 @@
         function showRegistrationForm() {
             document.getElementById('reg-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
             document.getElementById('registration-section').classList.remove('hidden');
+            toggleLoading(false); // ** MOBILE FIX: Hide loading WHEN this form is shown **
         }
 
         function showAppointmentForm() {
@@ -228,19 +226,20 @@
             
             document.getElementById('registration-section').classList.add('hidden');
             document.getElementById('appointment-section').classList.remove('hidden');
+            toggleLoading(false); // ** MOBILE FIX: Hide loading WHEN this form is shown **
         }
 
         function showError(message) {
             document.getElementById('error-text').innerText = message;
             document.getElementById('error-message').classList.remove('hidden');
-            toggleLoading(false); // Ensure loading is hidden on error
+            toggleLoading(false);
         }
 
         function toggleLoading(isLoading, message = 'กำลังโหลด...') {
             const overlay = document.getElementById('loading-overlay');
             if (isLoading) {
                 overlay.querySelector('p').innerText = message;
-                overlay.style.display = 'flex'; // Use display instead of hidden class
+                overlay.style.display = 'flex';
             } else {
                 overlay.style.display = 'none';
             }
@@ -248,3 +247,4 @@
     </script>
 </body>
 </html>
+
