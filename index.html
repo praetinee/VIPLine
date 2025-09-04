@@ -20,7 +20,7 @@
 </head>
 <body class="bg-gray-100">
 
-    <div id="loading-overlay">
+    <div id="loading-overlay" class="hidden"> <!-- ** CHANGE: Start as hidden ** -->
         <div class="spinner"></div>
         <p class="mt-4 text-gray-600">กำลังตรวจสอบข้อมูล...</p>
     </div>
@@ -94,7 +94,7 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxnRaWsepZ-Uho6wvh5NgL05kLy9e4DnyaPkDXpRHSxct9Btu_Xx5hJkc9VHWOdee8o6g/exec'; // <-- !! อย่าลืมเปลี่ยน URL นี้เป็นอันใหม่หลัง Deploy Script !!
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXeKAyg2VNeeH69Yw4LsRWuRU-BGxCQ-ntY2qeQZLKf5ICmpXAOLOkAxaXpwQ4lOPTrg/exec'; // <-- ใช้ URL เดิมได้เลย
         const LIFF_ID = '2008050252-Dopb2KMZ';
 
         let userProfile = null;
@@ -106,40 +106,34 @@
         });
 
         async function initializeLiff() {
+            toggleLoading(true, 'กำลังเริ่มต้น...'); // ** CHANGE: Show loading here **
             try {
-                console.log('DEBUG: Initializing LIFF...');
                 await liff.init({ liffId: LIFF_ID });
-                console.log('DEBUG: LIFF initialized.');
 
                 if (!liff.isLoggedIn()) {
-                    console.log('DEBUG: User not logged in. Redirecting to login...');
                     liff.login();
-                    return;
+                    return; // Stop execution to allow login redirect
                 }
-                console.log('DEBUG: User is logged in.');
 
                 userProfile = await liff.getProfile();
-                console.log('DEBUG: User profile obtained:', userProfile);
                 
-                console.log('DEBUG: Checking registration status...');
+                toggleLoading(true, 'กำลังตรวจสอบข้อมูล...'); // Keep loading visible
                 const response = await apiCall({ requestType: 'checkRegistration', lineUserId: userProfile.userId });
-
-                console.log('DEBUG: Registration check response received:', response);
+                
                 if (response && typeof response.registered !== 'undefined') {
                     if (response.registered) {
-                        console.log('DEBUG: User is registered. Showing appointment form.');
                         showAppointmentForm();
                     } else {
-                        console.log('DEBUG: User is not registered. Showing registration form.');
                         showRegistrationForm();
                     }
                 } else {
-                    console.error('DEBUG: Invalid response format from server:', response);
                     showError('ไม่สามารถตรวจสอบสถานะการลงทะเบียนได้: ข้อมูลตอบกลับไม่ถูกต้อง');
                 }
             } catch (error) {
-                console.error('DEBUG: An error occurred during LIFF initialization:', error);
                 showError(`เกิดข้อผิดพลาดร้ายแรง: ${error.message}`); 
+            } finally {
+                // ** FINAL FIX: Ensure loading is always hidden after initialization logic is complete **
+                toggleLoading(false); 
             }
         }
         
@@ -207,35 +201,22 @@
         }
 
         async function apiCall(body) {
-            console.log('DEBUG: Sending API call with body:', body);
-            const response = await fetch(SCRIPT_URL, {
+             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 redirect: 'follow',
                 body: JSON.stringify(body),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             });
-
-            console.log('DEBUG: Received response with status:', response.status);
-            const responseText = await response.text();
-            console.log('DEBUG: Raw response text from server:', responseText);
-
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             }
-            try {
-                const jsonData = JSON.parse(responseText);
-                console.log('DEBUG: Parsed JSON response:', jsonData);
-                return jsonData;
-            } catch (e) {
-                console.error('DEBUG: Failed to parse JSON:', e);
-                throw new Error(`Failed to parse JSON response from server. Response was: ${responseText}`);
-            }
+            return response.json();
         }
         
         function showRegistrationForm() {
             document.getElementById('reg-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
             document.getElementById('registration-section').classList.remove('hidden');
-            toggleLoading(false);
         }
 
         function showAppointmentForm() {
@@ -247,22 +228,21 @@
             
             document.getElementById('registration-section').classList.add('hidden');
             document.getElementById('appointment-section').classList.remove('hidden');
-            toggleLoading(false);
         }
 
         function showError(message) {
             document.getElementById('error-text').innerText = message;
             document.getElementById('error-message').classList.remove('hidden');
-            document.getElementById('loading-overlay').classList.add('hidden'); // Ensure loading is hidden on error
+            toggleLoading(false); // Ensure loading is hidden on error
         }
 
         function toggleLoading(isLoading, message = 'กำลังโหลด...') {
             const overlay = document.getElementById('loading-overlay');
             if (isLoading) {
                 overlay.querySelector('p').innerText = message;
-                overlay.classList.remove('hidden');
+                overlay.style.display = 'flex'; // Use display instead of hidden class
             } else {
-                overlay.classList.add('hidden');
+                overlay.style.display = 'none';
             }
         }
     </script>
