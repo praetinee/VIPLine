@@ -8,11 +8,20 @@
     <style>
         body { font-family: 'Kanit', sans-serif; }
         .form-label { @apply block text-gray-700 text-sm font-bold mb-2; }
-        .form-input, .form-select { @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline; }
+        .form-input, .form-select, .form-textarea { @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline; }
         .submit-btn { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full; }
+        .contact-btn { @apply mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full; }
+        
+        /* Loading Overlay */
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #09f; animation: spin 1s ease infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Custom Modal */
+        #custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+        #custom-modal { background-color: white; padding: 20px; border-radius: 8px; text-align: center; max-width: 90%; width: 400px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        #custom-modal p { margin-bottom: 20px; }
+        #custom-modal button { @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded; }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,6 +34,13 @@
         <p class="mt-4 text-gray-600">กำลังตรวจสอบข้อมูล...</p>
     </div>
 
+    <div id="custom-modal-overlay" class="hidden">
+        <div id="custom-modal">
+            <p id="modal-text"></p>
+            <button id="modal-close-btn">ตกลง</button>
+        </div>
+    </div>
+
     <div id="registration-section" class="container mx-auto p-4 max-w-lg hidden">
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <h1 class="text-2xl font-bold text-gray-800 text-center mb-2">ลงทะเบียนใช้งาน</h1>
@@ -32,16 +48,15 @@
             <p class="text-center text-sm text-gray-500 mb-6">กรุณากรอกข้อมูลเพื่อเชื่อมต่อบัญชี LINE และเริ่มใช้งานระบบนัดหมาย (ทำเพียงครั้งแรกเท่านั้น)</p>
             <form id="registration-form">
                 <div class="mb-4">
-                    <label class="form-label" for="name-input">ชื่อ-นามสกุล</label>
+                    <label class="form-label" for="name-input">ชื่อ-นามสกุล (ตามที่ลงทะเบียนกับ รพ.)</label>
                     <input class="form-input" id="name-input" name="name" type="text" placeholder="เช่น สมชาย ใจดี" required>
                 </div>
                 <div class="mb-4">
                     <label class="form-label" for="hn-input">หมายเลข HN</label>
                     <input class="form-input" id="hn-input" name="hn" type="text" placeholder="กรอก HN ของท่าน" required>
                 </div>
-                <div class="flex items-center justify-between">
-                    <button class="submit-btn" type="submit" id="register-button">ลงทะเบียน</button>
-                </div>
+                <div id="registration-error-section"></div>
+                <button class="submit-btn" type="submit" id="register-button">ลงทะเบียน</button>
             </form>
         </div>
     </div>
@@ -53,8 +68,27 @@
                 <p id="appt-welcome-message" class="text-gray-600"></p>
             </div>
             <form id="appointment-form">
-                <input type="hidden" id="lineUserId" name="lineUserId">
-                <input type="hidden" id="displayName" name="displayName">
+                <!-- Patient Info -->
+                <h2 class="text-lg font-semibold mb-2 border-b pb-2">ข้อมูลผู้เข้ารับการรักษา</h2>
+                <div class="mb-4">
+                    <label class="form-label" for="relationship">ความสัมพันธ์กับเจ้าหน้าที่</label>
+                    <select class="form-select" id="relationship" name="relationship" required>
+                        <option value="" disabled selected>-- กรุณาเลือก --</option>
+                        <option value="บิดา">บิดา</option>
+                        <option value="มารดา">มารดา</option>
+                        <option value="คู่สมรส">คู่สมรส (ตามกฎหมาย)</option>
+                        <option value="บุตร">บุตร</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                </div>
+                 <div class="mb-4">
+                    <label class="form-label" for="patientName">ชื่อ-นามสกุล ของผู้ป่วย</label>
+                    <input class="form-input" id="patientName" name="patientName" type="text" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" for="patientId">หมายเลขบัตรประชาชน ของผู้ป่วย</label>
+                    <input class="form-input" id="patientId" name="patientId" type="text" pattern="\d{13}" title="กรุณากรอกหมายเลขบัตรประชาชน 13 หลัก" required>
+                </div>
                 <div class="mb-4">
                     <label class="form-label" for="physicalState">ลักษณะทางกายภาพของผู้ป่วย</label>
                     <select class="form-select" id="physicalState" name="physicalState" required>
@@ -64,9 +98,12 @@
                         <option value="นอนเปล (Stretcher)">นอนเปล (Stretcher)</option>
                     </select>
                 </div>
-                <div class="mb-4">
-                    <label class="form-label" for="treatmentReason">ต้องการเข้ารับการรักษาเรื่องอะไร</label>
-                    <input class="form-input" id="treatmentReason" name="treatmentReason" type="text" placeholder="เช่น ตรวจสุขภาพ, ติดตามอาการปวดท้อง" required>
+                
+                <!-- Appointment Details -->
+                <h2 class="text-lg font-semibold mt-6 mb-2 border-b pb-2">รายละเอียดการนัดหมาย</h2>
+                 <div class="mb-4">
+                    <label class="form-label" for="symptoms">อาการ/ความผิดปกติที่ต้องการรักษา</label>
+                    <textarea class="form-textarea" id="symptoms" name="symptoms" rows="3" placeholder="เช่น ตรวจสุขภาพ, ติดตามอาการปวดท้อง" required></textarea>
                 </div>
                 <div class="mb-4">
                     <label class="form-label" for="appointmentType">ประเภทการนัด</label>
@@ -76,20 +113,52 @@
                         <option value="ติดตามอาการ">ติดตามอาการ (Follow-up)</option>
                     </select>
                 </div>
+
+                <!-- Follow-up Conditional Section -->
+                <div id="follow-up-section" class="hidden border-l-4 border-blue-300 pl-4 mb-4">
+                    <div class="mb-4">
+                        <label class="form-label" for="department">แผนกที่นัดหมาย</label>
+                        <select class="form-select" id="department" name="department">
+                            <option value="" disabled selected>-- กรุณาเลือกแผนก --</option>
+                            <option value="อายุรกรรม">อายุรกรรม</option>
+                            <option value="ศัลยกรรม">ศัลยกรรม</option>
+                            <option value="กุมารเวชกรรม">กุมารเวชกรรม</option>
+                            <option value="สูติ-นรีเวชกรรม">สูติ-นรีเวชกรรม</option>
+                            <option value="อื่นๆ">อื่นๆ (โปรดระบุในหมายเหตุ)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <span class="form-label">ประเภทการติดตามอาการ</span>
+                        <div class="mt-2">
+                             <label class="inline-flex items-center">
+                                <input type="radio" class="form-radio" name="followUpType" value="มารักษาตามใบนัดเดิม">
+                                <span class="ml-2">มารักษาตามใบนัดเดิม</span>
+                            </label>
+                            <label class="inline-flex items-center ml-6">
+                                <input type="radio" class="form-radio" name="followUpType" value="ไม่ได้มาตามใบนัด">
+                                <span class="ml-2">ไม่ได้มาตามใบนัด</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label" for="desiredDate">วันที่ต้องการนัด</label>
+                        <input class="form-input" id="desiredDate" name="desiredDate" type="date" required>
+                    </div>
+                     <div>
+                        <label class="form-label" for="desiredTime">เวลาที่ต้องการนัด</label>
+                        <input class="form-input" id="desiredTime" name="desiredTime" type="time" min="08:00" max="15:00" required>
+                    </div>
+                </div>
                 <div class="mb-6">
-                    <label class="form-label" for="desiredDate">วันที่ต้องการเข้ารับการรักษา</label>
-                    <input class="form-input" id="desiredDate" name="desiredDate" type="date" required>
+                    <label class="form-label" for="remarks">หมายเหตุ (ถ้ามี)</label>
+                    <textarea class="form-textarea" id="remarks" name="remarks" rows="2" placeholder="ข้อมูลเพิ่มเติมที่ต้องการแจ้งเจ้าหน้าที่"></textarea>
                 </div>
-                <div class="flex items-center justify-between">
-                    <button class="submit-btn" type="submit" id="submit-button">ส่งข้อมูลนัดหมาย</button>
-                </div>
+                <button class="submit-btn" type="submit" id="submit-button">ส่งข้อมูลนัดหมาย</button>
             </form>
         </div>
-    </div>
-
-    <div id="error-message" class="container mx-auto p-4 max-w-lg text-center bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative hidden" role="alert">
-        <strong class="font-bold">เกิดข้อผิดพลาด!</strong>
-        <span class="block sm:inline" id="error-text"></span>
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -98,11 +167,54 @@
         const LIFF_ID = '2008050252-Dopb2KMZ';
 
         let userProfile = null;
+        let staffInfo = null;
+
+        // Modal elements
+        const modalOverlay = document.getElementById('custom-modal-overlay');
+        const modalText = document.getElementById('modal-text');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) { hideModal(); }
+        });
+        modalCloseBtn.addEventListener('click', hideModal);
+
+        function showModal(message) {
+            modalText.innerHTML = message; // Use innerHTML to render line breaks
+            modalOverlay.classList.remove('hidden');
+        }
+
+        function hideModal() {
+            modalOverlay.classList.add('hidden');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeLiff();
             document.getElementById('registration-form').addEventListener('submit', handleRegistration);
             document.getElementById('appointment-form').addEventListener('submit', handleAppointmentSubmit);
+            
+            // Add event listener for conditional follow-up section
+            document.getElementById('appointmentType').addEventListener('change', function() {
+                const followUpSection = document.getElementById('follow-up-section');
+                const departmentInput = document.getElementById('department');
+                const followUpTypeRadios = document.querySelectorAll('input[name="followUpType"]');
+
+                if (this.value === 'ติดตามอาการ') {
+                    followUpSection.classList.remove('hidden');
+                    departmentInput.required = true;
+                    followUpTypeRadios.forEach(radio => radio.required = true);
+
+                } else {
+                    followUpSection.classList.add('hidden');
+                    departmentInput.required = false;
+                    followUpTypeRadios.forEach(radio => radio.required = false);
+                }
+            });
+
+            // Add event listener for date and time validation
+            document.getElementById('desiredDate').addEventListener('input', validateDate);
+            document.getElementById('desiredTime').addEventListener('input', validateTime);
+
         });
 
         async function initializeLiff() {
@@ -122,15 +234,16 @@
                 
                 if (response && typeof response.registered !== 'undefined') {
                     if (response.registered) {
+                        staffInfo = response.staffInfo;
                         showAppointmentForm();
                     } else {
                         showRegistrationForm();
                     }
                 } else {
-                    showError('ไม่สามารถตรวจสอบสถานะการลงทะเบียนได้: ข้อมูลตอบกลับไม่ถูกต้อง');
+                    showModal('ไม่สามารถตรวจสอบสถานะการลงทะเบียนได้');
                 }
             } catch (error) {
-                showError(`เกิดข้อผิดพลาดร้ายแรง: ${error.message}`); 
+                showModal(`เกิดข้อผิดพลาด: ${error.message}`); 
             }
         }
         
@@ -139,7 +252,7 @@
             const name = document.getElementById('name-input').value.trim();
             const hn = document.getElementById('hn-input').value.trim();
             if (!name || !hn) {
-                alert('กรุณากรอกชื่อ-นามสกุล และหมายเลข HN ให้ครบถ้วน');
+                showModal('กรุณากรอกชื่อ-นามสกุล และหมายเลข HN ให้ครบถ้วน');
                 return;
             }
             toggleLoading(true, 'กำลังลงทะเบียน...');
@@ -154,13 +267,16 @@
                 });
 
                 if (response.status === 'success') {
-                    alert('ลงทะเบียนสำเร็จ!');
-                    showAppointmentForm();
+                    showModal('ลงทะเบียนสำเร็จ!');
+                    // Re-check registration to get staff info and proceed
+                    initializeLiff(); 
                 } else {
-                    alert('ลงทะเบียนไม่สำเร็จ: ' + response.message);
+                    showModal('ลงทะเบียนไม่สำเร็จ: ' + response.message);
+                    addContactButton();
                 }
             } catch (error) {
-                 alert('เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + error.message);
+                 showModal('เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + error.message);
+                 addContactButton();
             } finally {
                 toggleLoading(false);
             }
@@ -168,30 +284,40 @@
 
         async function handleAppointmentSubmit(event) {
             event.preventDefault();
+
+            // Relationship Validation
+            const relationship = document.getElementById('relationship').value;
+            if (relationship === 'อื่นๆ') {
+                showModal('ช่องทางนี้เป็นการนัดหมายสำหรับเจ้าหน้าที่ รพ. สันทราย และญาติสายตรงเท่านั้น<br><br>สำหรับบุคคลทั่วไป เพื่อความสะดวกและรวดเร็ว กรุณาติดต่อ 053-921-199 หรือที่ LINE หลักของโรงพยาบาล<br><a href="https://page.line.me/wfk5427z" target="_blank" class="text-blue-500 underline">LINE รพ.สันทราย</a>');
+                return;
+            }
+
             toggleLoading(true, 'กำลังส่งข้อมูลนัดหมาย...');
 
             try {
                 const formData = {
                     requestType: 'submitAppointment',
                     lineUserId: userProfile.userId,
-                    displayName: userProfile.displayName,
+                    relationship: document.getElementById('relationship').value,
+                    patientName: document.getElementById('patientName').value,
+                    patientId: document.getElementById('patientId').value,
                     physicalState: document.getElementById('physicalState').value,
-                    treatmentReason: document.getElementById('treatmentReason').value,
+                    symptoms: document.getElementById('symptoms').value,
                     appointmentType: document.getElementById('appointmentType').value,
+                    department: document.getElementById('department').value,
+                    followUpType: document.querySelector('input[name="followUpType"]:checked')?.value,
                     desiredDate: document.getElementById('desiredDate').value,
+                    desiredTime: document.getElementById('desiredTime').value,
+                    remarks: document.getElementById('remarks').value,
                 };
                 
-                if(!formData.physicalState || !formData.treatmentReason || !formData.appointmentType || !formData.desiredDate) {
-                    alert('กรุณากรอกข้อมูลให้ครบถ้วน');
-                    toggleLoading(false);
-                    return;
-                }
-
                 await apiCall(formData);
-                alert('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ค่ะ');
-                liff.closeWindow();
+                showModal('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ผ่านทาง LINE ค่ะ');
+                // Close LIFF window after user clicks OK on modal
+                modalCloseBtn.onclick = () => { liff.closeWindow(); };
+
             } catch (error) {
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
+                showModal('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
             } finally {
                 toggleLoading(false);
             }
@@ -214,25 +340,52 @@
         function showRegistrationForm() {
             document.getElementById('reg-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
             document.getElementById('registration-section').classList.remove('hidden');
-            requestAnimationFrame(() => toggleLoading(false));
+            toggleLoading(false);
         }
 
         function showAppointmentForm() {
-            document.getElementById('appt-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
-            document.getElementById('lineUserId').value = userProfile.userId;
-            document.getElementById('displayName').value = userProfile.displayName;
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('desiredDate').setAttribute('min', today);
+            document.getElementById('appt-welcome-message').innerText = `ทำการนัดหมายในนาม: ${staffInfo.name} (HN: ${staffInfo.hn})`;
+            const today = new Date();
+            today.setDate(today.getDate() + 1); // Start from tomorrow
+            const minDate = today.toISOString().split('T')[0];
+            document.getElementById('desiredDate').setAttribute('min', minDate);
             
             document.getElementById('registration-section').classList.add('hidden');
             document.getElementById('appointment-section').classList.remove('hidden');
-            requestAnimationFrame(() => toggleLoading(false));
+            toggleLoading(false);
         }
 
-        function showError(message) {
-            document.getElementById('error-text').innerText = message;
-            document.getElementById('error-message').classList.remove('hidden');
-            requestAnimationFrame(() => toggleLoading(false));
+        function validateDate() {
+            const dateInput = document.getElementById('desiredDate');
+            const selectedDate = new Date(dateInput.value);
+            const day = selectedDate.getUTCDay(); // 0 = Sunday, 6 = Saturday
+
+            if (day === 0 || day === 6) {
+                showModal('ไม่สามารถเลือกวันเสาร์หรือวันอาทิตย์ได้ กรุณาเลือกวันทำการ (จันทร์-ศุกร์)');
+                dateInput.value = ''; // Clear the invalid date
+            }
+        }
+
+        function validateTime() {
+            // Additional time validation if needed, but min/max attributes handle most cases
+            const timeInput = document.getElementById('desiredTime');
+            const timeVal = timeInput.value;
+            if (timeVal < "08:00" || timeVal > "15:00") {
+                 showModal('กรุณาเลือกเวลาระหว่าง 08:00 - 15:00 น.');
+            }
+        }
+        
+        function addContactButton() {
+            const errorSection = document.getElementById('registration-error-section');
+            if (!document.getElementById('contact-btn')) { // Prevent adding multiple buttons
+                const contactButton = document.createElement('a');
+                contactButton.id = 'contact-btn';
+                contactButton.href = 'https://page.line.me/wfk5427z'; // Hospital's LINE OA
+                contactButton.target = '_blank';
+                contactButton.className = 'contact-btn inline-block text-center';
+                contactButton.innerText = 'ติดต่อเจ้าหน้าที่';
+                errorSection.appendChild(contactButton);
+            }
         }
 
         function toggleLoading(isLoading, message = 'กำลังโหลด...') {
@@ -247,4 +400,3 @@
     </script>
 </body>
 </html>
-
