@@ -244,7 +244,9 @@
             } catch (error) {
                 console.error('Initialization Error:', error);
                 const errorMessage = (error && error.message) ? error.message : 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์หรือเริ่มต้นระบบได้';
-                showModal(`เกิดข้อผิดพลาดในการเริ่มต้น: ${errorMessage}`); 
+                // --- START: MODIFIED CODE ---
+                showModal(`เกิดข้อผิดพลาดในการเริ่มต้น:<br><br><strong class="text-red-600 text-left block">${errorMessage}</strong>`); 
+                // --- END: MODIFIED CODE ---
             } finally {
                 toggleLoading(false);
             }
@@ -454,4 +456,3 @@
     </script>
 </body>
 </html>
-
