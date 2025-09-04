@@ -74,6 +74,7 @@
                     <label class="form-label" for="relationship">ความสัมพันธ์กับเจ้าหน้าที่</label>
                     <select class="form-select" id="relationship" name="relationship" required>
                         <option value="" disabled selected>-- กรุณาเลือก --</option>
+                        <option value="เจ้าหน้าที่เอง">เจ้าหน้าที่เอง</option>
                         <option value="บิดา">บิดา</option>
                         <option value="มารดา">มารดา</option>
                         <option value="คู่สมรส">คู่สมรส (ตามกฎหมาย)</option>
@@ -210,7 +211,8 @@
                     followUpTypeRadios.forEach(radio => radio.required = false);
                 }
             });
-
+            
+            document.getElementById('relationship').addEventListener('change', handleRelationshipChange);
             document.getElementById('desiredDate').addEventListener('input', validateDate);
             document.getElementById('desiredTime').addEventListener('input', validateTime);
         });
@@ -243,6 +245,8 @@
             } catch (error) {
                 console.error('Initialization Error:', error);
                 showModal(`เกิดข้อผิดพลาดในการเริ่มต้น: ${error.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'}`); 
+            } finally {
+                toggleLoading(false);
             }
         }
         
@@ -336,35 +340,61 @@
                     throw new Error(`Server error (status: ${response.status}): ${responseText}`);
                 }
                 
-                // Try to parse the text as JSON.
-                return JSON.parse(responseText);
+                try {
+                    return JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON Parse Error. Raw response:', responseText);
+                    throw new Error('การตอบกลับจากเซิร์ฟเวอร์ไม่ถูกต้อง');
+                }
 
             } catch (error) {
-                // This will catch network errors and JSON parsing errors.
-                throw new Error(`ไม่สามารถสื่อสารกับเซิร์ฟเวอร์ได้: ${error.message}`);
+                throw new Error(`${error.message}`);
             }
         }
         
         function showRegistrationForm() {
             document.getElementById('reg-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
             document.getElementById('registration-section').classList.remove('hidden');
-            toggleLoading(false);
         }
 
         function showAppointmentForm() {
+            if (!staffInfo || !staffInfo.name) {
+                showModal('ไม่สามารถโหลดข้อมูลเจ้าหน้าที่ได้ กรุณาลองใหม่อีกครั้ง');
+                console.error('Critical: staffInfo is invalid', staffInfo);
+                showRegistrationForm(); // Fallback to registration
+                return;
+            }
             document.getElementById('appt-welcome-message').innerText = `ทำการนัดหมายในนาม: ${staffInfo.name} (HN: ${staffInfo.hn})`;
             const today = new Date();
-            today.setDate(today.getDate() + 1); // Start from tomorrow
+            today.setDate(today.getDate() + 1); 
             const minDate = today.toISOString().split('T')[0];
             document.getElementById('desiredDate').setAttribute('min', minDate);
             
             document.getElementById('registration-section').classList.add('hidden');
             document.getElementById('appointment-section').classList.remove('hidden');
-            toggleLoading(false);
+        }
+        
+        function handleRelationshipChange() {
+            const relationshipSelect = document.getElementById('relationship');
+            const patientNameInput = document.getElementById('patientName');
+            const patientIdInput = document.getElementById('patientId');
+
+            if (relationshipSelect.value === 'เจ้าหน้าที่เอง' && staffInfo) {
+                patientNameInput.value = staffInfo.name;
+                patientNameInput.readOnly = true;
+                patientNameInput.classList.add('bg-gray-200');
+                patientIdInput.value = ''; // Clear ID field for user to input
+                patientIdInput.focus();
+            } else {
+                patientNameInput.value = '';
+                patientNameInput.readOnly = false;
+                patientNameInput.classList.remove('bg-gray-200');
+            }
         }
 
         function validateDate() {
             const dateInput = document.getElementById('desiredDate');
+            if (!dateInput.value) return;
             const selectedDate = new Date(dateInput.value);
             const day = selectedDate.getUTCDay(); // 0 = Sunday, 6 = Saturday
 
@@ -385,10 +415,10 @@
         
         function addContactButton() {
             const errorSection = document.getElementById('registration-error-section');
-            if (!document.getElementById('contact-btn')) { // Prevent adding multiple buttons
+            if (!document.getElementById('contact-btn')) { 
                 const contactButton = document.createElement('a');
                 contactButton.id = 'contact-btn';
-                contactButton.href = 'https://page.line.me/wfk5427z'; // Hospital's LINE OA
+                contactButton.href = 'https://page.line.me/wfk5427z'; 
                 contactButton.target = '_blank';
                 contactButton.className = 'contact-btn inline-block text-center';
                 contactButton.innerText = 'ติดต่อเจ้าหน้าที่';
