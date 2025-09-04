@@ -214,7 +214,7 @@
         function showRegistrationForm() {
             document.getElementById('reg-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
             document.getElementById('registration-section').classList.remove('hidden');
-            toggleLoading(false); // ** MOBILE FIX: Hide loading WHEN this form is shown **
+            setTimeout(() => { toggleLoading(false); }, 100);
         }
 
         function showAppointmentForm() {
@@ -226,13 +226,13 @@
             
             document.getElementById('registration-section').classList.add('hidden');
             document.getElementById('appointment-section').classList.remove('hidden');
-            toggleLoading(false); // ** MOBILE FIX: Hide loading WHEN this form is shown **
+            setTimeout(() => { toggleLoading(false); }, 100);
         }
 
         function showError(message) {
             document.getElementById('error-text').innerText = message;
             document.getElementById('error-message').classList.remove('hidden');
-            toggleLoading(false);
+            setTimeout(() => { toggleLoading(false); }, 100);
         }
 
         function toggleLoading(isLoading, message = 'กำลังโหลด...') {
