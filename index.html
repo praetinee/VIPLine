@@ -25,7 +25,6 @@
         <p class="mt-4 text-gray-600">กำลังตรวจสอบข้อมูล...</p>
     </div>
 
-    <!-- **ปรับปรุง** Registration Section กลับไปเป็นแบบง่าย -->
     <div id="registration-section" class="container mx-auto p-4 max-w-lg hidden">
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <h1 class="text-2xl font-bold text-gray-800 text-center mb-2">ลงทะเบียนใช้งาน</h1>
@@ -47,7 +46,6 @@
         </div>
     </div>
 
-    <!-- Appointment Section (ไม่มีการเปลี่ยนแปลง) -->
     <div id="appointment-section" class="container mx-auto p-4 max-w-lg hidden">
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <div class="mb-6 text-center">
@@ -96,40 +94,55 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkvLh0KlOQslk1lbXwRkJr9b8fpJEjqXD-nl5xMWp-Oxqi0_tnBsyfMzNLTDOdqqlH/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXeKAyg2VNeeH69Yw4LsRWuRU-BGxCQ-ntY2qeQZLKf5ICmpXAOLOkAxaXpwQ4lOPTrg/exec'; // <-- !! อย่าลืมเปลี่ยน URL นี้เป็นอันใหม่หลัง Deploy Script !!
         const LIFF_ID = '2008050252-Dopb2KMZ';
 
         let userProfile = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeLiff();
-            // **ปรับปรุง** ใช้ Event Listener สำหรับฟอร์มลงทะเบียนแบบง่าย
             document.getElementById('registration-form').addEventListener('submit', handleRegistration);
             document.getElementById('appointment-form').addEventListener('submit', handleAppointmentSubmit);
         });
 
         async function initializeLiff() {
             try {
+                console.log('DEBUG: Initializing LIFF...');
                 await liff.init({ liffId: LIFF_ID });
+                console.log('DEBUG: LIFF initialized.');
+
                 if (!liff.isLoggedIn()) {
+                    console.log('DEBUG: User not logged in. Redirecting to login...');
                     liff.login();
                     return;
                 }
+                console.log('DEBUG: User is logged in.');
+
                 userProfile = await liff.getProfile();
+                console.log('DEBUG: User profile obtained:', userProfile);
                 
+                console.log('DEBUG: Checking registration status...');
                 const response = await apiCall({ requestType: 'checkRegistration', lineUserId: userProfile.userId });
 
-                if (response.registered) {
-                    showAppointmentForm();
+                console.log('DEBUG: Registration check response received:', response);
+                if (response && typeof response.registered !== 'undefined') {
+                    if (response.registered) {
+                        console.log('DEBUG: User is registered. Showing appointment form.');
+                        showAppointmentForm();
+                    } else {
+                        console.log('DEBUG: User is not registered. Showing registration form.');
+                        showRegistrationForm();
+                    }
                 } else {
-                    showRegistrationForm();
+                    console.error('DEBUG: Invalid response format from server:', response);
+                    showError('ไม่สามารถตรวจสอบสถานะการลงทะเบียนได้: ข้อมูลตอบกลับไม่ถูกต้อง');
                 }
             } catch (error) {
-                showError('เกิดข้อผิดพลาดในการเริ่มต้นระบบ: ' + error.message);
+                console.error('DEBUG: An error occurred during LIFF initialization:', error);
+                showError(`เกิดข้อผิดพลาดร้ายแรง: ${error.message}`); 
             }
         }
-
-        // **ปรับปรุง** ฟังก์ชันสำหรับจัดการการลงทะเบียนแบบไม่มี OTP
+        
         async function handleRegistration(event) {
             event.preventDefault();
             const name = document.getElementById('name-input').value.trim();
@@ -156,14 +169,13 @@
                     alert('ลงทะเบียนไม่สำเร็จ: ' + response.message);
                 }
             } catch (error) {
-                 alert('เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์');
+                 alert('เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + error.message);
             } finally {
                 toggleLoading(false);
             }
         }
 
         async function handleAppointmentSubmit(event) {
-            // (ฟังก์ชันนี้ไม่มีการเปลี่ยนแปลง)
             event.preventDefault();
             toggleLoading(true, 'กำลังส่งข้อมูลนัดหมาย...');
 
@@ -187,7 +199,6 @@
                 await apiCall(formData);
                 alert('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ค่ะ');
                 liff.closeWindow();
-
             } catch (error) {
                 alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
             } finally {
@@ -196,15 +207,29 @@
         }
 
         async function apiCall(body) {
-             const response = await fetch(SCRIPT_URL, {
+            console.log('DEBUG: Sending API call with body:', body);
+            const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
+                redirect: 'follow',
                 body: JSON.stringify(body),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             });
+
+            console.log('DEBUG: Received response with status:', response.status);
+            const responseText = await response.text();
+            console.log('DEBUG: Raw response text from server:', responseText);
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
             }
-            return response.json();
+            try {
+                const jsonData = JSON.parse(responseText);
+                console.log('DEBUG: Parsed JSON response:', jsonData);
+                return jsonData;
+            } catch (e) {
+                console.error('DEBUG: Failed to parse JSON:', e);
+                throw new Error(`Failed to parse JSON response from server. Response was: ${responseText}`);
+            }
         }
         
         function showRegistrationForm() {
@@ -228,7 +253,7 @@
         function showError(message) {
             document.getElementById('error-text').innerText = message;
             document.getElementById('error-message').classList.remove('hidden');
-            toggleLoading(false);
+            document.getElementById('loading-overlay').classList.add('hidden'); // Ensure loading is hidden on error
         }
 
         function toggleLoading(isLoading, message = 'กำลังโหลด...') {
