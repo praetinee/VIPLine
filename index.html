@@ -152,7 +152,8 @@
                 });
 
                 if (response.status === 'success') {
-                    alert('ลงทะเบียนสำเร็จ!'); // ใช้ alert ชั่วคราวเพื่อให้ผู้ใช้เห็นข้อความ
+                    // แทนที่ alert ด้วยการแสดงผลในหน้าจอหลัก
+                    showSuccess('ลงทะเบียนสำเร็จ!'); 
                     showAppointmentForm();
                 } else {
                     showError('ลงทะเบียนไม่สำเร็จ: ' + response.message);
@@ -188,7 +189,8 @@
 
                 const response = await apiCall(formData);
                 if (response.status === 'success') {
-                     alert('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ค่ะ');
+                     // แทนที่ alert ด้วยการแสดงผลในหน้าจอหลัก
+                     showSuccess('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ค่ะ');
                 } else {
                     showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + response.message);
                 }
@@ -249,6 +251,11 @@
             } else {
                 overlay.classList.add('hidden');
             }
+        }
+        
+        function showSuccess(message) {
+            // ฟังก์ชันใหม่สำหรับแสดงข้อความสำเร็จ
+            alert(message); // ใช้ alert ชั่วคราว
         }
     </script>
 </body>
