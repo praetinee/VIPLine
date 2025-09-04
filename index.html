@@ -182,7 +182,7 @@
 
         function showModal(message) {
             const defaultMessage = 'เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง หรือติดต่อเจ้าหน้าที่';
-            modalText.innerHTML = message || defaultMessage; // Use innerHTML to render line breaks
+            modalText.innerHTML = message || defaultMessage; 
             modalOverlay.classList.remove('hidden');
         }
 
@@ -229,7 +229,6 @@
 
                 userProfile = await liff.getProfile();
                 
-                toggleLoading(true, 'กำลังตรวจสอบข้อมูล...');
                 const response = await apiCall({ requestType: 'checkRegistration', lineUserId: userProfile.userId });
                 
                 if (response && typeof response.registered !== 'undefined') {
@@ -240,7 +239,7 @@
                         showRegistrationForm();
                     }
                 } else {
-                    showModal('ไม่สามารถตรวจสอบสถานะการลงทะเบียนได้: การตอบกลับไม่ถูกต้อง');
+                    throw new Error('การตอบกลับเพื่อตรวจสอบสถานะการลงทะเบียนไม่ถูกต้อง');
                 }
             } catch (error) {
                 console.error('Initialization Error:', error);
@@ -273,12 +272,11 @@
                     showModal('ลงทะเบียนสำเร็จ!');
                     initializeLiff(); 
                 } else {
-                    showModal('ลงทะเบียนไม่สำเร็จ: ' + response.message);
-                    addContactButton();
+                    throw new Error(response.message || 'ลงทะเบียนไม่สำเร็จ');
                 }
             } catch (error) {
                  console.error('Registration Error:', error);
-                 showModal('เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + (error.message || 'การเชื่อมต่อล้มเหลว'));
+                 showModal('ลงทะเบียนไม่สำเร็จ: ' + (error.message || 'การเชื่อมต่อล้มเหลว'));
                  addContactButton();
             } finally {
                 toggleLoading(false);
@@ -290,7 +288,7 @@
 
             const relationship = document.getElementById('relationship').value;
             if (relationship === 'อื่นๆ') {
-                showModal('ช่องทางนี้เป็นการนัดหมายสำหรับเจ้าหน้าที่ รพ. สันทราย และญาติสายตรงเท่านั้น<br><br>สำหรับบุคคลทั่วไป เพื่อความสะดวกและรวดเร็ว กรุณาติดต่อ 053-921-199 หรือที่ LINE หลักของโรงพยาบาล<br><a href="https://page.line.me/wfk5427z" target="_blank" class="text-blue-500 underline">LINE รพ.สันทราย</a>');
+                showModal('ช่องทางนี้สงวนสิทธิ์สำหรับเจ้าหน้าที่และญาติสายตรงเท่านั้น<br><br>กรุณาติดต่อ 053-921-199 หรือที่ LINE หลักของโรงพยาบาล<br><a href="https://page.line.me/wfk5427z" target="_blank" class="text-blue-500 underline">LINE รพ.สันทราย</a>');
                 return;
             }
 
@@ -313,7 +311,12 @@
                     remarks: document.getElementById('remarks').value,
                 };
                 
-                await apiCall(formData);
+                const response = await apiCall(formData);
+
+                if (response.status !== 'success') {
+                   throw new Error(response.message || 'ส่งข้อมูลไม่สำเร็จ');
+                }
+
                 showModal('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ผ่านทาง LINE ค่ะ');
                 modalCloseBtn.onclick = () => { liff.closeWindow(); };
 
@@ -326,8 +329,9 @@
         }
 
         async function apiCall(body) {
+            let response;
             try {
-                const response = await fetch(SCRIPT_URL, {
+                response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     redirect: 'follow',
                     body: JSON.stringify(body),
@@ -337,32 +341,36 @@
                 const responseText = await response.text();
 
                 if (!response.ok) {
-                    throw new Error(`Server error (status: ${response.status}): ${responseText}`);
+                    throw new Error(`เซิร์ฟเวอร์ขัดข้อง (status: ${response.status}): ${responseText}`);
                 }
                 
-                try {
-                    return JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error('JSON Parse Error. Raw response:', responseText);
-                    throw new Error('การตอบกลับจากเซิร์ฟเวอร์ไม่ถูกต้อง');
+                // Check if response is likely HTML (an error page from Google)
+                if (responseText.trim().startsWith("<!DOCTYPE html>")) {
+                    throw new Error("ได้รับข้อมูลผิดพลาดจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง");
                 }
 
+                return JSON.parse(responseText);
+
             } catch (error) {
-                throw new Error(`${error.message}`);
+                if (error instanceof SyntaxError) {
+                    // JSON parsing error
+                    console.error("Failed to parse JSON:", error);
+                    throw new Error("การตอบกลับจากเซิร์ฟเวอร์ไม่ถูกต้อง");
+                }
+                // Network errors or other exceptions
+                throw new Error(error.message);
             }
         }
         
         function showRegistrationForm() {
             document.getElementById('reg-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
             document.getElementById('registration-section').classList.remove('hidden');
+            document.getElementById('appointment-section').classList.add('hidden');
         }
 
         function showAppointmentForm() {
-            if (!staffInfo || !staffInfo.name) {
-                showModal('ไม่สามารถโหลดข้อมูลเจ้าหน้าที่ได้ กรุณาลองใหม่อีกครั้ง');
-                console.error('Critical: staffInfo is invalid', staffInfo);
-                showRegistrationForm(); // Fallback to registration
-                return;
+            if (!staffInfo || !staffInfo.name || !staffInfo.hn) {
+                throw new Error('ข้อมูลเจ้าหน้าที่ไม่สมบูรณ์');
             }
             document.getElementById('appt-welcome-message').innerText = `ทำการนัดหมายในนาม: ${staffInfo.name} (HN: ${staffInfo.hn})`;
             const today = new Date();
@@ -383,7 +391,7 @@
                 patientNameInput.value = staffInfo.name;
                 patientNameInput.readOnly = true;
                 patientNameInput.classList.add('bg-gray-200');
-                patientIdInput.value = ''; // Clear ID field for user to input
+                patientIdInput.value = ''; 
                 patientIdInput.focus();
             } else {
                 patientNameInput.value = '';
@@ -396,11 +404,11 @@
             const dateInput = document.getElementById('desiredDate');
             if (!dateInput.value) return;
             const selectedDate = new Date(dateInput.value);
-            const day = selectedDate.getUTCDay(); // 0 = Sunday, 6 = Saturday
+            const day = selectedDate.getUTCDay();
 
             if (day === 0 || day === 6) {
                 showModal('ไม่สามารถเลือกวันเสาร์หรือวันอาทิตย์ได้ กรุณาเลือกวันทำการ (จันทร์-ศุกร์)');
-                dateInput.value = ''; // Clear the invalid date
+                dateInput.value = '';
             }
         }
 
@@ -422,6 +430,7 @@
                 contactButton.target = '_blank';
                 contactButton.className = 'contact-btn inline-block text-center';
                 contactButton.innerText = 'ติดต่อเจ้าหน้าที่';
+                errorSection.innerHTML = ''; // Clear previous errors
                 errorSection.appendChild(contactButton);
             }
         }
