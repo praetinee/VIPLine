@@ -242,8 +242,7 @@
                     throw new Error('การตอบกลับเพื่อตรวจสอบสถานะการลงทะเบียนไม่ถูกต้อง');
                 }
             } catch (error) {
-                // More robust error handling to ensure a message is always shown.
-                console.error('Initialization Error:', error); // Log the full error object for debugging.
+                console.error('Initialization Error:', error);
                 const errorMessage = (error && error.message) ? error.message : 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์หรือเริ่มต้นระบบได้';
                 showModal(`เกิดข้อผิดพลาดในการเริ่มต้น: ${errorMessage}`); 
             } finally {
@@ -330,15 +329,20 @@
             }
         }
 
-        async function apiCall(body) {
-            let response;
+        async function apiCall(body, timeout = 15000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+
             try {
-                response = await fetch(SCRIPT_URL, {
+                const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     redirect: 'follow',
                     body: JSON.stringify(body),
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
 
                 const responseText = await response.text();
 
@@ -346,7 +350,6 @@
                     throw new Error(`เซิร์ฟเวอร์ขัดข้อง (status: ${response.status}): ${responseText}`);
                 }
                 
-                // Check if response is likely HTML (an error page from Google)
                 if (responseText.trim().startsWith("<!DOCTYPE html>")) {
                     throw new Error("ได้รับข้อมูลผิดพลาดจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง");
                 }
@@ -354,13 +357,15 @@
                 return JSON.parse(responseText);
 
             } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error('เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหม่อีกครั้ง');
+                }
                 if (error instanceof SyntaxError) {
-                    // JSON parsing error
                     console.error("Failed to parse JSON:", error);
                     throw new Error("การตอบกลับจากเซิร์ฟเวอร์ไม่ถูกต้อง");
                 }
-                // Network errors or other exceptions
-                throw new Error(error.message);
+                throw error;
             }
         }
         
