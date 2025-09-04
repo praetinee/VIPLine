@@ -242,8 +242,10 @@
                     throw new Error('การตอบกลับเพื่อตรวจสอบสถานะการลงทะเบียนไม่ถูกต้อง');
                 }
             } catch (error) {
-                console.error('Initialization Error:', error);
-                showModal(`เกิดข้อผิดพลาดในการเริ่มต้น: ${error.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'}`); 
+                // More robust error handling to ensure a message is always shown.
+                console.error('Initialization Error:', error); // Log the full error object for debugging.
+                const errorMessage = (error && error.message) ? error.message : 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์หรือเริ่มต้นระบบได้';
+                showModal(`เกิดข้อผิดพลาดในการเริ่มต้น: ${errorMessage}`); 
             } finally {
                 toggleLoading(false);
             }
