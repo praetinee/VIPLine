@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LIFF Connection Debugger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Kanit', sans-serif; padding: 1em; background-color: #f7fafc; }
+        .log-entry { padding: 0.75em 1em; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        .status-success { color: #38a169; font-weight: bold; }
+        .status-error { color: #e53e3e; font-weight: bold; }
+        .error-details { background-color: #fed7d7; border: 1px solid #e53e3e; color: #c53030; padding: 1em; margin-top: 1em; white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="bg-white shadow-md rounded-lg">
+        <h1 class="text-xl font-bold p-4 bg-gray-800 text-white rounded-t-lg">ผลการทดสอบการเชื่อมต่อ</h1>
+        <div id="log"></div>
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        // --- ส่วนที่ต้องแก้ไข ---
+        // 1. ใส่ URL ล่าสุดของ Google Apps Script ของคุณที่นี่
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXeKAyg2VNeeH69Yw4LsRWuRU-BGxCQ-ntY2qeQZLKf5ICmpXAOLOkAxaXpwQ4lOPTrg/exec';
+        
+        // 2. สร้าง LIFF App ใหม่สำหรับไฟล์นี้ แล้วนำ LIFF ID มาใส่ที่นี่
+        const LIFF_ID = 'YOUR_NEW_DEBUG_LIFF_ID';
+
+        // --- สิ้นสุดส่วนที่ต้องแก้ไข ---
+
+        const logContainer = document.getElementById('log');
+
+        function log(message, status = 'info', details = '') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            let statusClass = '';
+            let icon = '➡️';
+            if (status === 'success') {
+                statusClass = 'status-success';
+                icon = '✅';
+            }
+            if (status === 'error') {
+                statusClass = 'status-error';
+                icon = '❌';
+            }
+
+            entry.innerHTML = `${icon} <span class="${statusClass}">${status.toUpperCase()}:</span> ${message}`;
+            if (details) {
+                const pre = document.createElement('pre');
+                pre.className = 'error-details';
+                pre.textContent = details;
+                entry.appendChild(pre);
+            }
+            logContainer.appendChild(entry);
+        }
+
+        async function main() {
+            try {
+                // Step 1: Init LIFF
+                log('กำลังเริ่มต้น LIFF...');
+                if (!LIFF_ID || LIFF_ID === 'YOUR_NEW_DEBUG_LIFF_ID') {
+                   throw new Error('กรุณาใส่ LIFF ID ที่สร้างใหม่สำหรับไฟล์ debug.html');
+                }
+                await liff.init({ liffId: LIFF_ID });
+                log('เริ่มต้น LIFF สำเร็จ', 'success');
+
+                // Step 2: Check Login
+                if (!liff.isLoggedIn()) {
+                    log('ยังไม่ได้ล็อกอิน กำลังจะไปหน้าล็อกอินของ LINE...');
+                    liff.login();
+                    return;
+                }
+                log('ผู้ใช้ล็อกอินเรียบร้อยแล้ว', 'success');
+
+                // Step 3: Get Profile
+                log('กำลังดึงข้อมูลโปรไฟล์ LINE...');
+                const profile = await liff.getProfile();
+                log(`ดึงโปรไฟล์สำเร็จ: ${profile.displayName}`, 'success');
+                log(`User ID: ${profile.userId}`);
+                
+                // Step 4: Call Backend
+                log('กำลังเรียกใช้งาน Google Apps Script...');
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify({ requestType: 'checkRegistration', lineUserId: profile.userId }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                });
+                
+                log(`เซิร์ฟเวอร์ตอบกลับด้วย Status Code: ${response.status}`, response.ok ? 'success' : 'error');
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`เซิร์ฟเวอร์ทำงานผิดพลาด \n\n${errorText}`);
+                }
+                
+                const responseText = await response.text();
+                log('ได้รับข้อมูลตอบกลับจากเซิร์ฟเวอร์เรียบร้อย');
+                
+                // Step 5: Parse JSON
+                log('กำลังแปลงข้อมูลที่ได้รับให้เป็น JSON...');
+                const jsonData = JSON.parse(responseText);
+                log('แปลงข้อมูลเป็น JSON สำเร็จ', 'success');
+                log('ข้อมูลสุดท้ายที่ได้รับจากเซิร์ฟเวอร์:', 'info', JSON.stringify(jsonData, null, 2));
+
+            } catch (error) {
+                console.error(error);
+                log(error.message, 'error', `Stack Trace:\n${error.stack}`);
+            }
+        }
+
+        window.onload = main;
+    </script>
+</body>
+</html>
