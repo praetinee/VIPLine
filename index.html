@@ -32,7 +32,7 @@
             <p class="text-center text-sm text-gray-500 mb-6">กรุณากรอกข้อมูลเพื่อเชื่อมต่อบัญชี LINE และเริ่มใช้งานระบบนัดหมาย (ทำเพียงครั้งแรกเท่านั้น)</p>
             <form id="registration-form">
                 <div class="mb-4">
-                    <label class="form-label" for="name-input">ชื่อ-นามสกุล (ตรงตามที่ลงทะเบียนไว้)</label>
+                    <label class="form-label" for="name-input">ชื่อ-นามสกุล</label>
                     <input class="form-input" id="name-input" name="name" type="text" placeholder="เช่น สมชาย ใจดี" required>
                 </div>
                 <div class="mb-4">
@@ -94,7 +94,7 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXeKAyg2VNeeH69Yw4LsRWuRU-BGxCQ-ntY2qeQZLKf5ICmpXAOLOkAxaXpwQ4lOPTrg/exec'; // <-- ใช้ URL เดิมได้เลย
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXeKAyg2VNeeH69Yw4LsRWuRU-BGxCQ-ntY2qeQZLKf5ICmpXAOLOkAxaXpwQ4lOPTrg/exec';
         const LIFF_ID = '2008050252-Dopb2KMZ';
 
         let userProfile = null;
@@ -214,7 +214,7 @@
         function showRegistrationForm() {
             document.getElementById('reg-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
             document.getElementById('registration-section').classList.remove('hidden');
-            setTimeout(() => { toggleLoading(false); }, 100);
+            requestAnimationFrame(() => toggleLoading(false));
         }
 
         function showAppointmentForm() {
@@ -226,13 +226,13 @@
             
             document.getElementById('registration-section').classList.add('hidden');
             document.getElementById('appointment-section').classList.remove('hidden');
-            setTimeout(() => { toggleLoading(false); }, 100);
+            requestAnimationFrame(() => toggleLoading(false));
         }
 
         function showError(message) {
             document.getElementById('error-text').innerText = message;
             document.getElementById('error-message').classList.remove('hidden');
-            setTimeout(() => { toggleLoading(false); }, 100);
+            requestAnimationFrame(() => toggleLoading(false));
         }
 
         function toggleLoading(isLoading, message = 'กำลังโหลด...') {
