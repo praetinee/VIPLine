@@ -194,7 +194,6 @@
             document.getElementById('registration-form').addEventListener('submit', handleRegistration);
             document.getElementById('appointment-form').addEventListener('submit', handleAppointmentSubmit);
             
-            // Add event listener for conditional follow-up section
             document.getElementById('appointmentType').addEventListener('change', function() {
                 const followUpSection = document.getElementById('follow-up-section');
                 const departmentInput = document.getElementById('department');
@@ -212,10 +211,8 @@
                 }
             });
 
-            // Add event listener for date and time validation
             document.getElementById('desiredDate').addEventListener('input', validateDate);
             document.getElementById('desiredTime').addEventListener('input', validateTime);
-
         });
 
         async function initializeLiff() {
@@ -241,10 +238,11 @@
                         showRegistrationForm();
                     }
                 } else {
-                    showModal('ไม่สามารถตรวจสอบสถานะการลงทะเบียนได้');
+                    showModal('ไม่สามารถตรวจสอบสถานะการลงทะเบียนได้: การตอบกลับไม่ถูกต้อง');
                 }
             } catch (error) {
-                showModal(`เกิดข้อผิดพลาด: ${error.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'}`); 
+                console.error('Initialization Error:', error);
+                showModal(`เกิดข้อผิดพลาดในการเริ่มต้น: ${error.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'}`); 
             }
         }
         
@@ -269,13 +267,13 @@
 
                 if (response.status === 'success') {
                     showModal('ลงทะเบียนสำเร็จ!');
-                    // Re-check registration to get staff info and proceed
                     initializeLiff(); 
                 } else {
                     showModal('ลงทะเบียนไม่สำเร็จ: ' + response.message);
                     addContactButton();
                 }
             } catch (error) {
+                 console.error('Registration Error:', error);
                  showModal('เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์: ' + (error.message || 'การเชื่อมต่อล้มเหลว'));
                  addContactButton();
             } finally {
@@ -286,7 +284,6 @@
         async function handleAppointmentSubmit(event) {
             event.preventDefault();
 
-            // Relationship Validation
             const relationship = document.getElementById('relationship').value;
             if (relationship === 'อื่นๆ') {
                 showModal('ช่องทางนี้เป็นการนัดหมายสำหรับเจ้าหน้าที่ รพ. สันทราย และญาติสายตรงเท่านั้น<br><br>สำหรับบุคคลทั่วไป เพื่อความสะดวกและรวดเร็ว กรุณาติดต่อ 053-921-199 หรือที่ LINE หลักของโรงพยาบาล<br><a href="https://page.line.me/wfk5427z" target="_blank" class="text-blue-500 underline">LINE รพ.สันทราย</a>');
@@ -314,10 +311,10 @@
                 
                 await apiCall(formData);
                 showModal('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ผ่านทาง LINE ค่ะ');
-                // Close LIFF window after user clicks OK on modal
                 modalCloseBtn.onclick = () => { liff.closeWindow(); };
 
             } catch (error) {
+                console.error('Appointment Submission Error:', error);
                 showModal('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + (error.message || 'การเชื่อมต่อล้มเหลว'));
             } finally {
                 toggleLoading(false);
@@ -325,17 +322,27 @@
         }
 
         async function apiCall(body) {
-             const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                redirect: 'follow',
-                body: JSON.stringify(body),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            });
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify(body),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                });
+
+                const responseText = await response.text();
+
+                if (!response.ok) {
+                    throw new Error(`Server error (status: ${response.status}): ${responseText}`);
+                }
+                
+                // Try to parse the text as JSON.
+                return JSON.parse(responseText);
+
+            } catch (error) {
+                // This will catch network errors and JSON parsing errors.
+                throw new Error(`ไม่สามารถสื่อสารกับเซิร์ฟเวอร์ได้: ${error.message}`);
             }
-            return response.json();
         }
         
         function showRegistrationForm() {
@@ -368,11 +375,11 @@
         }
 
         function validateTime() {
-            // Additional time validation if needed, but min/max attributes handle most cases
             const timeInput = document.getElementById('desiredTime');
             const timeVal = timeInput.value;
-            if (timeVal < "08:00" || timeVal > "15:00") {
+            if (timeVal && (timeVal < "08:00" || timeVal > "15:00")) {
                  showModal('กรุณาเลือกเวลาระหว่าง 08:00 - 15:00 น.');
+                 timeInput.value = '';
             }
         }
         
