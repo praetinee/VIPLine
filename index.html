@@ -30,15 +30,14 @@
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <h1 class="text-2xl font-bold text-gray-800 text-center mb-2">ลงทะเบียนใช้งาน</h1>
             <p id="reg-welcome-message" class="text-center text-gray-600 mb-6"></p>
-            <p class="text-center text-sm text-gray-500 mb-6">กรุณากรอกข้อมูลเพื่อเชื่อมต่อบัญชี LINE และเริ่มใช้งานระบบนัดหมาย (ทำเพียงครั้งแรกเท่านั้น)</p>
             <form id="registration-form">
                 <div class="mb-4">
-                    <label class="form-label" for="name-input">ชื่อ-นามสกุล (ตรงตามที่ลงทะเบียนไว้)</label>
-                    <input class="form-input" id="name-input" name="name" type="text" placeholder="เช่น สมชาย ใจดี" required>
+                    <label class="form-label" for="name-input">ชื่อ-นามสกุล</label>
+                    <input class="form-input" id="name-input" name="name" type="text" required>
                 </div>
                 <div class="mb-4">
                     <label class="form-label" for="hn-input">หมายเลข HN</label>
-                    <input class="form-input" id="hn-input" name="hn" type="text" placeholder="กรอก HN ของท่าน" required>
+                    <input class="form-input" id="hn-input" name="hn" type="text" required>
                 </div>
                 <div class="flex items-center justify-between">
                     <button class="submit-btn" type="submit" id="register-button">ลงทะเบียน</button>
@@ -58,28 +57,28 @@
                 <input type="hidden" id="lineUserId" name="lineUserId">
                 <input type="hidden" id="displayName" name="displayName">
                 <div class="mb-4">
-                    <label class="form-label" for="physicalState">ลักษณะทางกายภาพของผู้ป่วย</label>
+                    <label class="form-label" for="physicalState">ลักษณะทางกายภาพ</label>
                     <select class="form-select" id="physicalState" name="physicalState" required>
                         <option value="" disabled selected>-- กรุณาเลือก --</option>
                         <option value="เดินได้">เดินได้</option>
-                        <option value="นั่งรถเข็น (Wheelchair)">นั่งรถเข็น (Wheelchair)</option>
-                        <option value="นอนเปล (Stretcher)">นอนเปล (Stretcher)</option>
+                        <option value="นั่งรถเข็น">นั่งรถเข็น</option>
+                        <option value="นอนเปล">นอนเปล</option>
                     </select>
                 </div>
                 <div class="mb-4">
-                    <label class="form-label" for="treatmentReason">ต้องการเข้ารับการรักษาเรื่องอะไร</label>
-                    <input class="form-input" id="treatmentReason" name="treatmentReason" type="text" placeholder="เช่น ตรวจสุขภาพ, ติดตามอาการปวดท้อง" required>
+                    <label class="form-label" for="treatmentReason">เหตุผลเข้ารับการรักษา</label>
+                    <input class="form-input" id="treatmentReason" name="treatmentReason" type="text" required>
                 </div>
                 <div class="mb-4">
                     <label class="form-label" for="appointmentType">ประเภทการนัด</label>
                     <select class="form-select" id="appointmentType" name="appointmentType" required>
                         <option value="" disabled selected>-- กรุณาเลือก --</option>
-                        <option value="นัดใหม่">นัดใหม่ (New Case)</option>
-                        <option value="ติดตามอาการ">ติดตามอาการ (Follow-up)</option>
+                        <option value="นัดใหม่">นัดใหม่</option>
+                        <option value="ติดตามอาการ">ติดตามอาการ</option>
                     </select>
                 </div>
                 <div class="mb-6">
-                    <label class="form-label" for="desiredDate">วันที่ต้องการเข้ารับการรักษา</label>
+                    <label class="form-label" for="desiredDate">วันที่ต้องการ</label>
                     <input class="form-input" id="desiredDate" name="desiredDate" type="date" required>
                 </div>
                 <div class="flex items-center justify-between">
@@ -96,11 +95,8 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // ** Important: Update this with your own deployed Apps Script URL **
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXeKAyg2VNeeH69Yw4LsRWuRU-BGxCQ-ntY2qeQZLKf5ICmpXAOLOkAxaXpwQ4lOPTrg/exec'; 
-        // ** Important: Update this with your own LIFF ID **
-        const LIFF_ID = '2008050252-Dopb2KMZ'; 
-
+        const SCRIPT_URL = 'YOUR_DEPLOYED_GAS_URL';
+        const LIFF_ID = 'YOUR_LIFF_ID';
         let userProfile = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -110,33 +106,25 @@
         });
 
         async function initializeLiff() {
-            toggleLoading(true, 'กำลังตรวจสอบข้อมูล...');
             try {
-                // Initialize LIFF
                 await liff.init({ liffId: LIFF_ID });
-                
-                // Check if the user is logged in
                 if (!liff.isLoggedIn()) {
                     liff.login();
                     return;
                 }
-                
-                // Get user profile
                 userProfile = await liff.getProfile();
-                
-                // Call Apps Script to check registration
-                const response = await apiCall({ requestType: 'checkRegistration', lineUserId: userProfile.userId });
+                console.log("LIFF Profile:", userProfile);
 
-                if (response.status === 'success' && response.registered) {
+                const response = await apiCall({ requestType: 'checkRegistration', lineUserId: userProfile.userId });
+                console.log("checkRegistration response:", response);
+
+                if (response.registered) {
                     showAppointmentForm();
                 } else {
                     showRegistrationForm();
                 }
-
             } catch (error) {
-                // If any error occurs, show an error message and hide the loading overlay
-                console.error('LIFF initialization failed:', error);
-                showError('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง หรือติดต่อเจ้าหน้าที่');
+                showError('เกิดข้อผิดพลาดในการเริ่มต้นระบบ: ' + error.message);
             }
         }
 
@@ -145,11 +133,11 @@
             const name = document.getElementById('name-input').value.trim();
             const hn = document.getElementById('hn-input').value.trim();
             if (!name || !hn) {
-                showError('กรุณากรอกชื่อ-นามสกุล และหมายเลข HN ให้ครบถ้วน');
+                alert('กรุณากรอกข้อมูลให้ครบ');
                 return;
             }
             toggleLoading(true, 'กำลังลงทะเบียน...');
-            
+
             try {
                 const response = await apiCall({
                     requestType: 'register',
@@ -158,16 +146,16 @@
                     name: name,
                     hn: hn
                 });
+                console.log("register response:", response);
 
                 if (response.status === 'success') {
-                    showSuccess('ลงทะเบียนสำเร็จ!'); 
+                    alert('ลงทะเบียนสำเร็จ!');
                     showAppointmentForm();
                 } else {
-                    showError('ลงทะเบียนไม่สำเร็จ: ' + response.message);
+                    alert('ลงทะเบียนไม่สำเร็จ: ' + response.message);
                 }
             } catch (error) {
-                showError('เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง');
-                console.error('Registration failed:', error);
+                alert('เกิดข้อผิดพลาด: ' + error.message);
             } finally {
                 toggleLoading(false);
             }
@@ -187,45 +175,39 @@
                     appointmentType: document.getElementById('appointmentType').value,
                     desiredDate: document.getElementById('desiredDate').value,
                 };
-                
-                if(!formData.physicalState || !formData.treatmentReason || !formData.appointmentType || !formData.desiredDate) {
-                    showError('กรุณากรอกข้อมูลให้ครบถ้วน');
-                    toggleLoading(false);
-                    return;
-                }
+                console.log("submitAppointment data:", formData);
 
                 const response = await apiCall(formData);
-                if (response.status === 'success') {
-                     showSuccess('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ค่ะ');
-                } else {
-                    showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + response.message);
-                }
+                console.log("submitAppointment response:", response);
+
+                alert('ส่งข้อมูลเรียบร้อย! รอการยืนยันจากเจ้าหน้าที่');
                 liff.closeWindow();
 
             } catch (error) {
-                showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
-                console.error('Appointment submission failed:', error);
+                alert('เกิดข้อผิดพลาด: ' + error.message);
             } finally {
                 toggleLoading(false);
             }
         }
 
         async function apiCall(body) {
-             const response = await fetch(SCRIPT_URL, {
+            console.log("apiCall body:", body);
+            const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify(body),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                headers: { 'Content-Type': 'application/json' },
             });
+            console.log("raw response:", response);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         }
-        
+
         function showRegistrationForm() {
             document.getElementById('reg-welcome-message').innerText = `สวัสดีคุณ ${userProfile.displayName}`;
             document.getElementById('registration-section').classList.remove('hidden');
-            document.getElementById('loading-overlay').classList.add('hidden');
+            toggleLoading(false);
         }
 
         function showAppointmentForm() {
@@ -234,16 +216,16 @@
             document.getElementById('displayName').value = userProfile.displayName;
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('desiredDate').setAttribute('min', today);
-            
+
             document.getElementById('registration-section').classList.add('hidden');
             document.getElementById('appointment-section').classList.remove('hidden');
-            document.getElementById('loading-overlay').classList.add('hidden');
+            toggleLoading(false);
         }
 
         function showError(message) {
             document.getElementById('error-text').innerText = message;
             document.getElementById('error-message').classList.remove('hidden');
-            document.getElementById('loading-overlay').classList.add('hidden');
+            toggleLoading(false);
         }
 
         function toggleLoading(isLoading, message = 'กำลังโหลด...') {
@@ -251,17 +233,9 @@
             if (isLoading) {
                 overlay.querySelector('p').innerText = message;
                 overlay.classList.remove('hidden');
-                document.getElementById('error-message').classList.add('hidden'); // ซ่อนข้อความ error
-                document.getElementById('registration-section').classList.add('hidden'); // ซ่อนฟอร์มลงทะเบียน
-                document.getElementById('appointment-section').classList.add('hidden'); // ซ่อนฟอร์มนัดหมาย
             } else {
                 overlay.classList.add('hidden');
             }
-        }
-        
-        function showSuccess(message) {
-            // ฟังก์ชันใหม่สำหรับแสดงข้อความสำเร็จ
-            alert(message); // ใช้ alert ชั่วคราว
         }
     </script>
 </body>
