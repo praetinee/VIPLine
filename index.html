@@ -112,13 +112,19 @@
         async function initializeLiff() {
             toggleLoading(true, 'กำลังตรวจสอบข้อมูล...');
             try {
+                // Initialize LIFF
                 await liff.init({ liffId: LIFF_ID });
+                
+                // Check if the user is logged in
                 if (!liff.isLoggedIn()) {
                     liff.login();
                     return;
                 }
+                
+                // Get user profile
                 userProfile = await liff.getProfile();
                 
+                // Call Apps Script to check registration
                 const response = await apiCall({ requestType: 'checkRegistration', lineUserId: userProfile.userId });
 
                 if (response.status === 'success' && response.registered) {
@@ -126,9 +132,11 @@
                 } else {
                     showRegistrationForm();
                 }
+
             } catch (error) {
-                showError('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง: ' + error.message);
+                // If any error occurs, show an error message and hide the loading overlay
                 console.error('LIFF initialization failed:', error);
+                showError('เกิดข้อผิดพลาดในการเริ่มต้นระบบ กรุณาลองใหม่อีกครั้ง หรือติดต่อเจ้าหน้าที่');
             }
         }
 
@@ -152,7 +160,6 @@
                 });
 
                 if (response.status === 'success') {
-                    // แทนที่ alert ด้วยการแสดงผลในหน้าจอหลัก
                     showSuccess('ลงทะเบียนสำเร็จ!'); 
                     showAppointmentForm();
                 } else {
@@ -189,7 +196,6 @@
 
                 const response = await apiCall(formData);
                 if (response.status === 'success') {
-                     // แทนที่ alert ด้วยการแสดงผลในหน้าจอหลัก
                      showSuccess('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ค่ะ');
                 } else {
                     showError('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + response.message);
