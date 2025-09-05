@@ -41,6 +41,15 @@
 
     <!-- Main Content Area -->
     <main class="container mx-auto p-4 max-w-lg">
+        <!-- Error Display Section -->
+        <section id="error-section" class="hidden">
+             <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+                <p class="font-bold">เกิดข้อผิดพลาดในการเริ่มต้นระบบ</p>
+                <p id="error-text"></p>
+                <p class="mt-2 text-sm">กรุณาลองใหม่อีกครั้ง หรือติดต่อผู้ดูแล</p>
+            </div>
+        </section>
+
         <!-- Registration Section -->
         <section id="registration-section" class="hidden">
             <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
@@ -405,11 +414,19 @@
         }
         
         function handleCriticalError(message) {
-            showModal(message);
-            modalCloseBtn.innerText = "ปิด";
-            modalCloseBtn.onclick = () => { if (liff.isInClient()) liff.closeWindow(); };
+            // Hide main sections
             document.getElementById('registration-section').classList.add('hidden');
             document.getElementById('appointment-section').classList.add('hidden');
+
+            // Show error section and set message
+            const errorSection = document.getElementById('error-section');
+            const errorText = document.getElementById('error-text');
+            
+            errorText.innerHTML = message; // Use innerHTML to render any potential <br> tags
+            errorSection.classList.remove('hidden');
+            
+            // Hide loading overlay as well
+            toggleLoading(false);
         }
 
     </script>
