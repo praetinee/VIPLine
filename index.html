@@ -129,7 +129,7 @@
                         </fieldset>
                     </div>
 
-                    <div id="follow-up-options" class="hidden pl-5 space-y-2 mt-2">
+                    <div id="follow-up-options" class="hidden pl-5 space-y-4 mt-2">
                          <fieldset>
                             <legend class="text-sm font-medium text-gray-700">สถานะการมาตามนัดเดิม</legend>
                              <div class="mt-2 space-y-2">
@@ -143,12 +143,21 @@
                                 </div>
                              </div>
                         </fieldset>
+                        <div>
+                            <label for="department" class="block text-sm font-medium text-gray-700">แผนกที่นัดเดิม</label>
+                            <input type="text" id="department" name="department" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                        </div>
                     </div>
 
                     <div>
                         <label for="appointment-datetime" class="block text-sm font-medium text-gray-700">วันและเวลาที่ต้องการนัด</label>
                         <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
                         <p id="datetime-error" class="hidden mt-1 text-xs text-red-600">สามารถนัดได้วันจันทร์-ศุกร์ เวลา 08:00 - 15:00 น. เท่านั้น</p>
+                    </div>
+
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-gray-700">หมายเหตุ (ถ้ามี)</label>
+                        <textarea id="notes" name="notes" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"></textarea>
                     </div>
                 </div>
                 
@@ -286,10 +295,17 @@
             const formData = new FormData(bookingForm);
             const appointmentType = formData.get('appointment-type');
             let followUpStatus = '';
+            let department = '';
             if (appointmentType === 'นัดเดิม') {
                 followUpStatus = formData.get('follow-up-status');
+                department = formData.get('department');
                 if (!followUpStatus) {
                     alert('กรุณาเลือกสถานะการมาตามนัดเดิม');
+                    showLoading(false);
+                    return;
+                }
+                 if (!department) {
+                    alert('กรุณากรอกแผนกที่นัดเดิม');
                     showLoading(false);
                     return;
                 }
@@ -307,7 +323,9 @@
                 symptoms: formData.get('symptoms'),
                 appointmentType: appointmentType,
                 followUpStatus: followUpStatus,
-                appointmentDateTime: formData.get('appointment-datetime')
+                department: department,
+                appointmentDateTime: formData.get('appointment-datetime'),
+                notes: formData.get('notes')
             };
 
             try {
@@ -349,9 +367,14 @@
         appointmentTypeRadios.forEach(radio => {
             radio.addEventListener('change', () => {
                 followUpOptionsDiv.classList.toggle('hidden', radio.value !== 'นัดเดิม');
-                // ทำให้ input ในส่วนที่ซ่อนอยู่ไม่ required
-                const followUpInputs = followUpOptionsDiv.querySelectorAll('input');
-                if (radio.value !== 'นัดเดิม') {
+                const departmentInput = document.getElementById('department');
+                const followUpInputs = followUpOptionsDiv.querySelectorAll('input[name="follow-up-status"]');
+
+                if (radio.value === 'นัดเดิม') {
+                    departmentInput.required = true;
+                } else {
+                    departmentInput.required = false;
+                    departmentInput.value = '';
                     followUpInputs.forEach(input => input.checked = false);
                 }
             });
