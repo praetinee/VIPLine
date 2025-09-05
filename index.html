@@ -244,9 +244,7 @@
             } catch (error) {
                 console.error('Initialization Error:', error);
                 const errorMessage = (error && error.message) ? error.message : 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์หรือเริ่มต้นระบบได้';
-                // --- START: MODIFIED CODE ---
                 showModal(`เกิดข้อผิดพลาดในการเริ่มต้น:<br><br><strong class="text-red-600 text-left block">${errorMessage}</strong>`); 
-                // --- END: MODIFIED CODE ---
             } finally {
                 toggleLoading(false);
             }
@@ -321,7 +319,7 @@
                 }
 
                 showModal('ส่งข้อมูลการนัดหมายเรียบร้อยแล้ว! กรุณารอการยืนยันจากเจ้าหน้าที่ผ่านทาง LINE ค่ะ');
-                modalCloseBtn.onclick = () => { liff.closeWindow(); };
+                modalCloseBtn.onclick = () => { if(liff.isInClient()) liff.closeWindow(); };
 
             } catch (error) {
                 console.error('Appointment Submission Error:', error);
@@ -378,9 +376,16 @@
         }
 
         function showAppointmentForm() {
+            // --- START: MODIFIED CODE ---
             if (!staffInfo || !staffInfo.name || !staffInfo.hn) {
-                throw new Error('ข้อมูลเจ้าหน้าที่ไม่สมบูรณ์');
+                // เปลี่ยนจากการโยน Error มาเป็นการเรียก Modal แจ้งเตือนโดยตรง
+                showModal("เกิดข้อผิดพลาด: ข้อมูลเจ้าหน้าที่ (ชื่อ หรือ HN) ที่ผูกกับบัญชี LINE ของท่านไม่สมบูรณ์ในระบบ <br><br>กรุณาติดต่อผู้ดูแลเพื่อตรวจสอบข้อมูลค่ะ");
+                // ซ่อนปุ่ม "ตกลง" เพื่อป้องกันการกดปิดแล้วไปต่อ
+                modalCloseBtn.style.display = 'none';
+                return; // หยุดการทำงานของฟังก์ชัน
             }
+            // --- END: MODIFIED CODE ---
+
             document.getElementById('appt-welcome-message').innerText = `ทำการนัดหมายในนาม: ${staffInfo.name} (HN: ${staffInfo.hn})`;
             const today = new Date();
             today.setDate(today.getDate() + 1); 
