@@ -26,8 +26,10 @@
     
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // ใส่ LIFF ID ที่ต้องการทดสอบที่นี่
-        const LIFF_ID_TO_TEST = '2008050252-bNYeKBrd';
+        // --- DO NOT CHANGE THIS ID ---
+        // This is a public LIFF ID from LINE for testing purposes.
+        // If this ID works, the problem is with your own LIFF configuration or account.
+        const LIFF_ID_TO_TEST = '1655635848-OqWlqA7z'; // LINE's Public Test LIFF ID
 
         const statusText = document.getElementById('status-text');
         const resultOutput = document.getElementById('result-output');
@@ -35,7 +37,7 @@
 
         async function runDiagnostics() {
             try {
-                statusText.textContent = 'กำลังเรียก liff.init()...';
+                statusText.textContent = 'กำลังเรียก liff.init() ด้วย LIFF ID สำหรับทดสอบของ LINE...';
                 await liff.init({ liffId: LIFF_ID_TO_TEST });
 
                 if (!liff.isLoggedIn()) {
@@ -44,27 +46,26 @@
                     return;
                 }
 
-                statusText.textContent = '✅ การเชื่อมต่อ LIFF สำเร็จ';
+                statusText.textContent = '✅ การเชื่อมต่อ LIFF สำเร็จ (ด้วย Test ID)';
                 resultContainer.classList.add('bg-green-100', 'text-green-800');
                 
                 const profile = await liff.getProfile();
                 resultOutput.textContent = JSON.stringify({
                     message: "ดึงข้อมูลโปรไฟล์สำเร็จ",
+                    liffIdUsed: LIFF_ID_TO_TEST,
                     profile: profile
                 }, null, 2);
 
             } catch (error) {
                 console.error('LIFF Diagnostic Error:', error);
-                statusText.textContent = '❌ เกิดข้อผิดพลาดร้ายแรง';
+                statusText.textContent = '❌ เกิดข้อผิดพลาดร้ายแรง (แม้จะใช้ Test ID)';
                 resultContainer.classList.add('bg-red-100', 'text-red-800');
                 
-                // แสดงผล object ของ error ทั้งหมดออกมา
                 resultOutput.textContent = JSON.stringify({
                     message: "liff.init() ล้มเหลว",
+                    liffIdUsed: LIFF_ID_TO_TEST,
                     errorCode: error.code,
-                    errorName: error.name,
                     errorMessage: error.message,
-                    fullErrorObject: error
                 }, null, 2);
             }
         }
@@ -73,3 +74,4 @@
     </script>
 </body>
 </html>
+
