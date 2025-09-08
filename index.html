@@ -123,11 +123,16 @@
             </form>
         </div>
         
-        <!-- Contact Section -->
         <div id="contact-section" class="p-6 mt-5 text-center bg-white rounded-lg shadow-md">
              <h2 class="mb-2 text-lg font-bold">พบปัญหา?</h2>
              <p class="mb-4 text-gray-600">หากไม่สามารถยืนยันตัวตนหรือทำการนัดหมายได้ กรุณาติดต่อเจ้าหน้าที่</p>
              <button id="contact-admin-btn" class="btn-secondary">ติดต่อเจ้าหน้าที่</button>
+        </div>
+
+        <!-- User ID display for Admin -->
+        <div id="user-id-display" class="hidden p-4 mt-5 text-center bg-gray-200 rounded-lg">
+            <p class="text-sm text-gray-700">Your LINE User ID (for Admin Setup):</p>
+            <p id="line-user-id" class="font-mono text-xs text-gray-900 break-all cursor-pointer" title="คลิกเพื่อคัดลอก"></p>
         </div>
 
     </div>
@@ -160,6 +165,23 @@
                     return;
                 }
                 lineUserProfile = await liff.getProfile();
+
+                // Display User ID for admin
+                const userIdDisplay = document.getElementById('user-id-display');
+                const lineUserIdP = document.getElementById('line-user-id');
+                if (lineUserProfile && lineUserProfile.userId) {
+                    lineUserIdP.textContent = lineUserProfile.userId;
+                    userIdDisplay.style.display = 'block';
+                    // Add copy to clipboard functionality
+                    lineUserIdP.addEventListener('click', () => {
+                        navigator.clipboard.writeText(lineUserProfile.userId).then(() => {
+                           alert('คัดลอก User ID เรียบร้อยแล้ว!');
+                        }, (err) => {
+                           console.error('ไม่สามารถคัดลอกได้: ', err);
+                        });
+                    });
+                }
+                
                 loadingDiv.style.display = 'none';
                 appDiv.style.display = 'block';
 
@@ -213,20 +235,8 @@
             errorP.textContent = '';
 
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Use 'no-cors' for simple POST, response will be opaque
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'verifyStaff', name: staffName, hn: staffHn })
-                });
-
-                // Since 'no-cors' gives an opaque response, we can't read the status directly.
-                // We'll proceed optimistically and let the server-side handle the check.
-                // A better approach would be a proper CORS-enabled API.
-                // For this project, we assume if the request is sent, the user can try to book.
-                // The final check is done on booking submission.
-                
-                // For demonstration, let's just proceed to the next step.
+                // We will perform the actual verification on the server during booking submission
+                // This step is just for UI transition
                 document.getElementById('display-staff-name').textContent = staffName;
                 document.getElementById('display-staff-hn').textContent = staffHn;
 
@@ -238,8 +248,8 @@
                 appointmentSection.style.display = 'block';
 
             } catch (error) {
-                console.error('Verification failed:', error);
-                errorP.textContent = 'การยืนยันล้มเหลว กรุณาลองใหม่';
+                console.error('Verification UI transition failed:', error);
+                errorP.textContent = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
             } finally {
                 verifyBtn.disabled = false;
                 verifyBtn.textContent = 'ยืนยันตัวตน';
@@ -249,6 +259,10 @@
         function validateAppointmentDateTime(datetime) {
             const errorP = document.getElementById('datetime-error');
             errorP.textContent = '';
+            if (!datetime) {
+                errorP.textContent = 'กรุณาเลือกวันและเวลา';
+                return false;
+            }
             const date = new Date(datetime);
             const day = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
             const hour = date.getHours();
@@ -306,34 +320,37 @@
             try {
                  const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', 
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
                 
-                // Since response is opaque, we cannot check success status here.
-                // We'll send LINE message optimistically.
-                const summary = `
-                - การนัดหมาย Fast Track ใหม่ -
-                ผู้ป่วย: ${formData.patient.name}
-                ความสัมพันธ์: ${formData.patient.relationship}
-                วันที่ต้องการนัด: ${new Date(formData.requestedDateTime).toLocaleString('th-TH')}
-                อาการ: ${formData.symptoms}
-                สถานะ: ⏳ รอการยืนยัน
-                `.trim();
+                const result = await response.json();
 
-                if (liff.isInClient()) {
-                    await liff.sendMessages([{
-                        type: 'text',
-                        text: summary
-                    }]);
-                    liff.closeWindow();
+                if (result.status === "success") {
+                    const summary = `
+                    - การนัดหมาย Fast Track ใหม่ -
+                    ผู้ป่วย: ${formData.patient.name}
+                    ความสัมพันธ์: ${formData.patient.relationship}
+                    วันที่ต้องการนัด: ${new Date(formData.requestedDateTime).toLocaleString('th-TH')}
+                    อาการ: ${formData.symptoms}
+                    สถานะ: ⏳ รอการยืนยัน
+                    `.trim();
+
+                    if (liff.isInClient()) {
+                        await liff.sendMessages([{
+                            type: 'text',
+                            text: summary
+                        }]);
+                        liff.closeWindow();
+                    } else {
+                        alert("การนัดหมายของคุณได้ถูกส่งเข้าระบบแล้ว และจะมีการแจ้งเตือนสถานะผ่านทาง LINE");
+                    }
                 } else {
-                    alert("การนัดหมายของคุณได้ถูกส่งเข้าระบบแล้ว และจะมีการแจ้งเตือนสถานะผ่านทาง LINE");
+                     throw new Error(result.message || 'Server returned an error.');
                 }
             } catch (error) {
                 console.error('Form submission error:', error);
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'ส่งข้อมูลนัดหมาย';
@@ -342,3 +359,4 @@
     </script>
 </body>
 </html>
+
