@@ -139,8 +139,8 @@
 
     <script>
         // CONFIGURATION
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyr2TGRb88Of6oitdFboBWKgqhCpB0MrMpXYK6XF0ekTaKw1QTZh-Zt11QE9tcjYZHUCQ/exec"; // <-- ใส่ URL ของ Google Apps Script ที่ได้จากการ Deploy ที่นี่
-        const LIFF_ID = "2008050252-bNYeKBrd"; // <-- ใส่ LIFF ID ของคุณที่นี่
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbweNe8RANoRmAtL4EDif-GyW3nJ3vefv_pJ4eGfGnsyBZXl44i2c_dz_y3_X8eg3lsdkQ/exec"; // <-- ใส่ URL ของ Google Apps Script ที่ได้จากการ Deploy ที่นี่
+        const LIFF_ID = "2008050252-bNYeKBrd"; // <-- LIFF ID ของคุณ
         const ADMIN_CONTACT_LINE_URL = "https://line.me/ti/p/~your_admin_line_id"; // <-- แก้เป็นลิงก์ติดต่อแอดมิน
 
         // DOM Elements
@@ -174,11 +174,12 @@
                     userIdDisplay.style.display = 'block';
                     // Add copy to clipboard functionality
                     lineUserIdP.addEventListener('click', () => {
-                        navigator.clipboard.writeText(lineUserProfile.userId).then(() => {
+                        try {
+                           navigator.clipboard.writeText(lineUserProfile.userId);
                            alert('คัดลอก User ID เรียบร้อยแล้ว!');
-                        }, (err) => {
+                        } catch (err) {
                            console.error('ไม่สามารถคัดลอกได้: ', err);
-                        });
+                        }
                     });
                 }
                 
@@ -220,7 +221,7 @@
             }
         });
 
-        async function handleVerification() {
+        function handleVerification() {
             const staffName = document.getElementById('staff-name').value.trim();
             const staffHn = document.getElementById('staff-hn').value.trim();
             const errorP = document.getElementById('verification-error');
@@ -230,30 +231,18 @@
                 return;
             }
             
-            verifyBtn.disabled = true;
-            verifyBtn.textContent = 'กำลังตรวจสอบ...';
             errorP.textContent = '';
+            
+            // This is just a UI transition. The actual verification happens on the server during submission.
+            document.getElementById('display-staff-name').textContent = staffName;
+            document.getElementById('display-staff-hn').textContent = staffHn;
 
-            try {
-                // We will perform the actual verification on the server during booking submission
-                // This step is just for UI transition
-                document.getElementById('display-staff-name').textContent = staffName;
-                document.getElementById('display-staff-hn').textContent = staffHn;
-
-                if (patientRelationshipSelect.value === 'ตัวเจ้าหน้าที่เอง') {
-                   document.getElementById('patient-name').value = staffName;
-                }
-
-                verificationSection.style.display = 'none';
-                appointmentSection.style.display = 'block';
-
-            } catch (error) {
-                console.error('Verification UI transition failed:', error);
-                errorP.textContent = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
-            } finally {
-                verifyBtn.disabled = false;
-                verifyBtn.textContent = 'ยืนยันตัวตน';
+            if (patientRelationshipSelect.value === 'ตัวเจ้าหน้าที่เอง') {
+                document.getElementById('patient-name').value = staffName;
             }
+
+            verificationSection.style.display = 'none';
+            appointmentSection.style.display = 'block';
         }
 
         function validateAppointmentDateTime(datetime) {
@@ -320,7 +309,9 @@
             try {
                  const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'text/plain;charset=utf-8', // Use text/plain for Apps Script POST
+                    },
                     body: JSON.stringify(formData)
                 });
                 
