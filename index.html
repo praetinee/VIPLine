@@ -10,9 +10,9 @@
     <style>
         body { font-family: 'Sarabun', sans-serif; }
         .form-select, .form-input, .form-textarea { @apply w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500; }
-        .btn { @apply w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-lg hover:bg-blue-700 focus:outline-none focus:shadow-outline disabled:bg-blue-300; }
+        .btn { @apply w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-lg hover:bg-blue-700 focus:outline-none focus:shadow-outline disabled:bg-gray-400; }
         .btn-secondary { @apply w-full px-4 py-2 font-bold text-white bg-gray-500 rounded-lg hover:bg-gray-700 focus:outline-none focus:shadow-outline; }
-        .error-message { @apply mt-4 text-sm text-center text-red-500; }
+        .error-message { @apply mt-2 text-sm text-center text-red-500; }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -23,206 +23,145 @@
     </div>
 
     <div id="app" class="hidden max-w-lg p-5 mx-auto">
-        <!-- Verification Section -->
+        <!-- Sections will be displayed here -->
         <div id="verification-section" class="hidden p-6 bg-white rounded-lg shadow-md">
-            <h1 class="mb-4 text-2xl font-bold text-center">ลงทะเบียนใช้งานครั้งแรก</h1>
+            <!-- Verification form -->
+             <h1 class="mb-4 text-2xl font-bold text-center">ลงทะเบียนใช้งานครั้งแรก</h1>
             <p class="mb-4 text-center text-gray-600">กรุณากรอกชื่อ-นามสกุล และหมายเลข HN เพื่อยืนยันสิทธิ์และลงทะเบียนผู้ใช้งาน</p>
-            <div class="mb-4">
-                <label for="staff-name" class="block mb-2 text-sm font-bold text-gray-700">ชื่อ-นามสกุล</label>
-                <input type="text" id="staff-name" class="form-input" placeholder="เช่น สมชาย ใจดี">
-            </div>
-            <div class="mb-6">
-                <label for="staff-hn" class="block mb-2 text-sm font-bold text-gray-700">หมายเลข HN</label>
-                <input type="text" id="staff-hn" class="form-input" placeholder="เช่น 123456">
-            </div>
+            <div class="mb-4"><label for="staff-name" class="block mb-2 text-sm font-bold text-gray-700">ชื่อ-นามสกุล</label><input type="text" id="staff-name" class="form-input" placeholder="เช่น สมชาย ใจดี"></div>
+            <div class="mb-6"><label for="staff-hn" class="block mb-2 text-sm font-bold text-gray-700">หมายเลข HN</label><input type="text" id="staff-hn" class="form-input" placeholder="เช่น 123456"></div>
             <button id="verify-btn" class="btn">ยืนยันและลงทะเบียน</button>
             <p id="verification-error" class="error-message"></p>
         </div>
 
-        <!-- Appointment Form Section -->
         <div id="appointment-section" class="hidden p-6 bg-white rounded-lg shadow-md">
+           <!-- Appointment form -->
             <h1 class="mb-2 text-2xl font-bold text-center">แบบฟอร์มการนัดหมาย</h1>
             <div class="p-3 mb-4 text-center bg-blue-100 rounded-lg">
                 <p class="font-semibold">เจ้าหน้าที่: <span id="display-staff-name"></span></p>
                 <p class="text-sm">HN: <span id="display-staff-hn"></span></p>
             </div>
-            
             <form id="appointment-form">
-                <div class="mb-4">
-                    <label class="block mb-2 text-sm font-bold text-gray-700">ผู้ที่จะเข้ารับการรักษา</label>
-                    <select id="patient-relationship" class="form-select">
-                        <option value="ตัวเจ้าหน้าที่เอง">ตัวเจ้าหน้าที่เอง</option>
-                        <option value="พ่อ">พ่อ</option>
-                        <option value="แม่">แม่</option>
-                        <option value="คู่สมรส">คู่สมรส (ตามกฏหมาย)</option>
-                        <option value="บุตร">บุตร</option>
-                        <option value="อื่นๆ">อื่นๆ</option>
-                    </select>
-                </div>
-
-                <div id="other-relationship-section" class="hidden mb-4">
-                    <label for="other-relationship-text" class="block mb-2 text-sm font-bold text-gray-700">โปรดระบุความสัมพันธ์</label>
-                    <input type="text" id="other-relationship-text" class="form-input" placeholder="เช่น หลาน, พี่ชาย">
-                </div>
-
-                <div id="patient-details-section">
-                    <div class="mb-4"><label for="patient-name" class="block mb-2 text-sm font-bold text-gray-700">ชื่อ-นามสกุล ผู้ป่วย</label><input type="text" id="patient-name" class="form-input" required></div>
-                    <div class="mb-4"><label for="patient-pid" class="block mb-2 text-sm font-bold text-gray-700">เลขบัตรประชาชน ผู้ป่วย</label><input type="text" id="patient-pid" class="form-input" required></div>
-                </div>
-
+                <!-- All form fields -->
+                <div class="mb-4"><label class="block mb-2 text-sm font-bold text-gray-700">ผู้ที่จะเข้ารับการรักษา</label><select id="patient-relationship" class="form-select"><option value="ตัวเจ้าหน้าที่เอง">ตัวเจ้าหน้าที่เอง</option><option value="พ่อ">พ่อ</option><option value="แม่">แม่</option><option value="คู่สมรส">คู่สมรส (ตามกฏหมาย)</option><option value="บุตร">บุตร</option><option value="อื่นๆ">อื่นๆ</option></select></div>
+                <div id="other-relationship-section" class="hidden mb-4"><label for="other-relationship-text" class="block mb-2 text-sm font-bold text-gray-700">โปรดระบุความสัมพันธ์</label><input type="text" id="other-relationship-text" class="form-input" placeholder="เช่น หลาน, พี่ชาย"></div>
+                <div id="patient-details-section"><div class="mb-4"><label for="patient-name" class="block mb-2 text-sm font-bold text-gray-700">ชื่อ-นามสกุล ผู้ป่วย</label><input type="text" id="patient-name" class="form-input" required></div><div class="mb-4"><label for="patient-pid" class="block mb-2 text-sm font-bold text-gray-700">เลขบัตรประชาชน ผู้ป่วย</label><input type="text" id="patient-pid" class="form-input" required></div></div>
                 <div class="mb-4"><label class="block mb-2 text-sm font-bold text-gray-700">สถานะทางกายภาพ</label><select id="physical-status" class="form-select"><option>เดินได้</option><option>นั่งรถเข็น</option><option>นอนเปล</option></select></div>
                 <div class="mb-4"><label for="symptoms" class="block mb-2 text-sm font-bold text-gray-700">อาการ/ความผิดปกติ</label><textarea id="symptoms" rows="3" class="form-textarea" required></textarea></div>
-
-                <div class="mb-4">
-                    <label class="block mb-2 text-sm font-bold text-gray-700">ประเภทการนัด</label>
-                    <div class="flex items-center">
-                        <input type="radio" name="appointment-type" id="type-new" value="นัดใหม่" class="mr-2" checked> <label for="type-new" class="mr-4">นัดใหม่</label>
-                        <input type="radio" name="appointment-type" id="type-old" value="นัดเดิม" class="mr-2"> <label for="type-old">นัดเดิม</label>
-                    </div>
-                </div>
-                
-                <div id="old-appointment-section" class="hidden p-3 mb-4 bg-gray-100 rounded-lg">
-                    <div class="mb-4"><label for="department" class="block mb-2 text-sm font-bold text-gray-700">แผนกที่มีนัด</label><input type="text" id="department" class="form-input" placeholder="เช่น อายุรกรรม"></div>
-                     <div>
-                        <label class="block mb-2 text-sm font-bold text-gray-700">สถานะนัดเดิม</label>
-                        <div class="flex items-center">
-                           <input type="radio" name="old-appointment-status" id="status-on-time" value="มาตรงตามนัด" class="mr-2"> <label for="status-on-time" class="mr-4">มาตรงตามนัด</label>
-                           <input type="radio" name="old-appointment-status" id="status-missed" value="ไม่ได้มาตามนัด" class="mr-2"> <label for="status-missed">ไม่ได้มาตามนัด</label>
-                        </div>
-                    </div>
-                </div>
-                <!-- **** ADDED USER NOTE FIELD **** -->
+                <div class="mb-4"><label class="block mb-2 text-sm font-bold text-gray-700">ประเภทการนัด</label><div class="flex items-center"><input type="radio" name="appointment-type" id="type-new" value="นัดใหม่" class="mr-2" checked> <label for="type-new" class="mr-4">นัดใหม่</label><input type="radio" name="appointment-type" id="type-old" value="นัดเดิม" class="mr-2"> <label for="type-old">นัดเดิม</label></div></div>
+                <div id="old-appointment-section" class="hidden p-3 mb-4 bg-gray-100 rounded-lg"><div class="mb-4"><label for="department" class="block mb-2 text-sm font-bold text-gray-700">แผนกที่มีนัด</label><input type="text" id="department" class="form-input" placeholder="เช่น อายุรกรรม"></div><div><label class="block mb-2 text-sm font-bold text-gray-700">สถานะนัดเดิม</label><div class="flex items-center"><input type="radio" name="old-appointment-status" id="status-on-time" value="มาตรงตามนัด" class="mr-2"> <label for="status-on-time" class="mr-4">มาตรงตามนัด</label><input type="radio" name="old-appointment-status" id="status-missed" value="ไม่ได้มาตามนัด" class="mr-2"> <label for="status-missed">ไม่ได้มาตามนัด</label></div></div></div>
                 <div class="mb-4"><label for="user-note" class="block mb-2 text-sm font-bold text-gray-700">หมายเหตุ (ถ้ามี)</label><textarea id="user-note" rows="2" class="form-textarea" placeholder="ข้อมูลเพิ่มเติมถึงแอดมิน"></textarea></div>
-
-                <div class="mb-6"><label for="appointment-datetime" class="block mb-2 text-sm font-bold text-gray-700">วันและเวลาที่ต้องการนัด</label><input type="datetime-local" id="appointment-datetime" class="form-input" required><p id="datetime-error" class="mt-2 text-sm text-red-500"></p></div>
-                
+                <div class="mb-6"><label for="appointment-datetime" class="block mb-2 text-sm font-bold text-gray-700">วันและเวลาที่ต้องการนัด</label><input type="datetime-local" id="appointment-datetime" class="form-input" required><p id="datetime-error" class="error-message"></p></div>
                 <button type="submit" id="submit-btn" class="btn">ส่งข้อมูลนัดหมาย</button>
                 <p id="submit-error" class="error-message"></p>
             </form>
         </div>
-        
-        <div id="contact-section" class="p-6 mt-5 text-center bg-white rounded-lg shadow-md">
+
+        <div class="p-6 mt-5 text-center bg-white rounded-lg shadow-md">
              <h2 class="mb-2 text-lg font-bold">พบปัญหา?</h2>
-             <p class="mb-4 text-gray-600">หากไม่สามารถยืนยันตัวตนหรือทำการนัดหมายได้ กรุณาติดต่อเจ้าหน้าที่</p>
+             <p class="mb-4 text-gray-600">หากพบปัญหา กรุณาติดต่อเจ้าหน้าที่</p>
              <button onclick="window.open('https://line.me/ti/p/~your_admin_line_id', '_blank')" class="btn-secondary">ติดต่อเจ้าหน้าที่</button>
         </div>
 
-        <div id="user-id-display" class="hidden p-4 mt-5 text-center bg-gray-200 rounded-lg">
-            <p class="text-sm text-gray-700">Your LINE User ID (for Admin Setup):</p>
+        <div class="hidden p-4 mt-5 text-center bg-gray-200 rounded-lg">
+            <p class="text-sm text-gray-700">Your LINE User ID:</p>
             <p id="line-user-id" class="font-mono text-xs text-gray-900 break-all"></p>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXSKAHUMqYzOsgXFc-v9yv_6tuHFWJOfo-YOyahKhA3cNpfUTDXRzDeA25C-TrZUyp2w/exec"; // <-- สำคัญ! ใส่ Web App URL ที่ Deploy ใหม่ของคุณที่นี่
+        // --- CONFIGURATION ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-wyx76M8hdrFl4KXcVj6XhwUAGvOFrP8QufUGhMCSZSxa0MKGfrJYffTzJZn2QaN39A/exec"; // <-- สำคัญ! ใส่ Web App URL ที่สร้างขึ้นมาใหม่ของคุณที่นี่
         const LIFF_ID = "2008050252-bNYeKBrd";
 
+        // --- DOM Elements ---
         const loadingDiv = document.getElementById('loading');
         const loadingErrorP = document.getElementById('loading-error');
         const appDiv = document.getElementById('app');
         const verificationSection = document.getElementById('verification-section');
         const appointmentSection = document.getElementById('appointment-section');
-        const oldAppointmentSection = document.getElementById('old-appointment-section');
-        const otherRelationshipSection = document.getElementById('other-relationship-section');
-        const patientRelationshipSelect = document.getElementById('patient-relationship');
         const verifyBtn = document.getElementById('verify-btn');
         const appointmentForm = document.getElementById('appointment-form');
         
+        // --- Global State ---
         let lineUserProfile = null;
         let registeredStaffInfo = null;
 
+        // --- Main App Initialization ---
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 lineUserProfile = await liff.getProfile();
                 document.getElementById('line-user-id').textContent = lineUserProfile.userId;
-                document.getElementById('user-id-display').style.display = 'block';
+                document.getElementById('line-user-id').parentElement.style.display = 'block';
                 await checkUserRegistration();
             } catch (error) {
-                handleError(loadingErrorP, 'LIFF Initialization failed', error);
+                handleError(loadingErrorP, 'LIFF Initialization Failed', error);
                 loadingDiv.querySelector('p').style.display = 'none';
             }
         }
         main();
 
+        // --- Core Logic Functions ---
         async function checkUserRegistration() {
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=checkUser&userId=${lineUserProfile.userId}`);
-                if (!response.ok) throw new Error(`Network error: ${response.statusText}`);
+                const response = await fetch(`${SCRIPT_URL}?userId=${lineUserProfile.userId}`, { method: 'GET' });
+                if (!response.ok) throw new Error(`Server returned status ${response.status}`);
+                
                 const result = await response.json();
-
                 if (result.status === "found") {
                     registeredStaffInfo = result.data;
                     showAppointmentForm();
-                } else {
+                } else if (result.status === "not_found") {
                     showVerificationForm();
+                } else {
+                    throw new Error(result.message || 'Unknown response from server.');
                 }
             } catch (error) {
                 handleError(loadingErrorP, "ไม่สามารถตรวจสอบข้อมูลผู้ใช้งานได้", error);
             }
         }
-        
-        function showVerificationForm() {
-            loadingDiv.style.display = 'none';
-            appDiv.style.display = 'block';
-            verificationSection.style.display = 'block';
-        }
 
-        function showAppointmentForm() {
-            document.getElementById('display-staff-name').textContent = registeredStaffInfo.staffName;
-            document.getElementById('display-staff-hn').textContent = registeredStaffInfo.staffHn;
-            if (patientRelationshipSelect.value === 'ตัวเจ้าหน้าที่เอง') {
-                document.getElementById('patient-name').value = registeredStaffInfo.staffName;
-            }
-            loadingDiv.style.display = 'none';
-            appDiv.style.display = 'block';
-            appointmentSection.style.display = 'block';
-        }
-
-        verifyBtn.addEventListener('click', async () => {
+        async function handleVerification(event) {
+            event.preventDefault();
             const staffName = document.getElementById('staff-name').value.trim();
             const staffHn = document.getElementById('staff-hn').value.trim();
             const errorP = document.getElementById('verification-error');
             errorP.textContent = '';
 
             if (!staffName || !staffHn) {
-                errorP.textContent = 'กรุณากรอกข้อมูลให้ครบถ้วน';
-                return;
+                errorP.textContent = 'กรุณากรอกข้อมูลให้ครบถ้วน'; return;
             }
             
             setButtonLoading(verifyBtn, true, 'กำลังตรวจสอบ...');
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'verifyAndRegister', lineUserId: lineUserProfile.userId, staffName, staffHn })
-                });
-                const result = await response.json();
-                if (result.status === 'success') {
+                const payload = { action: 'verifyAndRegister', lineUserId: lineUserProfile.userId, staffName, staffHn };
+                const response = await postToServer(payload);
+
+                if (response.status === 'success') {
                     registeredStaffInfo = { staffName, staffHn };
                     verificationSection.style.display = 'none';
                     showAppointmentForm();
                 } else {
-                    throw new Error(result.message || 'Verification failed.');
+                    throw new Error(response.message || 'Verification failed.');
                 }
             } catch (error) {
                 handleError(errorP, 'การลงทะเบียนล้มเหลว', error);
             } finally {
                 setButtonLoading(verifyBtn, false, 'ยืนยันและลงทะเบียน');
             }
-        });
+        }
 
-        appointmentForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        async function handleAppointmentSubmit(event) {
+            event.preventDefault();
             const submitBtn = document.getElementById('submit-btn');
             const errorP = document.getElementById('submit-error');
             errorP.textContent = '';
             
             if (!validateAppointmentDateTime()) return;
 
-            let relationship = patientRelationshipSelect.value;
+            let relationship = document.getElementById('patient-relationship').value;
             if (relationship === 'อื่นๆ') {
                 const otherText = document.getElementById('other-relationship-text').value.trim();
                 if (!otherText) { alert('กรุณาระบุความสัมพันธ์ในช่อง "อื่นๆ"'); return; }
@@ -233,7 +172,8 @@
             const oldAppointmentDetails = appointmentType === 'นัดเดิม' ? { department: document.getElementById('department').value, oldAppointmentStatus: document.querySelector('input[name="old-appointment-status"]:checked')?.value || 'N/A' } : {};
 
             const formData = {
-                action: 'bookAppointment', ...registeredStaffInfo, lineUserId: lineUserProfile.userId, lineDisplayName: lineUserProfile.displayName,
+                action: 'bookAppointment', staffName: registeredStaffInfo.staffName, staffHn: registeredStaffInfo.staffHn,
+                lineUserId: lineUserProfile.userId, lineDisplayName: lineUserProfile.displayName,
                 patient: { relationship, name: document.getElementById('patient-name').value, pid: document.getElementById('patient-pid').value },
                 physicalStatus: document.getElementById('physical-status').value, symptoms: document.getElementById('symptoms').value,
                 userNote: document.getElementById('user-note').value.trim(), appointmentType, ...oldAppointmentDetails,
@@ -242,36 +182,50 @@
             
             setButtonLoading(submitBtn, true, 'กำลังส่งข้อมูล...');
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-                const result = await response.json();
-                if (result.status === "success") {
+                const response = await postToServer(formData);
+                if (response.status === "success") {
                     const messageText = relationship.startsWith('อื่นๆ') ? createOtherRelationshipMessage(formData) : createStandardMessage(formData);
-                    await liff.sendMessages([{ type: 'text', text: messageText }]);
-                    liff.closeWindow();
+                    if (liff.isInClient()) {
+                        await liff.sendMessages([{ type: 'text', text: messageText }]);
+                        liff.closeWindow();
+                    } else {
+                        alert("ส่งคำขอสำเร็จ! (นอกแอป LINE)");
+                    }
                 } else {
-                    throw new Error(result.message);
+                    throw new Error(response.message);
                 }
             } catch (error) {
                 handleError(errorP, 'เกิดข้อผิดพลาดในการส่งข้อมูล', error);
             } finally {
                 setButtonLoading(submitBtn, false, 'ส่งข้อมูลนัดหมาย');
             }
-        });
-        
-        patientRelationshipSelect.addEventListener('change', (e) => {
-            const relationship = e.target.value;
-            otherRelationshipSection.style.display = relationship === 'อื่นๆ' ? 'block' : 'none';
-            if (relationship === 'ตัวเจ้าหน้าที่เอง' && registeredStaffInfo) {
-                document.getElementById('patient-name').value = registeredStaffInfo.staffName;
-                document.getElementById('patient-pid').value = '';
-            } else if (relationship !== 'อื่นๆ') {
-                document.getElementById('patient-name').value = '';
-                document.getElementById('patient-pid').value = '';
-            }
-        });
-        
-        document.querySelectorAll('input[name="appointment-type"]').forEach(r => r.addEventListener('change', e => oldAppointmentSection.style.display = e.target.value === 'นัดเดิม' ? 'block' : 'none'));
+        }
 
+        async function postToServer(payload) {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload), redirect: 'follow'
+            });
+            if (!response.ok) throw new Error(`Server Error: ${response.status} ${response.statusText}`);
+            return response.json();
+        }
+
+        // --- UI and Helper Functions ---
+        function showVerificationForm() {
+            loadingDiv.style.display = 'none';
+            appDiv.style.display = 'block';
+            verificationSection.style.display = 'block';
+        }
+        function showAppointmentForm() {
+            document.getElementById('display-staff-name').textContent = registeredStaffInfo.staffName;
+            document.getElementById('display-staff-hn').textContent = registeredStaffInfo.staffHn;
+            if (document.getElementById('patient-relationship').value === 'ตัวเจ้าหน้าที่เอง') {
+                document.getElementById('patient-name').value = registeredStaffInfo.staffName;
+            }
+            loadingDiv.style.display = 'none';
+            appDiv.style.display = 'block';
+            appointmentSection.style.display = 'block';
+        }
         function validateAppointmentDateTime() {
             const dtInput = document.getElementById('appointment-datetime');
             const errorP = document.getElementById('datetime-error');
@@ -284,6 +238,15 @@
             return true;
         }
 
+        // Event Listeners
+        verifyBtn.addEventListener('click', handleVerification);
+        appointmentForm.addEventListener('submit', handleAppointmentSubmit);
+        document.getElementById('patient-relationship').addEventListener('change', e => {
+            document.getElementById('other-relationship-section').style.display = e.target.value === 'อื่นๆ' ? 'block' : 'none';
+        });
+        document.querySelectorAll('input[name="appointment-type"]').forEach(r => r.addEventListener('change', e => document.getElementById('old-appointment-section').style.display = e.target.value === 'นัดเดิม' ? 'block' : 'none'));
+
+        // Helper functions
         function createStandardMessage(data) { return `\n- การนัดหมาย Fast Track ใหม่ -\nผู้ป่วย: ${data.patient.name}\nความสัมพันธ์: ${data.patient.relationship}\nวันที่ต้องการนัด: ${new Date(data.requestedDateTime).toLocaleString('th-TH')}\nอาการ: ${data.symptoms}\nสถานะ: ⏳ รอการยืนยัน\n`.trim(); }
         function createOtherRelationshipMessage(data) { return `‼️ คำขอจากบุคคลที่ไม่ใช่ญาติสายตรง ‼️\n----------------------\n- ข้อมูลการนัดหมายที่ท่านกรอก -\nเจ้าหน้าที่: ${data.staffName} (HN: ${data.staffHn})\nผู้ป่วย: ${data.patient.name}\nความสัมพันธ์: ${data.patient.relationship}\nอาการ: ${data.symptoms}\nวันที่ต้องการนัด: ${new Date(data.requestedDateTime).toLocaleString('th-TH')}\nหมายเหตุ: ${data.userNote || '-'}\n----------------------\nข้อความแจ้งเตือน:\nช่องทางนี้สำหรับเจ้าหน้าที่และญาติสายตรงเท่านั้น สำหรับบุคคลทั่วไปกรุณาติดต่อ 053-921-199 หรือไลน์หลัก @wfk5427z`.trim(); }
         function setButtonLoading(btn, isLoading, text) { btn.disabled = isLoading; btn.textContent = text; }
