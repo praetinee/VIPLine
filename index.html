@@ -246,8 +246,6 @@
             const appointmentId = urlParams.get('appointmentId');
 
             try {
-                // This will be sent to the LINE Platform webhook, not our main doPost
-                // We need to call our script directly to handle the logic
                  await postToServer({
                     action: 'handleAdminAction',
                     adminAction: 'deny',
@@ -365,7 +363,7 @@
                     await liff.sendMessages([{ type: 'text', text: `ส่งคำขอนัดหมายสำหรับ [${appointmentData.patientFullName}] เรียบร้อยแล้ว`}]);
                     liff.closeWindow();
                 } else {
-                    throw new Error(response.message);
+                    throw new Error(response.message || 'เกิดข้อผิดพลาดที่ไม่รู้จักจากเซิร์ฟเวอร์');
                 }
             } catch (error) {
                 showError('form-error-message', 'เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
@@ -374,25 +372,27 @@
         }
         
         async function postToServer(data) {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Use no-cors for simple requests, but change if you need to read the response body directly in a complex way
-                cache: 'no-cache',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-                redirect: 'follow',
-            });
-            // Since mode is 'no-cors', we can't read the response body. We assume success if no network error.
-            // For better error handling, deploy the Apps Script to allow CORS and change mode to 'cors'.
-            // For now, this is a workaround for the standard deployment. We'll get a proper response for this to work.
-             const responseText = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(data)
-             }).then(res => res.text());
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Content-Type': 'text/plain;charset=UTF-8',
+                    },
+                });
 
-             return JSON.parse(responseText);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server Error: ${response.status} - ${errorText}`);
+                }
+                
+                const resultText = await response.text();
+                return JSON.parse(resultText);
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                throw error; // Re-throw the error to be handled by the caller
+            }
         }
 
         function showError(elementId, message) {
@@ -415,3 +415,4 @@
     </script>
 </body>
 </html>
+
