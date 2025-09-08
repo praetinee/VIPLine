@@ -183,7 +183,7 @@
     <script>
         // --- CONFIG ---
         const LIFF_ID = "2008050252-bNYeKBrd";
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwsJTl6er6w5QFsCR-HIJh_mU3gQXzOKchaUlgNKm8_JOqbZfNggyDVrFBvNlUHOSaR/exec";
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbsJTl6er6w5QFsCR-HIjh_mU3gQXZOkCHaUlgNKm8_JObZbZfNggyDVrFBvNIUHOSaR/exec";
 
         // --- DOM Elements ---
         const loadingOverlay = document.getElementById('loading-overlay');
@@ -390,7 +390,6 @@
             const finalRelationship = relationshipValue === 'อื่นๆ' ? formData.get('other-relationship-text') : relationshipValue;
 
             const data = {
-                action: 'bookAppointment',
                 userId: userProfile.userId,
                 staffName: staffInfoDiv.textContent.split('(HN:')[0].replace('เจ้าหน้าที่:', '').trim(),
                 staffHn: staffInfoDiv.textContent.match(/HN: (\d+)/)[1],
@@ -406,13 +405,16 @@
                 appointmentDateTime: formData.get('appointment-datetime'),
                 notes: formData.get('notes')
             };
+            
+            // [FIX] Use FormData for a more reliable POST request to avoid CORS issues.
+            const postData = new FormData();
+            postData.append('action', 'bookAppointment');
+            postData.append('payload', JSON.stringify(data));
 
             try {
                 const response = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
+                    body: postData,
                     redirect: 'follow'
                 });
 
