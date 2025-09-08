@@ -8,249 +8,391 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Sarabun', sans-serif; }
-        .form-select, .form-input, .form-textarea { @apply w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500; }
-        .btn { @apply w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-lg hover:bg-blue-700 focus:outline-none focus:shadow-outline disabled:bg-gray-400; }
-        .btn-secondary { @apply w-full px-4 py-2 font-bold text-white bg-gray-500 rounded-lg hover:bg-gray-700 focus:outline-none focus:shadow-outline; }
-        .error-message { @apply mt-2 text-sm text-center text-red-500; }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .form-label {
+            @apply block text-gray-700 text-sm font-bold mb-2;
+        }
+        .form-input, .form-select, .form-textarea {
+            @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline;
+        }
+        .btn-primary {
+            @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full;
+        }
+        .btn-secondary {
+            @apply bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="p-4">
 
-    <div id="loading" class="flex flex-col items-center justify-center h-screen">
-        <p class="text-lg">กำลังโหลดข้อมูล กรุณาสักครู่...</p>
-        <p id="loading-error" class="error-message"></p>
+    <div id="loading" class="text-center p-10">
+        <p class="text-lg font-semibold">กำลังโหลดข้อมูล กรุณารอสักครู่...</p>
     </div>
 
-    <div id="app" class="hidden max-w-lg p-5 mx-auto">
-        <!-- Sections will be displayed here -->
-        <div id="verification-section" class="hidden p-6 bg-white rounded-lg shadow-md">
-            <!-- Verification form -->
-             <h1 class="mb-4 text-2xl font-bold text-center">ลงทะเบียนใช้งานครั้งแรก</h1>
-            <p class="mb-4 text-center text-gray-600">กรุณากรอกชื่อ-นามสกุล และหมายเลข HN เพื่อยืนยันสิทธิ์และลงทะเบียนผู้ใช้งาน</p>
-            <div class="mb-4"><label for="staff-name" class="block mb-2 text-sm font-bold text-gray-700">ชื่อ-นามสกุล</label><input type="text" id="staff-name" class="form-input" placeholder="เช่น สมชาย ใจดี"></div>
-            <div class="mb-6"><label for="staff-hn" class="block mb-2 text-sm font-bold text-gray-700">หมายเลข HN</label><input type="text" id="staff-hn" class="form-input" placeholder="เช่น 123456"></div>
-            <button id="verify-btn" class="btn">ยืนยันและลงทะเบียน</button>
-            <p id="verification-error" class="error-message"></p>
+    <div id="app" class="hidden max-w-lg mx-auto bg-white p-6 rounded-lg shadow-xl">
+        <h1 class="text-2xl font-bold mb-4 text-center text-blue-600">ระบบนัดหมาย Fast Track</h1>
+        
+        <!-- Registration Section -->
+        <div id="registration-section" class="hidden">
+            <h2 class="text-xl font-semibold mb-4 border-b pb-2">ลงทะเบียนสำหรับเจ้าหน้าที่</h2>
+            <p class="mb-4 text-sm text-gray-600">กรุณาลงทะเบียนเพื่อเข้าใช้งานครั้งแรก</p>
+            <form id="registration-form">
+                <div class="mb-4">
+                    <label class="form-label" for="reg-fullname">ชื่อ-นามสกุล</label>
+                    <input class="form-input" id="reg-fullname" type="text" placeholder="ชื่อ-นามสกุล" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" for="reg-hn">หมายเลข HN</label>
+                    <input class="form-input" id="reg-hn" type="text" placeholder="HN" required>
+                </div>
+                <button class="btn-primary" type="submit">ลงทะเบียน</button>
+            </form>
+            <div id="registration-error" class="text-red-500 mt-4 text-center hidden"></div>
         </div>
 
-        <div id="appointment-section" class="hidden p-6 bg-white rounded-lg shadow-md">
-           <!-- Appointment form -->
-            <h1 class="mb-2 text-2xl font-bold text-center">แบบฟอร์มการนัดหมาย</h1>
-            <div class="p-3 mb-4 text-center bg-blue-100 rounded-lg">
-                <p class="font-semibold">เจ้าหน้าที่: <span id="display-staff-name"></span></p>
-                <p class="text-sm">HN: <span id="display-staff-hn"></span></p>
+        <!-- Booking Section -->
+        <div id="booking-section" class="hidden">
+            <div class="mb-4 bg-gray-100 p-3 rounded-lg">
+                <p class="font-semibold">ผู้ใช้งาน: <span id="user-name" class="font-normal"></span></p>
+                <p class="font-semibold">HN: <span id="user-hn" class="font-normal"></span></p>
             </div>
-            <form id="appointment-form">
-                <!-- All form fields -->
-                <div class="mb-4"><label class="block mb-2 text-sm font-bold text-gray-700">ผู้ที่จะเข้ารับการรักษา</label><select id="patient-relationship" class="form-select"><option value="ตัวเจ้าหน้าที่เอง">ตัวเจ้าหน้าที่เอง</option><option value="พ่อ">พ่อ</option><option value="แม่">แม่</option><option value="คู่สมรส">คู่สมรส (ตามกฏหมาย)</option><option value="บุตร">บุตร</option><option value="อื่นๆ">อื่นๆ</option></select></div>
-                <div id="other-relationship-section" class="hidden mb-4"><label for="other-relationship-text" class="block mb-2 text-sm font-bold text-gray-700">โปรดระบุความสัมพันธ์</label><input type="text" id="other-relationship-text" class="form-input" placeholder="เช่น หลาน, พี่ชาย"></div>
-                <div id="patient-details-section"><div class="mb-4"><label for="patient-name" class="block mb-2 text-sm font-bold text-gray-700">ชื่อ-นามสกุล ผู้ป่วย</label><input type="text" id="patient-name" class="form-input" required></div><div class="mb-4"><label for="patient-pid" class="block mb-2 text-sm font-bold text-gray-700">เลขบัตรประชาชน ผู้ป่วย</label><input type="text" id="patient-pid" class="form-input" required></div></div>
-                <div class="mb-4"><label class="block mb-2 text-sm font-bold text-gray-700">สถานะทางกายภาพ</label><select id="physical-status" class="form-select"><option>เดินได้</option><option>นั่งรถเข็น</option><option>นอนเปล</option></select></div>
-                <div class="mb-4"><label for="symptoms" class="block mb-2 text-sm font-bold text-gray-700">อาการ/ความผิดปกติ</label><textarea id="symptoms" rows="3" class="form-textarea" required></textarea></div>
-                <div class="mb-4"><label class="block mb-2 text-sm font-bold text-gray-700">ประเภทการนัด</label><div class="flex items-center"><input type="radio" name="appointment-type" id="type-new" value="นัดใหม่" class="mr-2" checked> <label for="type-new" class="mr-4">นัดใหม่</label><input type="radio" name="appointment-type" id="type-old" value="นัดเดิม" class="mr-2"> <label for="type-old">นัดเดิม</label></div></div>
-                <div id="old-appointment-section" class="hidden p-3 mb-4 bg-gray-100 rounded-lg"><div class="mb-4"><label for="department" class="block mb-2 text-sm font-bold text-gray-700">แผนกที่มีนัด</label><input type="text" id="department" class="form-input" placeholder="เช่น อายุรกรรม"></div><div><label class="block mb-2 text-sm font-bold text-gray-700">สถานะนัดเดิม</label><div class="flex items-center"><input type="radio" name="old-appointment-status" id="status-on-time" value="มาตรงตามนัด" class="mr-2"> <label for="status-on-time" class="mr-4">มาตรงตามนัด</label><input type="radio" name="old-appointment-status" id="status-missed" value="ไม่ได้มาตามนัด" class="mr-2"> <label for="status-missed">ไม่ได้มาตามนัด</label></div></div></div>
-                <div class="mb-4"><label for="user-note" class="block mb-2 text-sm font-bold text-gray-700">หมายเหตุ (ถ้ามี)</label><textarea id="user-note" rows="2" class="form-textarea" placeholder="ข้อมูลเพิ่มเติมถึงแอดมิน"></textarea></div>
-                <div class="mb-6"><label for="appointment-datetime" class="block mb-2 text-sm font-bold text-gray-700">วันและเวลาที่ต้องการนัด</label><input type="datetime-local" id="appointment-datetime" class="form-input" required><p id="datetime-error" class="error-message"></p></div>
-                <button type="submit" id="submit-btn" class="btn">ส่งข้อมูลนัดหมาย</button>
-                <p id="submit-error" class="error-message"></p>
+            <h2 class="text-xl font-semibold mb-4 border-b pb-2">กรอกรายละเอียดการนัดหมาย</h2>
+            <form id="booking-form">
+                <!-- Patient Relation -->
+                <div class="mb-4">
+                    <label class="form-label" for="relation">ผู้ที่จะเข้ารับการรักษา</label>
+                    <select class="form-select" id="relation" required>
+                        <option value="ตัวเจ้าหน้าที่เอง">ตัวเจ้าหน้าที่เอง</option>
+                        <option value="พ่อ">พ่อ</option>
+                        <option value="แม่">แม่</option>
+                        <option value="คู่สมรส">คู่สมรส (ตามกฎหมาย)</option>
+                        <option value="บุตร">บุตร</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                </div>
+                <div id="other-relation-wrapper" class="mb-4 hidden">
+                    <label class="form-label" for="other-relation-detail">โปรดระบุความสัมพันธ์</label>
+                    <input class="form-input" id="other-relation-detail" type="text" placeholder="ระบุความสัมพันธ์">
+                </div>
+                
+                <!-- Patient Details -->
+                <div id="patient-details-section">
+                    <h3 class="font-semibold text-md mb-2">ข้อมูลผู้รับการรักษา</h3>
+                    <div class="mb-4">
+                        <label class="form-label" for="patient-fullname">ชื่อ-นามสกุล ผู้รับการรักษา</label>
+                        <input class="form-input" id="patient-fullname" type="text" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label" for="patient-cid">เลขบัตรประชาชน</label>
+                        <input class="form-input" id="patient-cid" type="text" pattern="\d{13}" title="กรุณากรอกเลขบัตรประชาชน 13 หลัก" required>
+                    </div>
+                </div>
+
+                <!-- Physical Status -->
+                <div class="mb-4">
+                    <label class="form-label">สถานทางกายภาพ</label>
+                    <select class="form-select" id="physical-status" required>
+                        <option value="เดินได้">เดินได้</option>
+                        <option value="นั่งรถเข็น">นั่งรถเข็น</option>
+                        <option value="นอนเปล">นอนเปล</option>
+                    </select>
+                </div>
+
+                <!-- Symptoms -->
+                <div class="mb-4">
+                    <label class="form-label" for="symptoms">อาการ/ความผิดปกติ</label>
+                    <textarea class="form-textarea" id="symptoms" rows="3" required></textarea>
+                </div>
+
+                <!-- Appointment Type -->
+                <div class="mb-4">
+                    <label class="form-label">ประเภทการนัด</label>
+                    <div>
+                        <input type="radio" id="new-appointment" name="appointment-type" value="นัดใหม่" checked>
+                        <label for="new-appointment">นัดใหม่</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="old-appointment" name="appointment-type" value="นัดเดิม">
+                        <label for="old-appointment">นัดเดิม</label>
+                    </div>
+                </div>
+
+                <!-- Old Appointment Details -->
+                <div id="old-appointment-details" class="hidden mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div class="mb-4">
+                        <label class="form-label" for="department">แผนกที่มีนัด</label>
+                        <input class="form-input" id="department" type="text" placeholder="ระบุแผนก">
+                    </div>
+                    <div>
+                        <label class="form-label">สถานะการนัดเดิม</label>
+                        <select class="form-select" id="old-appointment-status">
+                            <option value="มาตรงตามนัด">มาตรงตามใบนัด</option>
+                            <option value="ไม่ได้มาตามนัด">ไม่ได้มาตามนัด</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Appointment DateTime -->
+                <div class="mb-4">
+                    <label class="form-label" for="appointment-datetime">วันและเวลาที่ต้องการนัด</label>
+                    <input class="form-input" id="appointment-datetime" type="datetime-local" required>
+                    <p class="text-xs text-gray-500 mt-1">เฉพาะวันจันทร์-ศุกร์ เวลา 08:00 - 15:00 น.</p>
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-6">
+                    <label class="form-label" for="notes">หมายเหตุ/ข้อมูลเพิ่มเติม</label>
+                    <textarea class="form-textarea" id="notes" rows="2"></textarea>
+                </div>
+
+                <button class="btn-primary" type="submit">ส่งข้อมูลนัดหมาย</button>
             </form>
         </div>
-
-        <div class="p-6 mt-5 text-center bg-white rounded-lg shadow-md">
-             <h2 class="mb-2 text-lg font-bold">พบปัญหา?</h2>
-             <p class="mb-4 text-gray-600">หากพบปัญหา กรุณาติดต่อเจ้าหน้าที่</p>
-             <button onclick="window.open('https://line.me/ti/p/~your_admin_line_id', '_blank')" class="btn-secondary">ติดต่อเจ้าหน้าที่</button>
+        
+        <!-- Contact Button -->
+        <div class="mt-6 text-center">
+             <button id="contact-btn" class="btn-secondary">ติดต่อเจ้าหน้าที่</button>
         </div>
-
-        <div class="hidden p-4 mt-5 text-center bg-gray-200 rounded-lg">
-            <p class="text-sm text-gray-700">Your LINE User ID:</p>
-            <p id="line-user-id" class="font-mono text-xs text-gray-900 break-all"></p>
+    </div>
+    
+    <div id="message-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 id="message-title" class="text-lg leading-6 font-medium text-gray-900"></h3>
+                <div class="mt-2 px-7 py-3">
+                    <p id="message-text" class="text-sm text-gray-500"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="close-modal-btn" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        ตกลง
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
+
     <script>
-        // --- CONFIGURATION ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-wyx76M8hdrFl4KXcVj6XhwUAGvOFrP8QufUGhMCSZSxa0MKGfrJYffTzJZn2QaN39A/exec"; // <-- สำคัญ! ใส่ Web App URL ที่สร้างขึ้นมาใหม่ของคุณที่นี่
+        // !! IMPORTANT !!
+        // !! URL ด้านล่างนี้จะต้องนำมาจากขั้นตอนการ Deploy Google Apps Script !!
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx-tQ6nYKmsMpQs3Z6GTRDqvDZeupFhJ1TrUxps32VZqoSqgAFT5zyCpN2z_slfgeIx/exec"; // <--- URL ที่ได้จากการ deploy Google Apps Script
+        
+        // LIFF ID (ตั้งค่าให้แล้ว)
         const LIFF_ID = "2008050252-bNYeKBrd";
+
+        // Global state
+        let USER_PROFILE = null;
 
         // --- DOM Elements ---
         const loadingDiv = document.getElementById('loading');
-        const loadingErrorP = document.getElementById('loading-error');
         const appDiv = document.getElementById('app');
-        const verificationSection = document.getElementById('verification-section');
-        const appointmentSection = document.getElementById('appointment-section');
-        const verifyBtn = document.getElementById('verify-btn');
-        const appointmentForm = document.getElementById('appointment-form');
-        
-        // --- Global State ---
-        let lineUserProfile = null;
-        let registeredStaffInfo = null;
+        const registrationSection = document.getElementById('registration-section');
+        const bookingSection = document.getElementById('booking-section');
+        const registrationForm = document.getElementById('registration-form');
+        const bookingForm = document.getElementById('booking-form');
+        const relationSelect = document.getElementById('relation');
+        const otherRelationWrapper = document.getElementById('other-relation-wrapper');
+        const oldAppointmentDetails = document.getElementById('old-appointment-details');
+        const appointmentTypeRadios = document.querySelectorAll('input[name="appointment-type"]');
+        const contactBtn = document.getElementById('contact-btn');
+        const messageModal = document.getElementById('message-modal');
+        const messageTitle = document.getElementById('message-title');
+        const messageText = document.getElementById('message-text');
+        const closeModalBtn = document.getElementById('close-modal-btn');
 
-        // --- Main App Initialization ---
+        // --- Main Function ---
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) { liff.login(); return; }
-                lineUserProfile = await liff.getProfile();
-                document.getElementById('line-user-id').textContent = lineUserProfile.userId;
-                document.getElementById('line-user-id').parentElement.style.display = 'block';
-                await checkUserRegistration();
-            } catch (error) {
-                handleError(loadingErrorP, 'LIFF Initialization Failed', error);
-                loadingDiv.querySelector('p').style.display = 'none';
-            }
-        }
-        main();
-
-        // --- Core Logic Functions ---
-        async function checkUserRegistration() {
-            try {
-                const response = await fetch(`${SCRIPT_URL}?userId=${lineUserProfile.userId}`, { method: 'GET' });
-                if (!response.ok) throw new Error(`Server returned status ${response.status}`);
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                USER_PROFILE = await liff.getProfile();
                 
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'checkUser', userId: USER_PROFILE.userId })
+                });
+
                 const result = await response.json();
-                if (result.status === "found") {
-                    registeredStaffInfo = result.data;
-                    showAppointmentForm();
-                } else if (result.status === "not_found") {
-                    showVerificationForm();
+                
+                loadingDiv.classList.add('hidden');
+                appDiv.classList.remove('hidden');
+
+                if (result.isRegistered) {
+                    showBookingForm(result.userData);
                 } else {
-                    throw new Error(result.message || 'Unknown response from server.');
+                    showRegistrationForm();
                 }
-            } catch (error) {
-                handleError(loadingErrorP, "ไม่สามารถตรวจสอบข้อมูลผู้ใช้งานได้", error);
+
+            } catch (error)
+            {
+                console.error(error);
+                showMessage('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาตรวจสอบว่าได้กรอกค่า GAS_WEB_APP_URL ถูกต้องแล้วหรือไม่');
             }
         }
 
-        async function handleVerification(event) {
-            event.preventDefault();
-            const staffName = document.getElementById('staff-name').value.trim();
-            const staffHn = document.getElementById('staff-hn').value.trim();
-            const errorP = document.getElementById('verification-error');
-            errorP.textContent = '';
-
-            if (!staffName || !staffHn) {
-                errorP.textContent = 'กรุณากรอกข้อมูลให้ครบถ้วน'; return;
-            }
+        // --- UI Control Functions ---
+        function showBookingForm(userData) {
+            document.getElementById('user-name').textContent = userData.fullName;
+            document.getElementById('user-hn').textContent = userData.hn;
+            bookingSection.classList.remove('hidden');
+            registrationSection.classList.add('hidden');
             
-            setButtonLoading(verifyBtn, true, 'กำลังตรวจสอบ...');
+            if(relationSelect.value === 'ตัวเจ้าหน้าที่เอง') {
+                document.getElementById('patient-fullname').value = userData.fullName;
+            }
+        }
+
+        function showRegistrationForm() {
+            registrationSection.classList.remove('hidden');
+            bookingSection.classList.add('hidden');
+        }
+
+        function showMessage(title, text) {
+            messageTitle.textContent = title;
+            messageText.textContent = text;
+            messageModal.classList.remove('hidden');
+        }
+
+        // --- Event Listeners ---
+        registrationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('reg-fullname').value;
+            const hn = document.getElementById('reg-hn').value;
+            const errorDiv = document.getElementById('registration-error');
+
             try {
-                const payload = { action: 'verifyAndRegister', lineUserId: lineUserProfile.userId, staffName, staffHn };
-                const response = await postToServer(payload);
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'register',
+                        userId: USER_PROFILE.userId,
+                        fullName: fullName,
+                        hn: hn
+                    })
+                });
 
-                if (response.status === 'success') {
-                    registeredStaffInfo = { staffName, staffHn };
-                    verificationSection.style.display = 'none';
-                    showAppointmentForm();
+                const result = await response.json();
+                if (result.success) {
+                    showBookingForm({ fullName: fullName, hn: hn });
                 } else {
-                    throw new Error(response.message || 'Verification failed.');
+                    errorDiv.textContent = result.message || 'ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง';
+                    errorDiv.classList.remove('hidden');
                 }
             } catch (error) {
-                handleError(errorP, 'การลงทะเบียนล้มเหลว', error);
-            } finally {
-                setButtonLoading(verifyBtn, false, 'ยืนยันและลงทะเบียน');
+                console.error(error);
+                errorDiv.textContent = 'การลงทะเบียนล้มเหลว กรุณาลองใหม่';
+                errorDiv.classList.remove('hidden');
             }
-        }
+        });
 
-        async function handleAppointmentSubmit(event) {
-            event.preventDefault();
-            const submitBtn = document.getElementById('submit-btn');
-            const errorP = document.getElementById('submit-error');
-            errorP.textContent = '';
+        bookingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            if (!validateAppointmentDateTime()) return;
+            const datetimeInput = document.getElementById('appointment-datetime').value;
+            const selectedDate = new Date(datetimeInput);
+            const day = selectedDate.getDay();
+            const hour = selectedDate.getHours();
 
-            let relationship = document.getElementById('patient-relationship').value;
-            if (relationship === 'อื่นๆ') {
-                const otherText = document.getElementById('other-relationship-text').value.trim();
-                if (!otherText) { alert('กรุณาระบุความสัมพันธ์ในช่อง "อื่นๆ"'); return; }
-                relationship = `อื่นๆ (${otherText})`;
+            if (day === 0 || day === 6) {
+                showMessage('ข้อมูลผิดพลาด', 'ไม่สามารถนัดหมายในวันเสาร์-อาทิตย์ได้');
+                return;
             }
-
-            const appointmentType = document.querySelector('input[name="appointment-type"]:checked').value;
-            const oldAppointmentDetails = appointmentType === 'นัดเดิม' ? { department: document.getElementById('department').value, oldAppointmentStatus: document.querySelector('input[name="old-appointment-status"]:checked')?.value || 'N/A' } : {};
+            if (hour < 8 || hour >= 15) {
+                showMessage('ข้อมูลผิดพลาด', 'สามารถนัดหมายได้ระหว่างเวลา 08:00 - 15:00 น. เท่านั้น');
+                return;
+            }
 
             const formData = {
-                action: 'bookAppointment', staffName: registeredStaffInfo.staffName, staffHn: registeredStaffInfo.staffHn,
-                lineUserId: lineUserProfile.userId, lineDisplayName: lineUserProfile.displayName,
-                patient: { relationship, name: document.getElementById('patient-name').value, pid: document.getElementById('patient-pid').value },
-                physicalStatus: document.getElementById('physical-status').value, symptoms: document.getElementById('symptoms').value,
-                userNote: document.getElementById('user-note').value.trim(), appointmentType, ...oldAppointmentDetails,
-                requestedDateTime: document.getElementById('appointment-datetime').value
+                action: 'bookAppointment',
+                userId: USER_PROFILE.userId,
+                staffName: document.getElementById('user-name').textContent,
+                staffHn: document.getElementById('user-hn').textContent,
+                relation: relationSelect.value,
+                otherRelationDetail: document.getElementById('other-relation-detail').value,
+                patientFullname: document.getElementById('patient-fullname').value,
+                patientCid: document.getElementById('patient-cid').value,
+                physicalStatus: document.getElementById('physical-status').value,
+                symptoms: document.getElementById('symptoms').value,
+                appointmentType: document.querySelector('input[name="appointment-type"]:checked').value,
+                department: document.getElementById('department').value,
+                oldAppointmentStatus: document.getElementById('old-appointment-status').value,
+                appointmentDateTime: datetimeInput,
+                notes: document.getElementById('notes').value,
             };
-            
-            setButtonLoading(submitBtn, true, 'กำลังส่งข้อมูล...');
+
             try {
-                const response = await postToServer(formData);
-                if (response.status === "success") {
-                    const messageText = relationship.startsWith('อื่นๆ') ? createOtherRelationshipMessage(formData) : createStandardMessage(formData);
-                    if (liff.isInClient()) {
-                        await liff.sendMessages([{ type: 'text', text: messageText }]);
-                        liff.closeWindow();
-                    } else {
-                        alert("ส่งคำขอสำเร็จ! (นอกแอป LINE)");
-                    }
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(formData)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('สำเร็จ', 'คำขอนัดหมายของคุณถูกส่งเรียบร้อยแล้ว กรุณาตรวจสอบข้อความยืนยันใน LINE และรอการติดต่อจากเจ้าหน้าที่');
+                    setTimeout(() => {
+                        if (liff.isInClient()) {
+                            liff.closeWindow();
+                        }
+                    }, 3000);
                 } else {
-                    throw new Error(response.message);
+                    showMessage('เกิดข้อผิดพลาด', result.message || 'ไม่สามารถส่งข้อมูลได้');
                 }
             } catch (error) {
-                handleError(errorP, 'เกิดข้อผิดพลาดในการส่งข้อมูล', error);
-            } finally {
-                setButtonLoading(submitBtn, false, 'ส่งข้อมูลนัดหมาย');
+                console.error(error);
+                showMessage('เกิดข้อผิดพลาด', 'การเชื่อมต่อล้มเหลว กรุณาลองใหม่อีกครั้ง');
             }
-        }
-
-        async function postToServer(payload) {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload), redirect: 'follow'
-            });
-            if (!response.ok) throw new Error(`Server Error: ${response.status} ${response.statusText}`);
-            return response.json();
-        }
-
-        // --- UI and Helper Functions ---
-        function showVerificationForm() {
-            loadingDiv.style.display = 'none';
-            appDiv.style.display = 'block';
-            verificationSection.style.display = 'block';
-        }
-        function showAppointmentForm() {
-            document.getElementById('display-staff-name').textContent = registeredStaffInfo.staffName;
-            document.getElementById('display-staff-hn').textContent = registeredStaffInfo.staffHn;
-            if (document.getElementById('patient-relationship').value === 'ตัวเจ้าหน้าที่เอง') {
-                document.getElementById('patient-name').value = registeredStaffInfo.staffName;
-            }
-            loadingDiv.style.display = 'none';
-            appDiv.style.display = 'block';
-            appointmentSection.style.display = 'block';
-        }
-        function validateAppointmentDateTime() {
-            const dtInput = document.getElementById('appointment-datetime');
-            const errorP = document.getElementById('datetime-error');
-            errorP.textContent = '';
-            if (!dtInput.value) { errorP.textContent = 'กรุณาเลือกวันและเวลา'; return false; }
-            const date = new Date(dtInput.value);
-            const day = date.getDay(); const hour = date.getHours();
-            if (day === 0 || day === 6) { errorP.textContent = 'ไม่สามารถนัดหมายในวันเสาร์-อาทิตย์ได้'; return false; }
-            if (hour < 8 || hour >= 15) { errorP.textContent = 'กรุณาเลือกเวลาทำการระหว่าง 08:00 - 15:00 น.'; return false; }
-            return true;
-        }
-
-        // Event Listeners
-        verifyBtn.addEventListener('click', handleVerification);
-        appointmentForm.addEventListener('submit', handleAppointmentSubmit);
-        document.getElementById('patient-relationship').addEventListener('change', e => {
-            document.getElementById('other-relationship-section').style.display = e.target.value === 'อื่นๆ' ? 'block' : 'none';
         });
-        document.querySelectorAll('input[name="appointment-type"]').forEach(r => r.addEventListener('change', e => document.getElementById('old-appointment-section').style.display = e.target.value === 'นัดเดิม' ? 'block' : 'none'));
 
-        // Helper functions
-        function createStandardMessage(data) { return `\n- การนัดหมาย Fast Track ใหม่ -\nผู้ป่วย: ${data.patient.name}\nความสัมพันธ์: ${data.patient.relationship}\nวันที่ต้องการนัด: ${new Date(data.requestedDateTime).toLocaleString('th-TH')}\nอาการ: ${data.symptoms}\nสถานะ: ⏳ รอการยืนยัน\n`.trim(); }
-        function createOtherRelationshipMessage(data) { return `‼️ คำขอจากบุคคลที่ไม่ใช่ญาติสายตรง ‼️\n----------------------\n- ข้อมูลการนัดหมายที่ท่านกรอก -\nเจ้าหน้าที่: ${data.staffName} (HN: ${data.staffHn})\nผู้ป่วย: ${data.patient.name}\nความสัมพันธ์: ${data.patient.relationship}\nอาการ: ${data.symptoms}\nวันที่ต้องการนัด: ${new Date(data.requestedDateTime).toLocaleString('th-TH')}\nหมายเหตุ: ${data.userNote || '-'}\n----------------------\nข้อความแจ้งเตือน:\nช่องทางนี้สำหรับเจ้าหน้าที่และญาติสายตรงเท่านั้น สำหรับบุคคลทั่วไปกรุณาติดต่อ 053-921-199 หรือไลน์หลัก @wfk5427z`.trim(); }
-        function setButtonLoading(btn, isLoading, text) { btn.disabled = isLoading; btn.textContent = text; }
-        function handleError(element, message, error) { console.error(message, error); element.textContent = `${message}: ${error.message}`; }
+        relationSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'อื่นๆ') {
+                otherRelationWrapper.classList.remove('hidden');
+                document.getElementById('other-relation-detail').required = true;
+            } else {
+                otherRelationWrapper.classList.add('hidden');
+                 document.getElementById('other-relation-detail').required = false;
+            }
+            if (e.target.value === 'ตัวเจ้าหน้าที่เอง') {
+                document.getElementById('patient-fullname').value = document.getElementById('user-name').textContent;
+            } else {
+                 document.getElementById('patient-fullname').value = '';
+                 document.getElementById('patient-cid').value = '';
+            }
+        });
+
+        appointmentTypeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'นัดเดิม') {
+                    oldAppointmentDetails.classList.remove('hidden');
+                    document.getElementById('department').required = true;
+                } else {
+                    oldAppointmentDetails.classList.add('hidden');
+                    document.getElementById('department').required = false;
+                }
+            });
+        });
+
+        contactBtn.addEventListener('click', () => {
+            window.open('https://page.line.me/wfk5427z', '_blank');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            messageModal.classList.add('hidden');
+        });
+
+        // --- Initialize App ---
+        main();
     </script>
 </body>
 </html>
