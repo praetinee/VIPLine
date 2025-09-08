@@ -348,12 +348,17 @@
                 
                 try {
                      await liff.sendMessages([{type: 'text', text: summary}]);
-                     liff.closeWindow();
+                     mainFormView.innerHTML = `<div class="p-4 text-center">
+                        <h2 class="text-xl font-bold text-green-600">ส่งข้อมูลแล้ว</h2>
+                        <p class="mt-2 text-gray-700">ข้อความสรุปและคำเตือนได้ถูกส่งเข้าไปในช่องแชทของท่านแล้ว</p>
+                        <p class="mt-4 text-sm text-gray-500">หน้าต่างนี้จะปิดอัตโนมัติในอีกครู่...</p>
+                     </div>`;
+                     setTimeout(() => liff.closeWindow(), 4000);
                 } catch(error) {
-                    showError('form-error-message', 'ไม่สามารถส่งข้อความได้: ' + error.message);
+                    showError('form-error-message', 'ไม่สามารถส่งข้อความแจ้งเตือนได้: ' + error.message);
                     toggleSubmitSpinner(false);
                 }
-                return; // Stop further processing
+                return; 
             }
 
             // Normal submission
@@ -391,7 +396,7 @@
 
             } catch (error) {
                 console.error("Fetch Error:", error);
-                throw error; // Re-throw the error to be handled by the caller
+                throw error;
             }
         }
 
