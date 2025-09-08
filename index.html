@@ -181,6 +181,13 @@
                     liff.login();
                     return;
                 }
+
+                // Check and request permission for sending messages
+                const permissionStatus = await liff.permission.query("chat_message.write");
+                if (permissionStatus.state !== 'granted') {
+                    await liff.permission.requestAll();
+                }
+
                 userProfile = await liff.getProfile();
 
                 const urlParams = new URLSearchParams(window.location.search);
@@ -200,8 +207,13 @@
                 }
             } catch (error) {
                 console.error(error);
-                alert('เกิดข้อผิดพลาดในการเริ่มต้นแอป: ' + error.message);
-                showView('error');
+                // Provide a more user-friendly error message
+                if (error.code === "PERMISSION_DENIED") {
+                     alert('กรุณาอนุญาตให้แอปส่งข้อความเพื่อใช้งานต่อ');
+                } else {
+                     alert('เกิดข้อผิดพลาดในการเริ่มต้นแอป: ' + error.message);
+                }
+                showView('error'); // You might want to create an error view
             }
         }
 
