@@ -23,18 +23,20 @@
         }
         #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.6);
             display: flex; justify-content: center; align-items: center;
             z-index: 1000;
         }
         #modal-content {
             background: white; padding: 2rem; border-radius: 0.5rem;
             text-align: center; max-width: 90%; width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        #modal-message { margin-bottom: 1.5rem; }
+        #modal-message { margin-bottom: 1.5rem; color: #333; }
         #modal-close {
             background-color: #007bff; color: white; border: none;
-            padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer;
+            padding: 0.75rem 1.5rem; border-radius: 0.25rem; cursor: pointer;
+            font-size: 1rem;
         }
     </style>
 </head>
@@ -42,7 +44,7 @@
 
     <div id="loading-view" class="flex flex-col items-center justify-center h-screen">
         <div class="spinner"></div>
-        <p class="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
+        <p id="loading-text" class="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
     </div>
 
     <div id="registration-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
@@ -182,12 +184,14 @@
     </div>
 
     <script>
+        console.log("VIP Fast Track App - v1.6 Loaded");
         // --- CONFIG ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsJTl6er6w5QFsCR-HIJh_mU3gQXzOKchaUlgNKm8_JOqbZfNggyDVrFBvNlUHOSaR/exec";
         const LIFF_ID = "2008050252-bNYeKBrd";
 
         // --- DOM Elements ---
         const loadingView = document.getElementById('loading-view');
+        const loadingText = document.getElementById('loading-text');
         const registrationView = document.getElementById('registration-view');
         const mainFormView = document.getElementById('main-form-view');
         const denyView = document.getElementById('deny-view');
@@ -203,64 +207,134 @@
         let userProfile = {};
         let staffInfo = {};
 
-        // --- Modal Functions ---
-        const showModal = (message, onClose = null) => {
-            modalMessage.textContent = message;
+        // --- Modal Functions (Failsafe) ---
+        const showModal = (message, onCloseCallback = null) => {
+            // Failsafe to ensure modal elements exist before proceeding
+            if (!modalMessage || !modalOverlay || !modalClose) {
+                console.error("Critical Error: Modal DOM elements are missing.");
+                // Fallback to a native alert if our custom modal is broken
+                alert(message || "เกิดข้อผิดพลาดร้ายแรง");
+                return;
+            }
+            
+            modalMessage.textContent = message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ";
             modalOverlay.classList.remove('hidden');
-            modalClose.onclick = () => {
+            
+            // Define a single, reliable function for closing the modal
+            const closeModal = () => {
                 modalOverlay.classList.add('hidden');
-                if (onClose) onClose();
+                if (onCloseCallback) {
+                    onCloseCallback();
+                }
             };
+            
+            // Assign the close function to the button's click event
+            modalClose.onclick = closeModal;
         };
-
+        
         // --- Main Logic ---
         async function main() {
+            console.log("main() started");
+            let liffInitialized = false;
             try {
+                console.log("Initializing LIFF...");
                 await liff.init({ liffId: LIFF_ID });
+                liffInitialized = true;
+                console.log("LIFF Initialized successfully.");
+
                 if (!liff.isLoggedIn()) {
+                    console.log("User not logged in. Redirecting to login...");
                     liff.login({ redirectUri: window.location.href });
-                    return;
+                    return; // Stop execution until after login redirect
                 }
-                
+
+                console.log("Getting user profile...");
                 userProfile = await liff.getProfile();
+                console.log("Profile received:", userProfile.displayName);
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const action = urlParams.get('action');
                 const appointmentId = urlParams.get('appointmentId');
+                console.log(`Action: ${action}, Appt ID: ${appointmentId}`);
 
-                if (action === 'deny') {
-                    // Admin action: show deny view
+
+                if (action === 'approve') {
+                    loadingText.textContent = 'กำลังอนุมัติ...';
+                    showView('loading');
+                    await handleApproval(appointmentId);
+                } else if (action === 'deny') {
                     document.getElementById('deny-appointment-id').textContent = appointmentId;
                     showView('deny');
                 } else {
-                    // Normal user flow: check registration and show appropriate form
+                    console.log("Checking user registration...");
                     const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
+                    console.log("Registration check response received.");
                     if (response.data.isRegistered) {
                         staffInfo = response.data.staffInfo;
                         document.getElementById('staff-name').textContent = staffInfo.fullName;
                         document.getElementById('staff-hn').textContent = staffInfo.hn;
+                        console.log("User is registered. Showing main form.");
                         showView('main-form');
                     } else {
+                        console.log("User is not registered. Showing registration form.");
                         showView('registration');
                     }
                 }
             } catch (error) {
-                console.error('LIFF Initialization Error:', error);
-                showModal(`เกิดข้อผิดพลาดในการเริ่มต้น: ${error.message}`, () => {
-                    if (liff.isInClient()) liff.closeWindow();
+                console.error('A critical error occurred in main():', error);
+                const errorMessage = `เกิดข้อผิดพลาดร้ายแรง: ${error.message || 'ไม่สามารถเชื่อมต่อได้'}`;
+                showModal(errorMessage, () => {
+                    if (liffInitialized && liff.isInClient()) {
+                        liff.closeWindow();
+                    }
                 });
             }
         }
 
         function showView(viewName) {
-            loadingView.classList.add('hidden');
-            registrationView.classList.add('hidden');
-            mainFormView.classList.add('hidden');
-            denyView.classList.add('hidden');
+            // Hide all views first
+            const views = [loadingView, registrationView, mainFormView, denyView];
+            views.forEach(view => view.classList.add('hidden'));
             
-            if (viewName === 'registration') registrationView.classList.remove('hidden');
-            if (viewName === 'main-form') mainFormView.classList.remove('hidden');
-            if (viewName === 'deny') denyView.classList.remove('hidden');
+            // Show the requested view
+            const viewMap = {
+                'loading': loadingView,
+                'registration': registrationView,
+                'main-form': mainFormView,
+                'deny': denyView
+            };
+            if (viewMap[viewName]) {
+                viewMap[viewName].classList.remove('hidden');
+            } else {
+                console.error(`Error: Tried to show an unknown view named '${viewName}'`);
+            }
+        }
+        
+        async function handleApproval(appointmentId) {
+            console.log(`handleApproval started for ID: ${appointmentId}`);
+            try {
+                await postToServer({
+                    action: 'handleAdminAction',
+                    adminAction: 'approve',
+                    appointmentId: appointmentId,
+                    adminName: userProfile.displayName,
+                    reason: '' // Reason is not needed for approval
+                });
+                console.log("Approval successful on server.");
+
+                await liff.sendMessages([{
+                    type: 'text',
+                    text: `อนุมัติการนัดหมาย #${appointmentId} เรียบร้อยแล้ว`
+                }]);
+                console.log("Success message sent to LINE chat.");
+
+                showModal('อนุมัติการนัดหมายสำเร็จแล้ว', () => liff.closeWindow());
+
+            } catch (error) {
+                console.error(`Error during approval for ID ${appointmentId}:`, error);
+                const errorMessage = `เกิดข้อผิดพลาดในการอนุมัติ: ${error.message || 'ไม่ทราบสาเหตุ'}`;
+                showModal(errorMessage, () => liff.closeWindow());
+            }
         }
 
         // --- Event Listeners ---
@@ -308,7 +382,7 @@
                 }]);
                 liff.closeWindow();
             } catch (error) {
-                showModal(`เกิดข้อผิดพลาดในการส่งข้อมูล: ${error.message}`);
+                showModal(`เกิดข้อผิดพลาดในการส่งข้อมูล: ${error.message || 'ไม่ทราบสาเหตุ'}`);
                 toggleDenySpinner(false);
             }
         });
@@ -434,14 +508,17 @@
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    throw new Error(`Server Error: ${response.status} - ${errorText}`);
+                    throw new Error(`Server Error (${response.status}): ${errorText}`);
                 }
                 
                 const resultText = await response.text();
+                if (!resultText) {
+                    throw new Error("Server returned an empty response.");
+                }
                 return JSON.parse(resultText);
 
             } catch (error) {
-                console.error("Fetch Error:", error);
+                console.error("Fetch/Parse Error:", error);
                 throw error;
             }
         }
@@ -468,7 +545,8 @@
             document.getElementById('deny-spinner').classList.toggle('hidden', !isLoading);
         }
 
-        main();
+        document.addEventListener('DOMContentLoaded', main);
     </script>
 </body>
 </html>
+
