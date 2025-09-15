@@ -191,10 +191,32 @@
                 userProfile = await liff.getProfile();
 
                 const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('action') === 'deny') {
-                    document.getElementById('deny-appointment-id').textContent = urlParams.get('appointmentId');
+                const action = urlParams.get('action');
+                const appointmentId = urlParams.get('appointmentId');
+
+                if (action === 'approve') {
+                    // Handle approval directly without showing any UI
+                    try {
+                        loadingView.classList.remove('hidden'); // Show loading indicator
+                        await postToServer({
+                            action: 'handleAdminAction',
+                            adminAction: 'approve',
+                            appointmentId: appointmentId,
+                            adminName: userProfile.displayName,
+                        });
+                        await liff.sendMessages([{ type: 'text', text: `อนุมัติการนัดหมาย #${appointmentId} เรียบร้อยแล้ว` }]);
+                        liff.closeWindow();
+                    } catch (error) {
+                        alert('เกิดข้อผิดพลาดในการอนุมัติ: ' + error.message);
+                        loadingView.classList.add('hidden');
+                    }
+
+                } else if (action === 'deny') {
+                    // Show the deny reason form
+                    document.getElementById('deny-appointment-id').textContent = appointmentId;
                     showView('deny');
                 } else {
+                    // Normal user flow for making an appointment
                     const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
                     if (response.data.isRegistered) {
                         staffInfo = response.data.staffInfo;
@@ -270,7 +292,8 @@
                     type: 'text',
                     text: `ได้ปฏิเสธการนัดหมาย #${appointmentId} เนื่องจาก: ${reason}`
                 }]).then(() => liff.closeWindow());
-            } catch (error) {
+            } catch (error)
+{
                 alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
             }
         });
@@ -432,4 +455,3 @@
     </script>
 </body>
 </html>
-
