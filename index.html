@@ -30,15 +30,14 @@
         <p class="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
     </div>
 
-    <!-- Error View -->
-    <div id="error-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
-        <h1 class="text-2xl font-bold text-center text-red-600 mb-4">เกิดข้อผิดพลาด</h1>
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <p>ไม่สามารถเริ่มต้นแอปพลิเคชันได้</p>
-            <p id="error-message-text" class="text-sm mt-2"></p>
+    <!-- View for Admins processing actions -->
+    <div id="processing-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
+        <div class="flex flex-col items-center justify-center py-10">
+            <div class="spinner"></div>
+            <p id="processing-text" class="mt-4 text-gray-700 font-semibold text-lg"></p>
+            <p class="mt-2 text-sm text-gray-500">กรุณารอสักครู่ หน้าต่างนี้จะปิดอัตโนมัติ...</p>
         </div>
     </div>
-
 
     <div id="registration-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
         <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน Fast Track</h1>
@@ -53,9 +52,7 @@
                 <label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label>
                 <input type="text" id="reg-hn" name="reg-hn" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             </div>
-            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                ลงทะเบียน
-            </button>
+            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">ลงทะเบียน</button>
         </form>
     </div>
 
@@ -67,7 +64,6 @@
         </div>
         <div id="form-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert"></div>
         <form id="appointment-form" class="space-y-4">
-            <!-- Patient Info -->
             <fieldset class="border p-4 rounded-md">
                 <legend class="text-lg font-medium text-gray-900 px-2">ข้อมูลผู้รับบริการ</legend>
                 <div>
@@ -90,7 +86,7 @@
                     <input type="text" id="patient-fullname" name="patient-fullname" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
                  <div class="mt-4">
-                    <label for="patient-id" class="block text-sm font-medium text-gray-700">เลขบัตรประชาชน ผู้รับบริการ</o>
+                    <label for="patient-id" class="block text-sm font-medium text-gray-700">เลขบัตรประชาชน ผู้รับบริการ</label>
                     <input type="text" id="patient-id" name="patient-id" maxlength="13" pattern="\d{13}" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
                 <div class="mt-4">
@@ -102,8 +98,6 @@
                     </div>
                 </div>
             </fieldset>
-
-            <!-- Appointment Details -->
             <fieldset class="border p-4 rounded-md">
                 <legend class="text-lg font-medium text-gray-900 px-2">รายละเอียดการนัดหมาย</legend>
                  <div>
@@ -135,13 +129,10 @@
                     <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
             </fieldset>
-
-            <!-- Notes -->
             <div>
                 <label for="notes" class="block text-sm font-medium text-gray-700">หมายเหตุ/ข้อมูลเพิ่มเติม (ถ้ามี)</label>
                 <textarea id="notes" name="notes" rows="2" class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
             </div>
-            
             <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                 <span id="submit-text">ส่งข้อมูลการนัดหมาย</span>
                 <div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div>
@@ -161,11 +152,18 @@
                  <label for="deny-reason" class="block text-sm font-medium text-gray-700">เหตุผล</label>
                  <textarea id="deny-reason" name="deny-reason" rows="4" required class="mt-1 shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
             </div>
-            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                ยืนยันการปฏิเสธ
-            </button>
+            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">ยืนยันการปฏิเสธ</button>
          </form>
     </div>
+
+    <div id="error-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
+        <h1 class="text-2xl font-bold text-center text-red-600 mb-4">เกิดข้อผิดพลาด</h1>
+        <div class="bg-red-50 p-3 rounded-md">
+            <p class="text-sm font-bold text-red-800">รายละเอียด:</p>
+            <pre id="error-message" class="text-xs text-red-700 whitespace-pre-wrap mt-2"></pre>
+        </div>
+    </div>
+
 
     <script>
         // --- CONFIG ---
@@ -173,16 +171,15 @@
         const LIFF_ID = "2008050252-bNYeKBrd";
 
         // --- DOM Elements ---
-        const loadingView = document.getElementById('loading-view');
-        const errorView = document.getElementById('error-view');
-        const registrationView = document.getElementById('registration-view');
-        const mainFormView = document.getElementById('main-form-view');
-        const denyView = document.getElementById('deny-view');
+        const views = ['loading-view', 'processing-view', 'registration-view', 'main-form-view', 'deny-view', 'error-view'];
+        const processingText = document.getElementById('processing-text');
+        const denyAppointmentId = document.getElementById('deny-appointment-id');
+        const denyForm = document.getElementById('deny-form');
         const registrationForm = document.getElementById('registration-form');
         const appointmentForm = document.getElementById('appointment-form');
-        const denyForm = document.getElementById('deny-form');
-        
-        let userProfile = {};
+
+        // --- Global State ---
+        let userProfile = null;
         let staffInfo = {};
 
         async function main() {
@@ -192,74 +189,72 @@
                     liff.login();
                     return;
                 }
-
-                // Check permission silently, don't force it.
-                const permissionStatus = await liff.permission.query("chat_message.write");
-                if (permissionStatus.state !== 'granted') {
-                    console.warn("Chat message write permission not granted.");
-                }
-
+                
                 userProfile = await liff.getProfile();
-
                 const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('action') === 'deny') {
-                    document.getElementById('deny-appointment-id').textContent = urlParams.get('appointmentId');
-                    showView('deny');
+                const action = urlParams.get('action');
+                const appointmentId = urlParams.get('appointmentId');
+
+                // --- ROUTER: Decide what to do based on URL ---
+                if (action === 'approve') {
+                    showView('processing-view');
+                    processingText.textContent = 'กำลังยืนยันการอนุมัติ...';
+                    
+                    await postToServer({
+                        action: 'handleAdminAction',
+                        adminAction: 'approve',
+                        appointmentId: appointmentId,
+                        adminName: userProfile.displayName
+                    });
+
+                    processingText.textContent = 'อนุมัติเรียบร้อยแล้ว!';
+                    setTimeout(() => liff.closeWindow(), 2000);
+
+                } else if (action === 'deny') {
+                    denyAppointmentId.textContent = appointmentId;
+                    showView('deny-view');
+
                 } else {
+                    // Default user flow
                     const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
                     if (response.data.isRegistered) {
                         staffInfo = response.data.staffInfo;
                         document.getElementById('staff-name').textContent = staffInfo.fullName;
                         document.getElementById('staff-hn').textContent = staffInfo.hn;
-                        showView('main-form');
+                        showView('main-form-view');
                     } else {
-                        showView('registration');
+                        showView('registration-view');
                     }
                 }
             } catch (error) {
-                console.error("LIFF Initialization Error:", error);
-                document.getElementById('error-message-text').textContent = `Code: ${error.code || 'N/A'}, Message: ${error.message}`;
-                showView('error'); 
+                console.error("Initialization or Action Error:", error);
+                document.getElementById('error-message').textContent = `Error: ${error.message}\n\nStack: ${error.stack}`;
+                showView('error-view');
             }
         }
 
-        function showView(viewName) {
-            loadingView.classList.add('hidden');
-            registrationView.classList.add('hidden');
-            mainFormView.classList.add('hidden');
-            denyView.classList.add('hidden');
-            errorView.classList.add('hidden');
-            
-            const viewMap = {
-                'registration': registrationView,
-                'main-form': mainFormView,
-                'deny': denyView,
-                'error': errorView
-            };
-
-            if (viewMap[viewName]) {
-                viewMap[viewName].classList.remove('hidden');
-            }
+        function showView(viewToShow) {
+            views.forEach(viewId => {
+                const el = document.getElementById(viewId);
+                if (el) el.classList.add('hidden');
+            });
+            const elToShow = document.getElementById(viewToShow);
+            if (elToShow) elToShow.classList.remove('hidden');
         }
 
-        // --- Event Listeners ---
+        // --- EVENT LISTENERS ---
         registrationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const fullName = document.getElementById('reg-fullname').value.trim();
-            const hn = document.getElementById('reg-hn').value.trim();
+            const fullName = document.getElementById('reg-fullname').value;
+            const hn = document.getElementById('reg-hn').value;
             
-            if (!fullName || !hn) {
-                showError('reg-error-message', 'กรุณากรอกข้อมูลให้ครบถ้วน');
-                return;
-            }
-
             try {
                 const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn });
                 if (response.data.success) {
                     staffInfo = response.data.staffInfo;
                     document.getElementById('staff-name').textContent = staffInfo.fullName;
                     document.getElementById('staff-hn').textContent = staffInfo.hn;
-                    showView('main-form');
+                    showView('main-form-view');
                 } else {
                     showError('reg-error-message', response.data.message);
                 }
@@ -270,35 +265,27 @@
 
         appointmentForm.addEventListener('submit', handleAppointmentSubmit);
 
-        denyForm.addEventListener('submit', async(e) => {
+        denyForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const reason = document.getElementById('deny-reason').value.trim();
-             if (!reason) {
-                alert('กรุณาระบุเหตุผลในการปฏิเสธ');
-                return;
-            }
+            showView('processing-view');
+            processingText.textContent = 'กำลังยืนยันการปฏิเสธ...';
+
+            const reason = document.getElementById('deny-reason').value;
             const urlParams = new URLSearchParams(window.location.search);
             const appointmentId = urlParams.get('appointmentId');
 
-            try {
-                 await postToServer({
-                    action: 'handleAdminAction',
-                    adminAction: 'deny',
-                    appointmentId: appointmentId,
-                    adminName: userProfile.displayName,
-                    reason: reason,
-                 });
-
-                await liff.sendMessages([{
-                    type: 'text',
-                    text: `ได้ปฏิเสธการนัดหมาย #${appointmentId} เนื่องจาก: ${reason}`
-                }]);
-                liff.closeWindow();
-            } catch (error) {
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
-            }
+            await postToServer({
+                action: 'handleAdminAction',
+                adminAction: 'deny',
+                appointmentId: appointmentId,
+                adminName: userProfile.displayName,
+                reason: reason
+            });
+            
+            processingText.textContent = 'ปฏิเสธการนัดหมายแล้ว';
+            setTimeout(() => liff.closeWindow(), 2000);
         });
-
+        
         document.querySelectorAll('input[name="appointment-type"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 const followUpDetails = document.getElementById('follow-up-details');
@@ -327,26 +314,7 @@
                 otherDetailInput.required = false;
             }
         });
-        
-        document.getElementById('appointment-datetime').addEventListener('input', (e) => {
-            const selectedDate = new Date(e.target.value);
-            const day = selectedDate.getDay(); // Sunday = 0, Saturday = 6
-            const hour = selectedDate.getHours();
-            
-            if (day === 0 || day === 6) {
-                showError('form-error-message', 'ไม่สามารถนัดหมายในวันเสาร์-อาทิตย์ได้');
-                e.target.value = '';
-                return;
-            } 
-            if (hour < 8 || hour >= 15) {
-                showError('form-error-message', 'กรุณานัดหมายระหว่างเวลา 08:00 - 15:00 น.');
-                e.target.value = '';
-                return;
-            }
-            hideError('form-error-message');
-        });
 
-        // --- Functions ---
         async function handleAppointmentSubmit(e) {
             e.preventDefault();
             toggleSubmitSpinner(true);
@@ -375,7 +343,6 @@
                 notes: data.notes
             };
             
-            // Handle 'Other' relationship case
             if(data['patient-relation'] === 'อื่นๆ') {
                 const summary = `
 [ข้อมูลที่ท่านกรอก]
@@ -391,11 +358,7 @@
                 
                 try {
                      await liff.sendMessages([{type: 'text', text: summary}]);
-                     mainFormView.innerHTML = `<div class="p-4 text-center">
-                        <h2 class="text-xl font-bold text-green-600">ส่งข้อมูลแล้ว</h2>
-                        <p class="mt-2 text-gray-700">ข้อความสรุปและคำเตือนได้ถูกส่งเข้าไปในช่องแชทของท่านแล้ว</p>
-                        <p class="mt-4 text-sm text-gray-500">หน้าต่างนี้จะปิดอัตโนมัติในอีกครู่...</p>
-                     </div>`;
+                     mainFormView.innerHTML = `<div class="p-4 text-center"><h2 class="text-xl font-bold text-green-600">ส่งข้อมูลแล้ว</h2><p class="mt-2 text-gray-700">ข้อความสรุปและคำเตือนได้ถูกส่งเข้าไปในช่องแชทของท่านแล้ว</p><p class="mt-4 text-sm text-gray-500">หน้าต่างนี้จะปิดอัตโนมัติในอีกครู่...</p></div>`;
                      setTimeout(() => liff.closeWindow(), 4000);
                 } catch(error) {
                     showError('form-error-message', 'ไม่สามารถส่งข้อความแจ้งเตือนได้: ' + error.message);
@@ -404,14 +367,13 @@
                 return; 
             }
 
-            // Normal submission
             try {
                 const response = await postToServer(appointmentData);
                 if (response.status === 'success') {
                     await liff.sendMessages([{ type: 'text', text: `ส่งคำขอนัดหมายสำหรับ [${appointmentData.patientFullName}] เรียบร้อยแล้ว`}]);
                     liff.closeWindow();
                 } else {
-                    throw new Error(response.message || 'เกิดข้อผิดพลาดที่ไม่รู้จักจากเซิร์ฟเวอร์');
+                    throw new Error(response.message || 'เกิดข้อผิดพลาดที่ไม่รู้จัก');
                 }
             } catch (error) {
                 showError('form-error-message', 'เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
@@ -419,34 +381,10 @@
             }
         }
         
-        async function postToServer(data) {
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(data),
-                    headers: {
-                        'Content-Type': 'text/plain;charset=UTF-8',
-                    },
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server Error: ${response.status} - ${errorText}`);
-                }
-                
-                const resultText = await response.text();
-                if (!resultText) {
-                    throw new Error("Server returned an empty response.");
-                }
-                return JSON.parse(resultText);
-
-            } catch (error) {
-                console.error("Fetch Error:", error);
-                if (error instanceof TypeError && error.message.includes('fetch')) {
-                    throw new Error('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ (Network Error) กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต หรือการตั้งค่าสิทธิ์ของ Google Script');
-                }
-                throw error;
-            }
+        function toggleSubmitSpinner(show) {
+            document.getElementById('submit-button').disabled = show;
+            document.getElementById('submit-text').classList.toggle('hidden', show);
+            document.getElementById('submit-spinner').classList.toggle('hidden', !show);
         }
 
         function showError(elementId, message) {
@@ -455,16 +393,22 @@
             errorDiv.classList.remove('hidden');
         }
 
-        function hideError(elementId) {
-             const errorDiv = document.getElementById(elementId);
-             errorDiv.classList.add('hidden');
-             errorDiv.textContent = '';
-        }
-        
-        function toggleSubmitSpinner(show) {
-            document.getElementById('submit-button').disabled = show;
-            document.getElementById('submit-text').classList.toggle('hidden', show);
-            document.getElementById('submit-spinner').classList.toggle('hidden', !show);
+        async function postToServer(data) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server responded with ${response.status}: ${errorText}`);
+                }
+                return response.json();
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                throw error;
+            }
         }
 
         main();
