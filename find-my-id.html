@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My LINE User ID</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+    <h1>Your LINE User ID is:</h1>
+    <p id="userId" style="font-size:12px; word-wrap:break-word;">Initializing LIFF...</p>
+    <script>
+        liff.init({ liffId: "2008050252-QNqMbg63" }) // เดี๋ยวเราจะกลับมาแก้ตรงนี้
+            .then(() => {
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                } else {
+                    liff.getProfile()
+                        .then(profile => {
+                            document.getElementById("userId").textContent = profile.userId;
+                        })
+                        .catch(err => console.error(err));
+                }
+            })
+            .catch(err => console.error(err));
+    </script>
+</body>
+</html>
