@@ -11,7 +11,6 @@
         body { font-family: 'Sarabun', sans-serif; }
         .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #09f; animation: spin 1s ease infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Adjusted .btn class to not be full-width by default */
         .btn { @apply font-bold py-2 px-4 rounded text-center; }
         .btn-green { @apply bg-green-500 hover:bg-green-700 text-white; }
         .btn-red { @apply bg-red-500 hover:bg-red-700 text-white; }
@@ -42,14 +41,12 @@
         </div>
 
         <div class="mt-4 space-y-3">
-            <!-- Action Buttons: Visible when status is pending -->
             <div id="admin-action-buttons" class="flex space-x-2 hidden">
                  <button id="admin-approve-btn" class="btn btn-green flex-1">อนุมัติ</button>
                  <button id="admin-deny-btn" class="btn btn-red flex-1">ปฏิเสธ</button>
                  <button id="admin-reschedule-toggle-btn" class="btn btn-yellow flex-1">เลื่อนนัด</button>
             </div>
             
-            <!-- Reschedule Form (toggled by the button above) -->
             <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden">
                  <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
                  <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
@@ -175,7 +172,7 @@
 
     <script>
         // --- CONFIG ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgX1qJy6CxZGy0FIVklqJZADy8lYKcCpAABUFfvbjwv0lAQq11RdGDwjvj0kFjxYC6Hg/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHE5_V2a8uO8U8NMw9c7g23duNT_LYlEM5mVcmScd0tyuUiS0SrXmNCTVShjXGZnnYEQ/exec";
         const LIFF_ID = "2008050252-bNYeKBrd";
 
         // --- DOM Elements ---
@@ -378,7 +375,7 @@
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify(data),
-                    headers: { 'Content-Type': 'text-plain;charset=UTF-8' },
+                    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
                 });
                 if (!response.ok) {
                     const errorText = await response.text();
