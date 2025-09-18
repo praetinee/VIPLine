@@ -33,39 +33,27 @@
             <p id="admin-status-text" class="font-semibold"></p>
         </div>
 
-        <div class="border rounded-md p-4 space-y-2 text-sm">
-            <h3 class="text-lg font-semibold mb-2 border-b pb-2">รายละเอียดคำขอ</h3>
-            <div><strong>ผู้ป่วย:</strong> <span id="admin-patient-name" class="font-semibold text-blue-700"></span></div>
-            <div><strong>เลขบัตรประชาชน:</strong> <span id="admin-patient-id"></span></div>
-            <div><strong>ผู้ขอ (เจ้าหน้าที่):</strong> <span id="admin-staff-name"></span></div>
-            <div class="pt-2 mt-2 border-t">
-                <div><strong>ความสัมพันธ์:</strong> <span id="admin-patient-relation"></span></div>
-                <div><strong>สถานะทางกายภาพ:</strong> <span id="admin-patient-status"></span></div>
-                <div><strong>อาการ/ความผิดปกติ:</strong> <span id="admin-symptoms" class="block whitespace-pre-wrap pl-4"></span></div>
-            </div>
-            <div class="pt-2 mt-2 border-t">
-                <div><strong>ประเภทนัด:</strong> <span id="admin-appointment-type"></span></div>
-                <div id="admin-follow-up-wrapper" class="hidden"><strong>การมาตามนัดเดิม:</strong> <span id="admin-follow-up"></span></div>
-                <div id="admin-department-wrapper" class="hidden"><strong>แผนก:</strong> <span id="admin-department"></span></div>
-            </div>
-            <div class="pt-2 mt-2 border-t">
-                <div><strong>วันเวลาที่ต้องการนัด:</strong> <span id="admin-datetime-request" class="font-semibold text-green-700"></span></div>
-                <div><strong>หมายเหตุ:</strong> <span id="admin-notes" class="block whitespace-pre-wrap pl-4"></span></div>
-            </div>
+        <div class="border rounded-md p-4 space-y-2">
+             <div><strong>ผู้ป่วย:</strong> <span id="admin-patient-name"></span></div>
+             <div><strong>ผู้ขอ:</strong> <span id="admin-staff-name"></span></div>
+             <div><strong>ขอรับบริการวันที่:</strong> <span id="admin-datetime-request"></span></div>
+             <div><strong>อาการ:</strong> <span id="admin-symptoms"></span></div>
         </div>
 
         <div class="mt-4 space-y-3">
-            <div id="admin-action-buttons" class="grid grid-cols-1 sm:grid-cols-3 gap-2 hidden">
-                <button id="admin-approve-btn" class="btn btn-green">อนุมัติ</button>
-                <button id="admin-deny-btn" class="btn btn-red">ปฏิเสธ</button>
-                <button id="admin-reschedule-toggle-btn" class="btn btn-yellow">เลื่อนนัด</button>
+            <div id="admin-action-buttons" class="space-y-3 hidden">
+                 <button id="admin-approve-btn" class="btn btn-green">อนุมัติการนัดหมาย</button>
+                 <button id="admin-deny-btn" class="btn btn-red">ปฏิเสธการนัดหมาย</button>
             </div>
             
-            <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden bg-yellow-50">
-                <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
-                <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                <button type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
-            </form>
+            <div>
+                 <button id="admin-reschedule-toggle-btn" class="btn btn-yellow">เลื่อนนัดหมาย</button>
+                 <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden">
+                     <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
+                     <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                     <button type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
+                 </form>
+            </div>
         </div>
     </div>
 
@@ -186,7 +174,7 @@
 
     <script>
         // --- CONFIG ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHE5_V2a8uO8U8NMw9c7g23duNT_LYlEM5mVcmScd0tyuUiS0SrXmNCTVShjXGZnnYEQ/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3J7oHgOta60R8hhyESwwIMmZoQsz2ozpQNSm5D_4dy6QomYfMGQ-D0so5ruAODvF1DA/exec";
         const LIFF_ID = "2008050252-bNYeKBrd";
 
         // --- DOM Elements ---
@@ -238,29 +226,10 @@
                 const details = response.data;
 
                 document.getElementById('admin-appointment-id').textContent = appointmentId;
-                document.getElementById('admin-patient-name').textContent = details.patientFullName || '-';
-                document.getElementById('admin-patient-id').textContent = details.patientId || '-';
+                document.getElementById('admin-patient-name').textContent = details.patientFullName;
                 document.getElementById('admin-staff-name').textContent = `${details.staffFullName} (HN: ${details.staffHn})`;
                 document.getElementById('admin-datetime-request').textContent = new Date(details.appointmentDateTime).toLocaleString('th-TH');
-                document.getElementById('admin-symptoms').textContent = details.symptoms || '-';
-                document.getElementById('admin-patient-relation').textContent = details.patientRelation || '-';
-                document.getElementById('admin-patient-status').textContent = details.patientStatus || '-';
-                document.getElementById('admin-appointment-type').textContent = details.appointmentType || '-';
-                document.getElementById('admin-notes').textContent = details.notes || '-';
-                
-                const followUpWrapper = document.getElementById('admin-follow-up-wrapper');
-                const departmentWrapper = document.getElementById('admin-department-wrapper');
-
-                if (details.appointmentType === 'นัดเดิม') {
-                    document.getElementById('admin-follow-up').textContent = details.followUpOnSchedule || '-';
-                    document.getElementById('admin-department').textContent = details.department || '-';
-                    followUpWrapper.classList.remove('hidden');
-                    departmentWrapper.classList.remove('hidden');
-                } else {
-                    followUpWrapper.classList.add('hidden');
-                    departmentWrapper.classList.add('hidden');
-                }
-
+                document.getElementById('admin-symptoms').textContent = details.symptoms;
 
                 const statusBanner = document.getElementById('admin-status-banner');
                 const statusText = document.getElementById('admin-status-text');
@@ -371,20 +340,11 @@
             if(patientRelation === 'อื่นๆ') patientRelation = data['other-relation-detail'];
 
             const appointmentData = {
-                action: 'submitAppointment',
-                userId: userProfile.userId,
-                staffFullName: staffInfo.fullName,
-                staffHn: staffInfo.hn,
-                patientRelation: patientRelation,
-                originalPatientRelation: data['patient-relation'],
-                patientFullName: data['patient-fullname'],
-                patientId: data['patient-id'],
-                patientStatus: data['patient-status'],
-                symptoms: data.symptoms,
-                appointmentType: data['appointment-type'],
-                department: data.department || '',
-                followUpOnSchedule: data['follow-up-on-schedule'] || '',
-                appointmentDateTime: data['appointment-datetime'],
+                action: 'submitAppointment', userId: userProfile.userId, staffFullName: staffInfo.fullName,
+                staffHn: staffInfo.hn, patientRelation: patientRelation, patientFullName: data['patient-fullname'],
+                patientId: data['patient-id'], patientStatus: data['patient-status'], symptoms: data.symptoms,
+                appointmentType: data['appointment-type'], department: data.department || '',
+                followUpOnSchedule: data['follow-up-on-schedule'] || '', appointmentDateTime: data['appointment-datetime'],
                 notes: data.notes
             };
             
@@ -434,3 +394,4 @@
     </script>
 </body>
 </html>
+
