@@ -11,7 +11,7 @@
         body { font-family: 'Sarabun', sans-serif; }
         .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #09f; animation: spin 1s ease infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .btn { @apply font-bold py-2 px-4 rounded w-full; }
+        .btn { @apply font-bold py-2 px-4 rounded w-full text-center; }
         .btn-green { @apply bg-green-500 hover:bg-green-700 text-white; }
         .btn-red { @apply bg-red-500 hover:bg-red-700 text-white; }
         .btn-yellow { @apply bg-yellow-500 hover:bg-yellow-700 text-white; }
@@ -24,7 +24,7 @@
         <p class="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
     </div>
     
-    <!-- ==================== NEW ADMIN VIEW ==================== -->
+    <!-- Admin View -->
     <div id="admin-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
         <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">จัดการการนัดหมาย</h1>
         <p class="text-center text-gray-500 text-sm mb-4">หมายเลขนัดหมาย: <span id="admin-appointment-id" class="font-mono"></span></p>
@@ -33,7 +33,6 @@
             <p id="admin-status-text" class="font-semibold"></p>
         </div>
 
-        <!-- Appointment Details -->
         <div class="border rounded-md p-4 space-y-2">
              <div><strong>ผู้ป่วย:</strong> <span id="admin-patient-name"></span></div>
              <div><strong>ผู้ขอ:</strong> <span id="admin-staff-name"></span></div>
@@ -41,41 +40,144 @@
              <div><strong>อาการ:</strong> <span id="admin-symptoms"></span></div>
         </div>
 
-        <!-- Action Buttons -->
-        <div id="admin-action-buttons" class="mt-4 space-y-3 hidden">
-             <button id="admin-approve-btn" class="btn btn-green">อนุมัติการนัดหมาย</button>
-             <button id="admin-deny-btn" class="btn btn-red">ปฏิเสธการนัดหมาย</button>
-        </div>
-        
-        <!-- Reschedule Section -->
-        <div class="mt-4">
-             <button id="admin-reschedule-toggle-btn" class="btn btn-yellow">เลื่อนนัดหมาย</button>
-             <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden">
-                 <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
-                 <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                 <button type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
-             </form>
+        <!-- Action Buttons Section -->
+        <div class="mt-4 space-y-3">
+            <!-- Buttons visible only when status is pending -->
+            <div id="admin-action-buttons" class="space-y-3 hidden">
+                 <button id="admin-approve-btn" class="btn btn-green">อนุมัติการนัดหมาย</button>
+                 <button id="admin-deny-btn" class="btn btn-red">ปฏิเสธการนัดหมาย</button>
+            </div>
+            
+            <!-- Reschedule Section -->
+            <div>
+                 <button id="admin-reschedule-toggle-btn" class="btn btn-yellow">เลื่อนนัดหมาย</button>
+                 <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden">
+                     <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
+                     <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                     <button type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
+                 </form>
+            </div>
         </div>
     </div>
-    <!-- ================= END OF ADMIN VIEW ================= -->
 
-
+    <!-- Other Views (Registration, Main Form, Error) -->
     <div id="registration-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
-        <!-- ... No changes needed in this view ... -->
+        <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน Fast Track</h1>
+        <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาลสันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
+        <div id="reg-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert"></div>
+        <form id="registration-form" class="space-y-4">
+            <div>
+                <label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ตรงกับในระบบ)</label>
+                <input type="text" id="reg-fullname" name="reg-fullname" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label>
+                <input type="text" id="reg-hn" name="reg-hn" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">ลงทะเบียน</button>
+        </form>
     </div>
 
     <div id="main-form-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
-        <!-- ... No changes needed in this view ... -->
+        <h1 class="text-2xl font-bold text-center text-green-600 mb-4">ฟอร์มนัดหมาย Fast Track</h1>
+        <div class="bg-blue-50 p-3 rounded-md mb-4">
+            <p class="text-sm text-gray-700">เจ้าหน้าที่ผู้ขอ: <span id="staff-name" class="font-bold"></span></p>
+            <p class="text-sm text-gray-700">HN: <span id="staff-hn" class="font-bold"></span></p>
+        </div>
+        <div id="form-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert"></div>
+        <form id="appointment-form" class="space-y-4">
+            <fieldset class="border p-4 rounded-md">
+                <legend class="text-lg font-medium text-gray-900 px-2">ข้อมูลผู้รับบริการ</legend>
+                <div>
+                    <label for="patient-relation" class="block text-sm font-medium text-gray-700">ความสัมพันธ์กับเจ้าหน้าที่</label>
+                    <select id="patient-relation" name="patient-relation" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option>เจ้าหน้าที่เอง</option>
+                        <option>บิดา</option>
+                        <option>มารดา</option>
+                        <option>คู่สมรส (ตามกฎหมาย)</option>
+                        <option>บุตร</option>
+                        <option>อื่นๆ</option>
+                    </select>
+                </div>
+                 <div id="other-relation-wrapper" class="hidden mt-4">
+                    <label for="other-relation-detail" class="block text-sm font-medium text-gray-700">โปรดระบุความสัมพันธ์</label>
+                    <input type="text" id="other-relation-detail" name="other-relation-detail" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div class="mt-4">
+                    <label for="patient-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล ผู้รับบริการ</label>
+                    <input type="text" id="patient-fullname" name="patient-fullname" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                 <div class="mt-4">
+                    <label for="patient-id" class="block text-sm font-medium text-gray-700">เลขบัตรประชาชน ผู้รับบริการ</label>
+                    <input type="text" id="patient-id" name="patient-id" maxlength="13" pattern="\d{13}" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700">สถานะทางกายภาพ</label>
+                    <div class="mt-2 space-x-4">
+                        <label class="inline-flex items-center"><input type="radio" name="patient-status" value="เดินได้" checked class="form-radio"> <span class="ml-2">เดินได้</span></label>
+                        <label class="inline-flex items-center"><input type="radio" name="patient-status" value="นั่งรถเข็น" class="form-radio"> <span class="ml-2">นั่งรถเข็น</span></label>
+                        <label class="inline-flex items-center"><input type="radio" name="patient-status" value="นอนเปล" class="form-radio"> <span class="ml-2">นอนเปล</span></label>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset class="border p-4 rounded-md">
+                <legend class="text-lg font-medium text-gray-900 px-2">รายละเอียดการนัดหมาย</legend>
+                 <div>
+                    <label for="symptoms" class="block text-sm font-medium text-gray-700">อาการ/ความผิดปกติ</label>
+                    <textarea id="symptoms" name="symptoms" rows="3" required class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700">ประเภทการนัด</label>
+                    <div class="mt-2 space-x-4">
+                        <label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดใหม่" checked class="form-radio"> <span class="ml-2">นัดใหม่</span></label>
+                        <label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดเดิม" class="form-radio"> <span class="ml-2">นัดเดิม</span></label>
+                    </div>
+                </div>
+                <div id="follow-up-details" class="hidden mt-4 space-y-4">
+                    <div>
+                        <label for="department" class="block text-sm font-medium text-gray-700">แผนกที่มีนัด</label>
+                        <input type="text" id="department" name="department" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium text-gray-700">มาตามนัดหรือไม่</label>
+                        <div class="mt-2 space-x-4">
+                             <label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="มาตามนัด" class="form-radio"> <span class="ml-2">มาตามนัด</span></label>
+                             <label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="ผิดนัดเดิม" class="form-radio"> <span class="ml-2">ผิดนัดเดิม</span></label>
+                        </div>
+                    </div>
+                </div>
+                 <div class="mt-4">
+                    <label for="appointment-datetime" class="block text-sm font-medium text-gray-700">วันและเวลาที่ต้องการนัด</label>
+                    <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+            </fieldset>
+            <div>
+                <label for="notes" class="block text-sm font-medium text-gray-700">หมายเหตุ/ข้อมูลเพิ่มเติม (ถ้ามี)</label>
+                <textarea id="notes" name="notes" rows="2" class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+            </div>
+            <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <span id="submit-text">ส่งข้อมูลการนัดหมาย</span>
+                <div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div>
+            </button>
+        </form>
+         <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">หากพบปัญหาในการใช้งาน กรุณาติดต่อ</p>
+            <a href="tel:053921199" class="text-blue-600 hover:underline">เจ้าหน้าที่ (053-921-199)</a>
+        </div>
     </div>
     
     <div id="error-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
-         <!-- ... No changes needed in this view ... -->
+         <h1 class="text-2xl font-bold text-center text-red-600 mb-4">เกิดข้อผิดพลาด</h1>
+         <div class="bg-red-50 p-3 rounded-md">
+             <p class="text-sm font-bold text-red-800">รายละเอียด:</p>
+             <pre id="error-message" class="text-xs text-red-700 whitespace-pre-wrap mt-2"></pre>
+         </div>
     </div>
 
 
     <script>
         // --- CONFIG ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3J7oHgOta60R8hhyESwwIMmZoQsz2ozpQNSm5D_4dy6QomYfMGQ-D0so5ruAODvF1DA/exec"; // <-- Make sure to use your new URL after deploying the new Code.gs
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3J7oHgOta60R8hhyESwwIMmZoQsz2ozpQNSm5D_4dy6QomYfMGQ-D0so5ruAODvF1DA/exec";
         const LIFF_ID = "2008050252-bNYeKBrd";
 
         // --- DOM Elements ---
@@ -110,18 +212,20 @@
         function showError(message) {
             console.error(message);
             const errorView = document.getElementById('error-view');
-            errorView.querySelector('pre').textContent = message;
-            showView('error-view');
+            if (errorView) {
+                const pre = errorView.querySelector('pre');
+                if (pre) pre.textContent = message;
+                showView('error-view');
+            }
         }
 
-        // --- NEW: Admin View Logic ---
+        // --- Admin View Logic ---
         async function loadAdminView(appointmentId) {
             try {
                 showView('loading-view');
                 const response = await postToServer({ action: 'getAppointmentDetails', appointmentId });
                 const details = response.data;
 
-                // Populate data
                 document.getElementById('admin-appointment-id').textContent = appointmentId;
                 document.getElementById('admin-patient-name').textContent = details.patientFullName;
                 document.getElementById('admin-staff-name').textContent = `${details.staffFullName} (HN: ${details.staffHn})`;
@@ -139,11 +243,7 @@
                     actionButtons.classList.add('hidden');
                     statusText.textContent = `สถานะ: ${details.status.toUpperCase()} โดย ${details.adminApprover || 'N/A'}`;
                     statusBanner.classList.remove('hidden', 'bg-green-100', 'bg-red-100');
-                    if (details.status.includes('approved')) {
-                        statusBanner.classList.add('bg-green-100', 'text-green-800');
-                    } else {
-                        statusBanner.classList.add('bg-red-100', 'text-red-800');
-                    }
+                    statusBanner.classList.add(details.status.includes('approved') ? 'bg-green-100' : 'bg-red-100', details.status.includes('approved') ? 'text-green-800' : 'text-red-800');
                 }
                 
                 setupAdminButtonListeners(appointmentId);
@@ -155,18 +255,13 @@
         }
         
         function setupAdminButtonListeners(appointmentId) {
-            const approveBtn = document.getElementById('admin-approve-btn');
-            const denyBtn = document.getElementById('admin-deny-btn');
-            const rescheduleToggleBtn = document.getElementById('admin-reschedule-toggle-btn');
-            const rescheduleForm = document.getElementById('admin-reschedule-form');
-
-            approveBtn.onclick = async () => {
+            document.getElementById('admin-approve-btn').onclick = async () => {
                 showView('loading-view');
                 await postToServer({ action: 'handleAdminAction', adminAction: 'approve', appointmentId, adminName: userProfile.displayName });
                 liff.closeWindow();
             };
             
-            denyBtn.onclick = async () => {
+            document.getElementById('admin-deny-btn').onclick = async () => {
                 const reason = prompt("กรุณาระบุเหตุผลในการปฏิเสธ:");
                 if (reason) {
                     showView('loading-view');
@@ -175,9 +270,9 @@
                 }
             };
             
-            rescheduleToggleBtn.onclick = () => {
-                rescheduleForm.classList.toggle('hidden');
-            };
+            const rescheduleToggleBtn = document.getElementById('admin-reschedule-toggle-btn');
+            const rescheduleForm = document.getElementById('admin-reschedule-form');
+            rescheduleToggleBtn.onclick = () => rescheduleForm.classList.toggle('hidden');
 
             rescheduleForm.onsubmit = async (e) => {
                 e.preventDefault();
@@ -188,9 +283,45 @@
             };
         }
 
-        // --- Existing User Flow Logic ---
-        async function handleUserFlow() { /* ... No changes needed ... */ }
-        // ... all other existing functions for user form submission etc. go here ...
+        // --- User Flow Logic ---
+        async function handleUserFlow() {
+            showView('loading-view');
+            const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
+            if (response.data.isRegistered) {
+                let staffInfo = response.data.staffInfo;
+                document.getElementById('staff-name').textContent = staffInfo.fullName;
+                document.getElementById('staff-hn').textContent = staffInfo.hn;
+                showView('main-form-view');
+            } else {
+                showView('registration-view');
+            }
+        }
+        
+        const registrationForm = document.getElementById('registration-form');
+        if (registrationForm) {
+            registrationForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fullName = document.getElementById('reg-fullname').value;
+                const hn = document.getElementById('reg-hn').value;
+                try {
+                    const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn });
+                    if (response.data.success) {
+                        handleUserFlow(); // Re-check and proceed to main form
+                    } else {
+                       document.getElementById('reg-error-message').textContent = response.data.message;
+                       document.getElementById('reg-error-message').classList.remove('hidden');
+                    }
+                } catch (error) {
+                    document.getElementById('reg-error-message').textContent = error.message;
+                    document.getElementById('reg-error-message').classList.remove('hidden');
+                }
+            });
+        }
+        
+        const appointmentForm = document.getElementById('appointment-form');
+        if(appointmentForm) {
+            // ... (rest of the form logic for appointment submission)
+        }
 
 
         async function postToServer(data) {
@@ -213,11 +344,6 @@
 
         main();
     </script>
-    
-    <!-- Dummy registration and main form views for the script to find -->
-    <form id="registration-form"></form>
-    <form id="appointment-form"></form>
-
 </body>
 </html>
 
