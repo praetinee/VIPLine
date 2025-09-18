@@ -30,6 +30,16 @@
         <p class="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
     </div>
 
+    <!-- เพิ่มส่วนแสดงข้อผิดพลาดหลัก -->
+    <div id="error-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
+        <h1 class="text-2xl font-bold text-center text-red-600 mb-4">เกิดข้อผิดพลาด</h1>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <p>ไม่สามารถเริ่มต้นแอปพลิเคชันได้</p>
+            <p id="error-message-text" class="text-sm mt-2"></p>
+        </div>
+    </div>
+
+
     <div id="registration-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
         <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน Fast Track</h1>
         <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาลสันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
@@ -164,6 +174,7 @@
 
         // --- DOM Elements ---
         const loadingView = document.getElementById('loading-view');
+        const errorView = document.getElementById('error-view');
         const registrationView = document.getElementById('registration-view');
         const mainFormView = document.getElementById('main-form-view');
         const denyView = document.getElementById('deny-view');
@@ -182,10 +193,11 @@
                     return;
                 }
 
-                // Check and request permission for sending messages
                 const permissionStatus = await liff.permission.query("chat_message.write");
                 if (permissionStatus.state !== 'granted') {
-                    await liff.permission.requestAll();
+                    // It's better to guide user than to force request.
+                    // For now, we proceed, but a real app might block here.
+                    console.warn("Chat message write permission not granted.");
                 }
 
                 userProfile = await liff.getProfile();
@@ -206,14 +218,9 @@
                     }
                 }
             } catch (error) {
-                console.error(error);
-                // Provide a more user-friendly error message
-                if (error.code === "PERMISSION_DENIED") {
-                     alert('กรุณาอนุญาตให้แอปส่งข้อความเพื่อใช้งานต่อ');
-                } else {
-                     alert('เกิดข้อผิดพลาดในการเริ่มต้นแอป: ' + error.message);
-                }
-                showView('error'); // You might want to create an error view
+                console.error("LIFF Initialization Error:", error);
+                document.getElementById('error-message-text').textContent = `Code: ${error.code}, Message: ${error.message}`;
+                showView('error'); 
             }
         }
 
@@ -222,10 +229,12 @@
             registrationView.classList.add('hidden');
             mainFormView.classList.add('hidden');
             denyView.classList.add('hidden');
+            errorView.classList.add('hidden');
             
             if (viewName === 'registration') registrationView.classList.remove('hidden');
             if (viewName === 'main-form') mainFormView.classList.remove('hidden');
             if (viewName === 'deny') denyView.classList.remove('hidden');
+            if (viewName === 'error') errorView.classList.remove('hidden');
         }
 
         // --- Event Listeners ---
@@ -266,10 +275,11 @@
                     reason: reason,
                  });
 
-                liff.sendMessages([{
+                await liff.sendMessages([{
                     type: 'text',
                     text: `ได้ปฏิเสธการนัดหมาย #${appointmentId} เนื่องจาก: ${reason}`
-                }]).then(() => liff.closeWindow());
+                }]);
+                liff.closeWindow();
             } catch (error) {
                 alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
             }
@@ -290,12 +300,13 @@
 
         document.getElementById('patient-relation').addEventListener('change', (e) => {
             const otherWrapper = document.getElementById('other-relation-wrapper');
+            const otherDetailInput = document.getElementById('other-relation-detail');
             if (e.target.value === 'อื่นๆ') {
                 otherWrapper.classList.remove('hidden');
-                document.getElementById('other-relation-detail').required = true;
+                otherDetailInput.required = true;
             } else {
                 otherWrapper.classList.add('hidden');
-                document.getElementById('other-relation-detail').required = false;
+                otherDetailInput.required = false;
             }
         });
         
@@ -432,4 +443,3 @@
     </script>
 </body>
 </html>
-
