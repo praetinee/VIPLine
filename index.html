@@ -42,13 +42,11 @@
 
         <!-- Action Buttons Section -->
         <div class="mt-4 space-y-3">
-            <!-- Buttons visible only when status is pending -->
             <div id="admin-action-buttons" class="space-y-3 hidden">
                  <button id="admin-approve-btn" class="btn btn-green">อนุมัติการนัดหมาย</button>
                  <button id="admin-deny-btn" class="btn btn-red">ปฏิเสธการนัดหมาย</button>
             </div>
             
-            <!-- Reschedule Section -->
             <div>
                  <button id="admin-reschedule-toggle-btn" class="btn btn-yellow">เลื่อนนัดหมาย</button>
                  <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden">
@@ -60,7 +58,7 @@
         </div>
     </div>
 
-    <!-- Other Views (Registration, Main Form, Error) -->
+    <!-- Registration View -->
     <div id="registration-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
         <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน Fast Track</h1>
         <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาลสันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
@@ -78,6 +76,7 @@
         </form>
     </div>
 
+    <!-- Main User Form View -->
     <div id="main-form-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
         <h1 class="text-2xl font-bold text-center text-green-600 mb-4">ฟอร์มนัดหมาย Fast Track</h1>
         <div class="bg-blue-50 p-3 rounded-md mb-4">
@@ -174,15 +173,17 @@
          </div>
     </div>
 
-
     <script>
         // --- CONFIG ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3J7oHgOta60R8hhyESwwIMmZoQsz2ozpQNSm5D_4dy6QomYfMGQ-D0so5ruAODvF1DA/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6JwYZNjKaNPRhj9EeDuSoVvjzf5uwrL0NyZiUfnRKxaT0nG4sTCjllNKYkCckdVoKfw/exec";
         const LIFF_ID = "2008050252-bNYeKBrd";
 
         // --- DOM Elements ---
         const views = ['loading-view', 'admin-view', 'registration-view', 'main-form-view', 'error-view'];
+        const registrationForm = document.getElementById('registration-form');
+        const appointmentForm = document.getElementById('appointment-form');
         let userProfile = null;
+        let staffInfo = {};
 
         async function main() {
             try {
@@ -242,13 +243,12 @@
                 } else {
                     actionButtons.classList.add('hidden');
                     statusText.textContent = `สถานะ: ${details.status.toUpperCase()} โดย ${details.adminApprover || 'N/A'}`;
-                    statusBanner.classList.remove('hidden', 'bg-green-100', 'bg-red-100');
+                    statusBanner.classList.remove('hidden');
                     statusBanner.classList.add(details.status.includes('approved') ? 'bg-green-100' : 'bg-red-100', details.status.includes('approved') ? 'text-green-800' : 'text-red-800');
                 }
                 
                 setupAdminButtonListeners(appointmentId);
                 showView('admin-view');
-
             } catch (error) {
                 showError(`Failed to load admin details: ${error.message}`);
             }
@@ -263,7 +263,7 @@
             
             document.getElementById('admin-deny-btn').onclick = async () => {
                 const reason = prompt("กรุณาระบุเหตุผลในการปฏิเสธ:");
-                if (reason) {
+                if (reason && reason.trim() !== "") {
                     showView('loading-view');
                     await postToServer({ action: 'handleAdminAction', adminAction: 'deny', appointmentId, adminName: userProfile.displayName, reason });
                     liff.closeWindow();
@@ -285,44 +285,91 @@
 
         // --- User Flow Logic ---
         async function handleUserFlow() {
-            showView('loading-view');
-            const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
-            if (response.data.isRegistered) {
-                let staffInfo = response.data.staffInfo;
-                document.getElementById('staff-name').textContent = staffInfo.fullName;
-                document.getElementById('staff-hn').textContent = staffInfo.hn;
-                showView('main-form-view');
-            } else {
-                showView('registration-view');
+            try {
+                showView('loading-view');
+                const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
+                if (response.data.isRegistered) {
+                    staffInfo = response.data.staffInfo;
+                    document.getElementById('staff-name').textContent = staffInfo.fullName;
+                    document.getElementById('staff-hn').textContent = staffInfo.hn;
+                    showView('main-form-view');
+                } else {
+                    showView('registration-view');
+                }
+            } catch (error) {
+                showError(`User flow error: ${error.message}`);
             }
         }
         
-        const registrationForm = document.getElementById('registration-form');
-        if (registrationForm) {
-            registrationForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const fullName = document.getElementById('reg-fullname').value;
-                const hn = document.getElementById('reg-hn').value;
-                try {
-                    const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn });
-                    if (response.data.success) {
-                        handleUserFlow(); // Re-check and proceed to main form
-                    } else {
-                       document.getElementById('reg-error-message').textContent = response.data.message;
-                       document.getElementById('reg-error-message').classList.remove('hidden');
-                    }
-                } catch (error) {
-                    document.getElementById('reg-error-message').textContent = error.message;
-                    document.getElementById('reg-error-message').classList.remove('hidden');
+        registrationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('reg-fullname').value;
+            const hn = document.getElementById('reg-hn').value;
+            const regError = document.getElementById('reg-error-message');
+            try {
+                const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn });
+                if (response.data.success) {
+                    regError.classList.add('hidden');
+                    handleUserFlow();
+                } else {
+                    regError.textContent = response.data.message;
+                    regError.classList.remove('hidden');
                 }
+            } catch (error) {
+                regError.textContent = error.message;
+                regError.classList.remove('hidden');
+            }
+        });
+        
+        appointmentForm.addEventListener('submit', handleAppointmentSubmit);
+        
+        document.querySelectorAll('input[name="appointment-type"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                document.getElementById('follow-up-details').classList.toggle('hidden', e.target.value !== 'นัดเดิม');
             });
+        });
+
+        document.getElementById('patient-relation').addEventListener('change', (e) => {
+            document.getElementById('other-relation-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+        });
+
+        async function handleAppointmentSubmit(e) {
+            e.preventDefault();
+            toggleSubmitSpinner(true);
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            let patientRelation = data['patient-relation'];
+            if(patientRelation === 'อื่นๆ') patientRelation = data['other-relation-detail'];
+
+            const appointmentData = {
+                action: 'submitAppointment', userId: userProfile.userId, staffFullName: staffInfo.fullName,
+                staffHn: staffInfo.hn, patientRelation: patientRelation, patientFullName: data['patient-fullname'],
+                patientId: data['patient-id'], patientStatus: data['patient-status'], symptoms: data.symptoms,
+                appointmentType: data['appointment-type'], department: data.department || '',
+                followUpOnSchedule: data['follow-up-on-schedule'] || '', appointmentDateTime: data['appointment-datetime'],
+                notes: data.notes
+            };
+
+            const formError = document.getElementById('form-error-message');
+            try {
+                const response = await postToServer(appointmentData);
+                if (response.status === 'success') {
+                    liff.closeWindow();
+                } else {
+                    throw new Error(response.message || 'เกิดข้อผิดพลาดที่ไม่รู้จัก');
+                }
+            } catch (error) {
+                formError.textContent = 'เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message;
+                formError.classList.remove('hidden');
+                toggleSubmitSpinner(false);
+            }
         }
         
-        const appointmentForm = document.getElementById('appointment-form');
-        if(appointmentForm) {
-            // ... (rest of the form logic for appointment submission)
+        function toggleSubmitSpinner(show) {
+            document.getElementById('submit-button').disabled = show;
+            document.getElementById('submit-text').classList.toggle('hidden', show);
+            document.getElementById('submit-spinner').classList.toggle('hidden', !show);
         }
-
 
         async function postToServer(data) {
             try {
