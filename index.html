@@ -9,12 +9,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Sarabun', sans-serif; }
-        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #09f; animation: spin 1s ease infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .btn { @apply font-bold py-2 px-4 rounded w-full text-center; }
-        .btn-green { @apply bg-green-500 hover:bg-green-700 text-white; }
-        .btn-red { @apply bg-red-500 hover:bg-red-700 text-white; }
-        .btn-yellow { @apply bg-yellow-500 hover:bg-yellow-700 text-white; }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -23,41 +29,17 @@
         <div class="spinner"></div>
         <p class="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
     </div>
-    
-    <!-- Admin View -->
-    <div id="admin-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">จัดการการนัดหมาย</h1>
-        <p class="text-center text-gray-500 text-sm mb-4">หมายเลขนัดหมาย: <span id="admin-appointment-id" class="font-mono"></span></p>
 
-        <div id="admin-status-banner" class="p-3 rounded-md mb-4 text-center hidden">
-            <p id="admin-status-text" class="font-semibold"></p>
-        </div>
-
-        <div class="border rounded-md p-4 space-y-2">
-             <div><strong>ผู้ป่วย:</strong> <span id="admin-patient-name"></span></div>
-             <div><strong>ผู้ขอ:</strong> <span id="admin-staff-name"></span></div>
-             <div><strong>ขอรับบริการวันที่:</strong> <span id="admin-datetime-request"></span></div>
-             <div><strong>อาการ:</strong> <span id="admin-symptoms"></span></div>
-        </div>
-
-        <div class="mt-4 space-y-3">
-            <div id="admin-action-buttons" class="space-y-3 hidden">
-                 <button id="admin-approve-btn" class="btn btn-green">อนุมัติการนัดหมาย</button>
-                 <button id="admin-deny-btn" class="btn btn-red">ปฏิเสธการนัดหมาย</button>
-            </div>
-            
-            <div>
-                 <button id="admin-reschedule-toggle-btn" class="btn btn-yellow">เลื่อนนัดหมาย</button>
-                 <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden">
-                     <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
-                     <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                     <button type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
-                 </form>
-            </div>
+    <!-- Error View -->
+    <div id="error-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
+        <h1 class="text-2xl font-bold text-center text-red-600 mb-4">เกิดข้อผิดพลาด</h1>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <p>ไม่สามารถเริ่มต้นแอปพลิเคชันได้</p>
+            <p id="error-message-text" class="text-sm mt-2"></p>
         </div>
     </div>
 
-    <!-- Registration View -->
+
     <div id="registration-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
         <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน Fast Track</h1>
         <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาลสันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
@@ -71,11 +53,12 @@
                 <label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label>
                 <input type="text" id="reg-hn" name="reg-hn" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             </div>
-            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">ลงทะเบียน</button>
+            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                ลงทะเบียน
+            </button>
         </form>
     </div>
 
-    <!-- Main User Form View -->
     <div id="main-form-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
         <h1 class="text-2xl font-bold text-center text-green-600 mb-4">ฟอร์มนัดหมาย Fast Track</h1>
         <div class="bg-blue-50 p-3 rounded-md mb-4">
@@ -84,6 +67,7 @@
         </div>
         <div id="form-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert"></div>
         <form id="appointment-form" class="space-y-4">
+            <!-- Patient Info -->
             <fieldset class="border p-4 rounded-md">
                 <legend class="text-lg font-medium text-gray-900 px-2">ข้อมูลผู้รับบริการ</legend>
                 <div>
@@ -106,7 +90,7 @@
                     <input type="text" id="patient-fullname" name="patient-fullname" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
                  <div class="mt-4">
-                    <label for="patient-id" class="block text-sm font-medium text-gray-700">เลขบัตรประชาชน ผู้รับบริการ</label>
+                    <label for="patient-id" class="block text-sm font-medium text-gray-700">เลขบัตรประชาชน ผู้รับบริการ</o>
                     <input type="text" id="patient-id" name="patient-id" maxlength="13" pattern="\d{13}" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
                 <div class="mt-4">
@@ -118,6 +102,8 @@
                     </div>
                 </div>
             </fieldset>
+
+            <!-- Appointment Details -->
             <fieldset class="border p-4 rounded-md">
                 <legend class="text-lg font-medium text-gray-900 px-2">รายละเอียดการนัดหมาย</legend>
                  <div>
@@ -149,10 +135,13 @@
                     <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
             </fieldset>
+
+            <!-- Notes -->
             <div>
                 <label for="notes" class="block text-sm font-medium text-gray-700">หมายเหตุ/ข้อมูลเพิ่มเติม (ถ้ามี)</label>
                 <textarea id="notes" name="notes" rows="2" class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
             </div>
+            
             <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                 <span id="submit-text">ส่งข้อมูลการนัดหมาย</span>
                 <div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div>
@@ -164,230 +153,318 @@
         </div>
     </div>
     
-    <div id="error-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
-         <h1 class="text-2xl font-bold text-center text-red-600 mb-4">เกิดข้อผิดพลาด</h1>
-         <div class="bg-red-50 p-3 rounded-md">
-             <p class="text-sm font-bold text-red-800">รายละเอียด:</p>
-             <pre id="error-message" class="text-xs text-red-700 whitespace-pre-wrap mt-2"></pre>
-         </div>
+    <div id="deny-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
+         <h1 class="text-2xl font-bold text-center text-red-600 mb-4">ปฏิเสธการนัดหมาย</h1>
+         <p class="text-center text-gray-700 mb-4">กรุณาระบุเหตุผลในการปฏิเสธการนัดหมายหมายเลข <span id="deny-appointment-id" class="font-bold"></span></p>
+         <form id="deny-form" class="space-y-4">
+            <div>
+                 <label for="deny-reason" class="block text-sm font-medium text-gray-700">เหตุผล</label>
+                 <textarea id="deny-reason" name="deny-reason" rows="4" required class="mt-1 shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+            </div>
+            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                ยืนยันการปฏิเสธ
+            </button>
+         </form>
     </div>
 
     <script>
         // --- CONFIG ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3J7oHgOta60R8hhyESwwIMmZoQsz2ozpQNSm5D_4dy6QomYfMGQ-D0so5ruAODvF1DA/exec"; // Ensure this is your latest Apps Script URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3J7oHgOta60R8hhyESwwIMmZoQsz2ozpQNSm5D_4dy6QomYfMGQ-D0so5ruAODvF1DA/exec";
         const LIFF_ID = "2008050252-bNYeKBrd";
 
         // --- DOM Elements ---
-        const views = ['loading-view', 'admin-view', 'registration-view', 'main-form-view', 'error-view'];
-        let userProfile = null;
+        const loadingView = document.getElementById('loading-view');
+        const errorView = document.getElementById('error-view');
+        const registrationView = document.getElementById('registration-view');
+        const mainFormView = document.getElementById('main-form-view');
+        const denyView = document.getElementById('deny-view');
+        const registrationForm = document.getElementById('registration-form');
+        const appointmentForm = document.getElementById('appointment-form');
+        const denyForm = document.getElementById('deny-form');
+        
+        let userProfile = {};
         let staffInfo = {};
 
-        // --- Main App Logic ---
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) { liff.login(); return; }
-                
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+
+                // Check permission silently, don't force it.
+                const permissionStatus = await liff.permission.query("chat_message.write");
+                if (permissionStatus.state !== 'granted') {
+                    console.warn("Chat message write permission not granted.");
+                }
+
                 userProfile = await liff.getProfile();
+
                 const urlParams = new URLSearchParams(window.location.search);
-                const action = urlParams.get('action');
-
-                if (action === 'admin_view') {
-                    const appointmentId = urlParams.get('appointmentId');
-                    loadAdminView(appointmentId);
+                if (urlParams.get('action') === 'deny') {
+                    document.getElementById('deny-appointment-id').textContent = urlParams.get('appointmentId');
+                    showView('deny');
                 } else {
-                    handleUserFlow();
+                    const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
+                    if (response.data.isRegistered) {
+                        staffInfo = response.data.staffInfo;
+                        document.getElementById('staff-name').textContent = staffInfo.fullName;
+                        document.getElementById('staff-hn').textContent = staffInfo.hn;
+                        showView('main-form');
+                    } else {
+                        showView('registration');
+                    }
                 }
             } catch (error) {
-                showError(`Initialization Error: ${error.message}`);
+                console.error("LIFF Initialization Error:", error);
+                document.getElementById('error-message-text').textContent = `Code: ${error.code || 'N/A'}, Message: ${error.message}`;
+                showView('error'); 
             }
         }
 
-        function showView(viewToShow) {
-            views.forEach(viewId => document.getElementById(viewId)?.classList.add('hidden'));
-            document.getElementById(viewToShow)?.classList.remove('hidden');
-        }
-
-        function showError(message) {
-            console.error(message);
-            const errorView = document.getElementById('error-view');
-            if (errorView) {
-                const pre = errorView.querySelector('pre');
-                if (pre) pre.textContent = message;
-                showView('error-view');
-            }
-        }
-
-        // --- Admin View Logic ---
-        async function loadAdminView(appointmentId) {
-            try {
-                showView('loading-view');
-                const response = await postToServer({ action: 'getAppointmentDetails', appointmentId });
-                const details = response.data;
-
-                document.getElementById('admin-appointment-id').textContent = appointmentId;
-                document.getElementById('admin-patient-name').textContent = details.patientFullName;
-                document.getElementById('admin-staff-name').textContent = `${details.staffFullName} (HN: ${details.staffHn})`;
-                document.getElementById('admin-datetime-request').textContent = new Date(details.appointmentDateTime).toLocaleString('th-TH');
-                document.getElementById('admin-symptoms').textContent = details.symptoms;
-
-                const statusBanner = document.getElementById('admin-status-banner');
-                const statusText = document.getElementById('admin-status-text');
-                const actionButtons = document.getElementById('admin-action-buttons');
-                
-                if (details.status === 'pending') {
-                    statusBanner.classList.add('hidden');
-                    actionButtons.classList.remove('hidden');
-                } else {
-                    actionButtons.classList.add('hidden');
-                    statusText.textContent = `สถานะ: ${details.status.toUpperCase()} โดย ${details.adminApprover || 'N/A'}`;
-                    statusBanner.classList.remove('hidden');
-                    statusBanner.classList.add(details.status.includes('approved') ? 'bg-green-100' : 'bg-red-100', details.status.includes('approved') ? 'text-green-800' : 'text-red-800');
-                }
-                
-                setupAdminButtonListeners(appointmentId);
-                showView('admin-view');
-            } catch (error) {
-                showError(`Failed to load admin details: ${error.message}`);
-            }
-        }
-        
-        function setupAdminButtonListeners(appointmentId) {
-            document.getElementById('admin-approve-btn').onclick = async () => {
-                showView('loading-view');
-                await postToServer({ action: 'handleAdminAction', adminAction: 'approve', appointmentId, adminName: userProfile.displayName });
-                liff.closeWindow();
-            };
+        function showView(viewName) {
+            loadingView.classList.add('hidden');
+            registrationView.classList.add('hidden');
+            mainFormView.classList.add('hidden');
+            denyView.classList.add('hidden');
+            errorView.classList.add('hidden');
             
-            document.getElementById('admin-deny-btn').onclick = async () => {
-                const reason = prompt("กรุณาระบุเหตุผลในการปฏิเสธ:");
-                if (reason && reason.trim() !== "") {
-                    showView('loading-view');
-                    await postToServer({ action: 'handleAdminAction', adminAction: 'deny', appointmentId, adminName: userProfile.displayName, reason });
-                    liff.closeWindow();
-                }
+            const viewMap = {
+                'registration': registrationView,
+                'main-form': mainFormView,
+                'deny': denyView,
+                'error': errorView
             };
-            
-            const rescheduleToggleBtn = document.getElementById('admin-reschedule-toggle-btn');
-            const rescheduleForm = document.getElementById('admin-reschedule-form');
-            rescheduleToggleBtn.onclick = () => rescheduleForm.classList.toggle('hidden');
 
-            rescheduleForm.onsubmit = async (e) => {
-                e.preventDefault();
-                showView('loading-view');
-                const newDateTime = document.getElementById('admin-new-datetime').value;
-                await postToServer({ action: 'handleAdminAction', adminAction: 'reschedule', appointmentId, adminName: userProfile.displayName, newDateTime });
-                liff.closeWindow();
-            };
-        }
-
-        // --- User Flow Logic ---
-        async function handleUserFlow() {
-            try {
-                showView('loading-view');
-                const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
-                if (response.data.isRegistered) {
-                    staffInfo = response.data.staffInfo;
-                    document.getElementById('staff-name').textContent = staffInfo.fullName;
-                    document.getElementById('staff-hn').textContent = staffInfo.hn;
-                    showView('main-form-view');
-                } else {
-                    showView('registration-view');
-                }
-            } catch (error) {
-                showError(`User flow error: ${error.message}`);
+            if (viewMap[viewName]) {
+                viewMap[viewName].classList.remove('hidden');
             }
         }
-        
-        document.getElementById('registration-form').addEventListener('submit', async (e) => {
+
+        // --- Event Listeners ---
+        registrationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const fullName = document.getElementById('reg-fullname').value;
-            const hn = document.getElementById('reg-hn').value;
-            const regError = document.getElementById('reg-error-message');
+            const fullName = document.getElementById('reg-fullname').value.trim();
+            const hn = document.getElementById('reg-hn').value.trim();
+            
+            if (!fullName || !hn) {
+                showError('reg-error-message', 'กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+
             try {
                 const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn });
                 if (response.data.success) {
-                    regError.classList.add('hidden');
-                    handleUserFlow();
+                    staffInfo = response.data.staffInfo;
+                    document.getElementById('staff-name').textContent = staffInfo.fullName;
+                    document.getElementById('staff-hn').textContent = staffInfo.hn;
+                    showView('main-form');
                 } else {
-                   regError.textContent = response.data.message;
-                   regError.classList.remove('hidden');
+                    showError('reg-error-message', response.data.message);
                 }
             } catch (error) {
-                regError.textContent = error.message;
-                regError.classList.remove('hidden');
+                showError('reg-error-message', 'เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + error.message);
             }
         });
-        
-        document.getElementById('appointment-form').addEventListener('submit', handleAppointmentSubmit);
-        
+
+        appointmentForm.addEventListener('submit', handleAppointmentSubmit);
+
+        denyForm.addEventListener('submit', async(e) => {
+            e.preventDefault();
+            const reason = document.getElementById('deny-reason').value.trim();
+             if (!reason) {
+                alert('กรุณาระบุเหตุผลในการปฏิเสธ');
+                return;
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const appointmentId = urlParams.get('appointmentId');
+
+            try {
+                 await postToServer({
+                    action: 'handleAdminAction',
+                    adminAction: 'deny',
+                    appointmentId: appointmentId,
+                    adminName: userProfile.displayName,
+                    reason: reason,
+                 });
+
+                await liff.sendMessages([{
+                    type: 'text',
+                    text: `ได้ปฏิเสธการนัดหมาย #${appointmentId} เนื่องจาก: ${reason}`
+                }]);
+                liff.closeWindow();
+            } catch (error) {
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
+            }
+        });
+
         document.querySelectorAll('input[name="appointment-type"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
-                document.getElementById('follow-up-details').classList.toggle('hidden', e.target.value !== 'นัดเดิม');
+                const followUpDetails = document.getElementById('follow-up-details');
+                const departmentInput = document.getElementById('department');
+                const followUpRadios = document.querySelectorAll('input[name="follow-up-on-schedule"]');
+                if (e.target.value === 'นัดเดิม') {
+                    followUpDetails.classList.remove('hidden');
+                    departmentInput.required = true;
+                    followUpRadios.forEach(r => r.required = true);
+                } else {
+                    followUpDetails.classList.add('hidden');
+                    departmentInput.required = false;
+                    followUpRadios.forEach(r => r.required = false);
+                }
             });
         });
 
         document.getElementById('patient-relation').addEventListener('change', (e) => {
-            document.getElementById('other-relation-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+            const otherWrapper = document.getElementById('other-relation-wrapper');
+            const otherDetailInput = document.getElementById('other-relation-detail');
+            if (e.target.value === 'อื่นๆ') {
+                otherWrapper.classList.remove('hidden');
+                otherDetailInput.required = true;
+            } else {
+                otherWrapper.classList.add('hidden');
+                otherDetailInput.required = false;
+            }
+        });
+        
+        document.getElementById('appointment-datetime').addEventListener('input', (e) => {
+            const selectedDate = new Date(e.target.value);
+            const day = selectedDate.getDay(); // Sunday = 0, Saturday = 6
+            const hour = selectedDate.getHours();
+            
+            if (day === 0 || day === 6) {
+                showError('form-error-message', 'ไม่สามารถนัดหมายในวันเสาร์-อาทิตย์ได้');
+                e.target.value = '';
+                return;
+            } 
+            if (hour < 8 || hour >= 15) {
+                showError('form-error-message', 'กรุณานัดหมายระหว่างเวลา 08:00 - 15:00 น.');
+                e.target.value = '';
+                return;
+            }
+            hideError('form-error-message');
         });
 
+        // --- Functions ---
         async function handleAppointmentSubmit(e) {
             e.preventDefault();
             toggleSubmitSpinner(true);
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
+            
             let patientRelation = data['patient-relation'];
-            if(patientRelation === 'อื่นๆ') patientRelation = data['other-relation-detail'];
-
+            if(patientRelation === 'อื่นๆ') {
+                patientRelation = data['other-relation-detail'];
+            }
+            
             const appointmentData = {
-                action: 'submitAppointment', userId: userProfile.userId, staffFullName: staffInfo.fullName,
-                staffHn: staffInfo.hn, patientRelation: patientRelation, patientFullName: data['patient-fullname'],
-                patientId: data['patient-id'], patientStatus: data['patient-status'], symptoms: data.symptoms,
-                appointmentType: data['appointment-type'], department: data.department || '',
-                followUpOnSchedule: data['follow-up-on-schedule'] || '', appointmentDateTime: data['appointment-datetime'],
+                action: 'submitAppointment',
+                userId: userProfile.userId,
+                staffFullName: staffInfo.fullName,
+                staffHn: staffInfo.hn,
+                patientRelation: patientRelation,
+                patientFullName: data['patient-fullname'],
+                patientId: data['patient-id'],
+                patientStatus: data['patient-status'],
+                symptoms: data.symptoms,
+                appointmentType: data['appointment-type'],
+                department: data.department || '',
+                followUpOnSchedule: data['follow-up-on-schedule'] || '',
+                appointmentDateTime: data['appointment-datetime'],
                 notes: data.notes
             };
             
-            const formError = document.getElementById('form-error-message');
+            // Handle 'Other' relationship case
+            if(data['patient-relation'] === 'อื่นๆ') {
+                const summary = `
+[ข้อมูลที่ท่านกรอก]
+ผู้ขอ: ${appointmentData.staffFullName}
+ผู้รับบริการ: ${appointmentData.patientFullName}
+ความสัมพันธ์: ${appointmentData.patientRelation}
+อาการ: ${appointmentData.symptoms}
+เวลาที่ขอ: ${new Date(appointmentData.appointmentDateTime).toLocaleString('th-TH')}
+
+[ข้อความแจ้งเตือน]
+ช่องทางนี้สำหรับเจ้าหน้าที่และญาติสายตรงเท่านั้น สำหรับบุคคลทั่วไป กรุณาติดต่อ 053-921-199 หรือ LINE @wfk5427z
+                `.trim();
+                
+                try {
+                     await liff.sendMessages([{type: 'text', text: summary}]);
+                     mainFormView.innerHTML = `<div class="p-4 text-center">
+                        <h2 class="text-xl font-bold text-green-600">ส่งข้อมูลแล้ว</h2>
+                        <p class="mt-2 text-gray-700">ข้อความสรุปและคำเตือนได้ถูกส่งเข้าไปในช่องแชทของท่านแล้ว</p>
+                        <p class="mt-4 text-sm text-gray-500">หน้าต่างนี้จะปิดอัตโนมัติในอีกครู่...</p>
+                     </div>`;
+                     setTimeout(() => liff.closeWindow(), 4000);
+                } catch(error) {
+                    showError('form-error-message', 'ไม่สามารถส่งข้อความแจ้งเตือนได้: ' + error.message);
+                    toggleSubmitSpinner(false);
+                }
+                return; 
+            }
+
+            // Normal submission
             try {
                 const response = await postToServer(appointmentData);
                 if (response.status === 'success') {
+                    await liff.sendMessages([{ type: 'text', text: `ส่งคำขอนัดหมายสำหรับ [${appointmentData.patientFullName}] เรียบร้อยแล้ว`}]);
                     liff.closeWindow();
                 } else {
-                    throw new Error(response.message || 'เกิดข้อผิดพลาดที่ไม่รู้จัก');
+                    throw new Error(response.message || 'เกิดข้อผิดพลาดที่ไม่รู้จักจากเซิร์ฟเวอร์');
                 }
             } catch (error) {
-                formError.textContent = 'เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message;
-                formError.classList.remove('hidden');
+                showError('form-error-message', 'เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
                 toggleSubmitSpinner(false);
             }
         }
         
-        function toggleSubmitSpinner(show) {
-            const submitBtn = document.getElementById('submit-button');
-            if (submitBtn) {
-                submitBtn.disabled = show;
-                document.getElementById('submit-text').classList.toggle('hidden', show);
-                document.getElementById('submit-spinner').classList.toggle('hidden', !show);
-            }
-        }
-
         async function postToServer(data) {
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify(data),
-                    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                    headers: {
+                        'Content-Type': 'text/plain;charset=UTF-8',
+                    },
                 });
+
                 if (!response.ok) {
                     const errorText = await response.text();
-                    throw new Error(`Server responded with ${response.status}: ${errorText}`);
+                    throw new Error(`Server Error: ${response.status} - ${errorText}`);
                 }
-                return response.json();
+                
+                const resultText = await response.text();
+                if (!resultText) {
+                    throw new Error("Server returned an empty response.");
+                }
+                return JSON.parse(resultText);
+
             } catch (error) {
                 console.error("Fetch Error:", error);
+                if (error instanceof TypeError && error.message.includes('fetch')) {
+                    throw new Error('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ (Network Error) กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต หรือการตั้งค่าสิทธิ์ของ Google Script');
+                }
                 throw error;
             }
+        }
+
+        function showError(elementId, message) {
+            const errorDiv = document.getElementById(elementId);
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function hideError(elementId) {
+             const errorDiv = document.getElementById(elementId);
+             errorDiv.classList.add('hidden');
+             errorDiv.textContent = '';
+        }
+        
+        function toggleSubmitSpinner(show) {
+            document.getElementById('submit-button').disabled = show;
+            document.getElementById('submit-text').classList.toggle('hidden', show);
+            document.getElementById('submit-spinner').classList.toggle('hidden', !show);
         }
 
         main();
