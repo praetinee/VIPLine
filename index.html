@@ -33,9 +33,9 @@
     <!-- View for Admins processing actions -->
     <div id="processing-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
         <div class="flex flex-col items-center justify-center py-10">
-            <div class="spinner"></div>
-            <p id="processing-text" class="mt-4 text-gray-700 font-semibold text-lg"></p>
-            <p class="mt-2 text-sm text-gray-500">กรุณารอสักครู่ หน้าต่างนี้จะปิดอัตโนมัติ...</p>
+            <div id="processing-spinner" class="spinner"></div>
+            <p id="processing-text" class="mt-4 text-gray-700 font-semibold text-lg text-center"></p>
+            <p class="mt-2 text-sm text-gray-500">หน้าต่างนี้จะปิดอัตโนมัติ...</p>
         </div>
     </div>
 
@@ -167,64 +167,35 @@
 
     <script>
         // --- CONFIG ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3J7oHgOta60R8hhyESwwIMmZoQsz2ozpQNSm5D_4dy6QomYfMGQ-D0so5ruAODvF1DA/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6JwYZNjKaNPRhj9EeDuSoVvjzf5uwrL0NyZiUfnRKxaT0nG4sTCjllNKYkCckdVoKfw/exec"; // <-- Make sure this is your LATEST URL
         const LIFF_ID = "2008050252-bNYeKBrd";
 
         // --- DOM Elements ---
         const views = ['loading-view', 'processing-view', 'registration-view', 'main-form-view', 'deny-view', 'error-view'];
         const processingText = document.getElementById('processing-text');
+        const processingSpinner = document.getElementById('processing-spinner');
         const denyAppointmentId = document.getElementById('deny-appointment-id');
         const denyForm = document.getElementById('deny-form');
         const registrationForm = document.getElementById('registration-form');
         const appointmentForm = document.getElementById('appointment-form');
 
-        // --- Global State ---
         let userProfile = null;
         let staffInfo = {};
 
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
+                if (!liff.isLoggedIn()) { liff.login(); return; }
                 
                 userProfile = await liff.getProfile();
                 const urlParams = new URLSearchParams(window.location.search);
                 const action = urlParams.get('action');
                 const appointmentId = urlParams.get('appointmentId');
 
-                // --- ROUTER: Decide what to do based on URL ---
-                if (action === 'approve') {
-                    showView('processing-view');
-                    processingText.textContent = 'กำลังยืนยันการอนุมัติ...';
-                    
-                    await postToServer({
-                        action: 'handleAdminAction',
-                        adminAction: 'approve',
-                        appointmentId: appointmentId,
-                        adminName: userProfile.displayName
-                    });
-
-                    processingText.textContent = 'อนุมัติเรียบร้อยแล้ว!';
-                    setTimeout(() => liff.closeWindow(), 2000);
-
-                } else if (action === 'deny') {
-                    denyAppointmentId.textContent = appointmentId;
-                    showView('deny-view');
-
+                if (action === 'approve' || action === 'deny') {
+                    handleAdminFlow(action, appointmentId);
                 } else {
-                    // Default user flow
-                    const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
-                    if (response.data.isRegistered) {
-                        staffInfo = response.data.staffInfo;
-                        document.getElementById('staff-name').textContent = staffInfo.fullName;
-                        document.getElementById('staff-hn').textContent = staffInfo.hn;
-                        showView('main-form-view');
-                    } else {
-                        showView('registration-view');
-                    }
+                    handleUserFlow();
                 }
             } catch (error) {
                 console.error("Initialization or Action Error:", error);
@@ -233,13 +204,47 @@
             }
         }
 
+        async function handleAdminFlow(action, appointmentId) {
+            if (action === 'approve') {
+                showView('processing-view');
+                processingText.textContent = 'กำลังยืนยันการอนุมัติ...';
+                
+                const response = await postToServer({
+                    action: 'handleAdminAction',
+                    adminAction: 'approve',
+                    appointmentId: appointmentId,
+                    adminName: userProfile.displayName
+                });
+
+                processingSpinner.classList.add('hidden'); // Hide spinner
+                if (response.data && response.data.alreadyProcessed) {
+                    processingText.textContent = response.data.message;
+                } else {
+                    processingText.textContent = 'อนุมัติเรียบร้อยแล้ว!';
+                }
+                setTimeout(() => liff.closeWindow(), 3500); // Wait longer for user to read
+
+            } else if (action === 'deny') {
+                denyAppointmentId.textContent = appointmentId;
+                showView('deny-view');
+            }
+        }
+
+        async function handleUserFlow() {
+            const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
+            if (response.data.isRegistered) {
+                staffInfo = response.data.staffInfo;
+                document.getElementById('staff-name').textContent = staffInfo.fullName;
+                document.getElementById('staff-hn').textContent = staffInfo.hn;
+                showView('main-form-view');
+            } else {
+                showView('registration-view');
+            }
+        }
+
         function showView(viewToShow) {
-            views.forEach(viewId => {
-                const el = document.getElementById(viewId);
-                if (el) el.classList.add('hidden');
-            });
-            const elToShow = document.getElementById(viewToShow);
-            if (elToShow) elToShow.classList.remove('hidden');
+            views.forEach(viewId => document.getElementById(viewId)?.classList.add('hidden'));
+            document.getElementById(viewToShow)?.classList.remove('hidden');
         }
 
         // --- EVENT LISTENERS ---
@@ -247,7 +252,6 @@
             e.preventDefault();
             const fullName = document.getElementById('reg-fullname').value;
             const hn = document.getElementById('reg-hn').value;
-            
             try {
                 const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn });
                 if (response.data.success) {
@@ -274,7 +278,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const appointmentId = urlParams.get('appointmentId');
 
-            await postToServer({
+            const response = await postToServer({
                 action: 'handleAdminAction',
                 adminAction: 'deny',
                 appointmentId: appointmentId,
@@ -282,36 +286,32 @@
                 reason: reason
             });
             
-            processingText.textContent = 'ปฏิเสธการนัดหมายแล้ว';
-            setTimeout(() => liff.closeWindow(), 2000);
+            processingSpinner.classList.add('hidden'); // Hide spinner
+            if (response.data && response.data.alreadyProcessed) {
+                processingText.textContent = response.data.message;
+            } else {
+                processingText.textContent = 'ปฏิเสธการนัดหมายแล้ว';
+            }
+            setTimeout(() => liff.closeWindow(), 3500); // Wait longer
         });
         
         document.querySelectorAll('input[name="appointment-type"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 const followUpDetails = document.getElementById('follow-up-details');
-                const departmentInput = document.getElementById('department');
-                const followUpRadios = document.querySelectorAll('input[name="follow-up-on-schedule"]');
                 if (e.target.value === 'นัดเดิม') {
                     followUpDetails.classList.remove('hidden');
-                    departmentInput.required = true;
-                    followUpRadios.forEach(r => r.required = true);
                 } else {
                     followUpDetails.classList.add('hidden');
-                    departmentInput.required = false;
-                    followUpRadios.forEach(r => r.required = false);
                 }
             });
         });
 
         document.getElementById('patient-relation').addEventListener('change', (e) => {
             const otherWrapper = document.getElementById('other-relation-wrapper');
-            const otherDetailInput = document.getElementById('other-relation-detail');
             if (e.target.value === 'อื่นๆ') {
                 otherWrapper.classList.remove('hidden');
-                otherDetailInput.required = true;
             } else {
                 otherWrapper.classList.add('hidden');
-                otherDetailInput.required = false;
             }
         });
 
@@ -322,9 +322,7 @@
             const data = Object.fromEntries(formData.entries());
             
             let patientRelation = data['patient-relation'];
-            if(patientRelation === 'อื่นๆ') {
-                patientRelation = data['other-relation-detail'];
-            }
+            if(patientRelation === 'อื่นๆ') patientRelation = data['other-relation-detail'];
             
             const appointmentData = {
                 action: 'submitAppointment',
@@ -344,18 +342,7 @@
             };
             
             if(data['patient-relation'] === 'อื่นๆ') {
-                const summary = `
-[ข้อมูลที่ท่านกรอก]
-ผู้ขอ: ${appointmentData.staffFullName}
-ผู้รับบริการ: ${appointmentData.patientFullName}
-ความสัมพันธ์: ${appointmentData.patientRelation}
-อาการ: ${appointmentData.symptoms}
-เวลาที่ขอ: ${new Date(appointmentData.appointmentDateTime).toLocaleString('th-TH')}
-
-[ข้อความแจ้งเตือน]
-ช่องทางนี้สำหรับเจ้าหน้าที่และญาติสายตรงเท่านั้น สำหรับบุคคลทั่วไป กรุณาติดต่อ 053-921-199 หรือ LINE @wfk5427z
-                `.trim();
-                
+                const summary = `[ข้อมูลที่ท่านกรอก]\nผู้ขอ: ${appointmentData.staffFullName}\nผู้รับบริการ: ${appointmentData.patientFullName}\nความสัมพันธ์: ${appointmentData.patientRelation}\nอาการ: ${appointmentData.symptoms}\nเวลาที่ขอ: ${new Date(appointmentData.appointmentDateTime).toLocaleString('th-TH')}\n\n[ข้อความแจ้งเตือน]\nช่องทางนี้สำหรับเจ้าหน้าที่และญาติสายตรงเท่านั้น สำหรับบุคคลทั่วไป กรุณาติดต่อ 053-921-199 หรือ LINE @wfk5427z`.trim();
                 try {
                      await liff.sendMessages([{type: 'text', text: summary}]);
                      mainFormView.innerHTML = `<div class="p-4 text-center"><h2 class="text-xl font-bold text-green-600">ส่งข้อมูลแล้ว</h2><p class="mt-2 text-gray-700">ข้อความสรุปและคำเตือนได้ถูกส่งเข้าไปในช่องแชทของท่านแล้ว</p><p class="mt-4 text-sm text-gray-500">หน้าต่างนี้จะปิดอัตโนมัติในอีกครู่...</p></div>`;
