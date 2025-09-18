@@ -41,17 +41,21 @@
         </div>
 
         <div class="mt-4 space-y-3">
+            <!-- Approve/Deny buttons, only shown when pending -->
             <div id="admin-action-buttons" class="flex space-x-2 hidden">
                  <button id="admin-approve-btn" class="btn btn-green flex-1">อนุมัติ</button>
                  <button id="admin-deny-btn" class="btn btn-red flex-1">ปฏิเสธ</button>
-                 <button id="admin-reschedule-toggle-btn" class="btn btn-yellow flex-1">เลื่อนนัด</button>
             </div>
             
-            <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden">
-                 <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
-                 <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                 <button type="submit" class="btn btn-yellow mt-3 w-full">ยืนยันการเลื่อนนัด</button>
-            </form>
+            <!-- Reschedule button and form, always visible -->
+            <div>
+                 <button id="admin-reschedule-toggle-btn" class="btn btn-yellow w-full">เลื่อนนัด</button>
+                 <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden">
+                     <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
+                     <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                     <button type="submit" class="btn btn-yellow mt-3 w-full">ยืนยันการเลื่อนนัด</button>
+                 </form>
+            </div>
         </div>
     </div>
 
