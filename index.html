@@ -346,6 +346,14 @@
                     staffInfo = response.data.staffInfo;
                     document.getElementById('staff-name').textContent = staffInfo.fullName;
                     document.getElementById('staff-hn').textContent = staffInfo.hn;
+                    
+                    // --- Autofill name on load ---
+                    const relationSelect = document.getElementById('patient-relation');
+                    if (relationSelect.value === 'เจ้าหน้าที่เอง') {
+                       document.getElementById('patient-fullname').value = staffInfo.fullName;
+                    }
+                    // --- End Autofill ---
+
                     showView('main-form-view');
                 } else {
                     showView('registration-view');
@@ -369,7 +377,8 @@
                    regError.textContent = response.data.message;
                    regError.classList.remove('hidden');
                 }
-            } catch (error) {
+            } catch (error)
+                {
                 regError.textContent = error.message;
                 regError.classList.remove('hidden');
             }
@@ -383,9 +392,22 @@
             });
         });
 
+        // --- MODIFIED START: Handle relation change for autofill ---
         document.getElementById('patient-relation').addEventListener('change', (e) => {
-            document.getElementById('other-relation-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+            const selectedValue = e.target.value;
+            const patientNameInput = document.getElementById('patient-fullname');
+            
+            // Toggle visibility of 'other' input
+            document.getElementById('other-relation-wrapper').classList.toggle('hidden', selectedValue !== 'อื่นๆ');
+
+            // Autofill or clear the patient name input
+            if (selectedValue === 'เจ้าหน้าที่เอง') {
+                patientNameInput.value = staffInfo.fullName; // Autofill with staff's name
+            } else {
+                patientNameInput.value = ''; // Clear the input if another option is selected
+            }
         });
+        // --- MODIFIED END ---
 
         async function handleAppointmentSubmit(e) {
             e.preventDefault();
