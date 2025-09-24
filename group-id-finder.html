@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen p-4">
     <div class="max-w-sm mx-auto p-6 bg-white rounded-lg shadow-md text-center">
@@ -24,44 +24,49 @@
     </div>
 
     <script>
-        // --- ✅ FIXED: อัปเดตเป็น LIFF ID ที่ถูกต้องของคุณแล้ว ---
-        const LIFF_ID = "2008050252-MWe2EOdk"; 
+        const LIFF_ID = "2008050252-MWe2EOdk"; // 🔑 เปลี่ยนเป็น LIFF ID ของคุณเอง
 
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', async () => {
             const groupIdElement = document.getElementById("groupId");
             const errorMessageElement = document.getElementById("errorMessage");
             const copyButton = document.getElementById('copyButton');
             const copyStatus = document.getElementById('copyStatus');
 
-            liff.init({ liffId: LIFF_ID })
-                .then(() => {
-                    const context = liff.getContext();
-                    if (context && context.type === 'group' && context.groupId) {
-                        const groupId = context.groupId;
-                        groupIdElement.textContent = groupId;
-                        copyButton.disabled = false; // Enable the button
+            try {
+                await liff.init({ liffId: LIFF_ID });
 
-                        copyButton.addEventListener('click', () => {
-                            navigator.clipboard.writeText(groupId).then(() => {
-                                copyStatus.textContent = "คัดลอกสำเร็จ!";
-                                setTimeout(() => { copyStatus.textContent = ""; }, 2000);
-                            }).catch(err => {
-                                copyStatus.textContent = "คัดลอกไม่สำเร็จ";
-                            });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+
+                const context = liff.getContext();
+                console.log("LIFF Context:", context);
+
+                if (context.type === 'group') {
+                    const groupId = context.groupId || "ไม่สามารถดึง Group ID ได้";
+                    groupIdElement.textContent = groupId;
+                    copyButton.disabled = false;
+
+                    copyButton.addEventListener('click', () => {
+                        navigator.clipboard.writeText(groupId).then(() => {
+                            copyStatus.textContent = "คัดลอกสำเร็จ!";
+                            setTimeout(() => { copyStatus.textContent = ""; }, 2000);
+                        }).catch(() => {
+                            copyStatus.textContent = "คัดลอกไม่สำเร็จ";
                         });
+                    });
 
-                    } else {
-                        groupIdElement.textContent = "-";
-                        errorMessageElement.textContent = "กรุณาเปิดหน้านี้จากภายในกลุ่ม LINE ครับ";
-                    }
-                })
-                .catch(err => {
-                    console.error("LIFF Initialization failed", err);
-                    groupIdElement.textContent = "เกิดข้อผิดพลาด";
-                    errorMessageElement.textContent = err.message;
-                });
+                } else {
+                    groupIdElement.textContent = "-";
+                    errorMessageElement.textContent = "❌ กรุณาเปิดหน้านี้จากในกลุ่ม LINE เท่านั้น";
+                }
+            } catch (err) {
+                console.error("LIFF Initialization failed", err);
+                groupIdElement.textContent = "เกิดข้อผิดพลาด";
+                errorMessageElement.textContent = err.message;
+            }
         });
     </script>
 </body>
 </html>
-
