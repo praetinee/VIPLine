@@ -6,22 +6,26 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
-    <h1>Your LINE User ID is:</h1>
-    <p id="userId" style="font-size:12px; word-wrap:break-word;">Initializing LIFF...</p>
+    <h1>Your Context ID is:</h1>
+    <p id="contextId" style="font-size:12px; word-wrap:break-word;">Initializing LIFF...</p>
     <script>
-        liff.init({ liffId: "2008050252-QNqMbg63" }) // เดี๋ยวเราจะกลับมาแก้ตรงนี้
+        liff.init({ liffId: "2008050252-QNqMbg63" }) // ใส่ LIFF ID ที่สร้างขึ้นใหม่ตรงนี้
             .then(() => {
-                if (!liff.isLoggedIn()) {
-                    liff.login();
+                const context = liff.getContext();
+                let id = "Not in a group or room.";
+                if (context.type === "group") {
+                    id = context.groupId;
+                } else if (context.type === "room") {
+                    id = context.roomId;
                 } else {
-                    liff.getProfile()
-                        .then(profile => {
-                            document.getElementById("userId").textContent = profile.userId;
-                        })
-                        .catch(err => console.error(err));
+                    id = context.userId;
                 }
+                document.getElementById("contextId").textContent = id;
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                document.getElementById("contextId").textContent = "Error: " + err;
+            });
     </script>
 </body>
 </html>
