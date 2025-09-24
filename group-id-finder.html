@@ -15,17 +15,16 @@
             <p id="groupId">กำลังเริ่มต้น LIFF...</p>
         </div>
         
-        <!-- --- START: MODIFICATION --- -->
         <button id="copyButton" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 focus:outline-none disabled:bg-gray-400" disabled>
             คัดลอก ID
         </button>
         <p id="copyStatus" class="text-green-600 text-sm mt-2 h-4"></p>
-        <!-- --- END: MODIFICATION --- -->
 
         <p id="errorMessage" class="text-red-500 text-sm mt-4"></p>
     </div>
 
     <script>
+        // --- ✅ FIXED: อัปเดตเป็น LIFF ID ที่ถูกต้องของคุณแล้ว ---
         const LIFF_ID = "2008050252-MWe2EOdk"; 
 
         document.addEventListener('DOMContentLoaded', function () {
