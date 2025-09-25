@@ -34,6 +34,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                 <div><strong>ผู้ป่วย:</strong> <span id="admin-patient-name" class="break-words"></span></div>
                 <div><strong>เลขบัตรประชาชน:</strong> <span id="admin-patient-id" class="break-words"></span></div>
+                <div><strong>เบอร์โทร:</strong> <span id="admin-patient-phone" class="break-words"></span></div>
                 <div><strong>ผู้ขอ:</strong> <span id="admin-staff-name" class="break-words"></span></div>
                 <div><strong>ความสัมพันธ์:</strong> <span id="admin-patient-relation" class="break-words"></span></div>
                 <div class="col-span-1 sm:col-span-2"><strong>แผนก:</strong> <span id="admin-department" class="font-bold"></span></div>
@@ -58,7 +59,6 @@
         </div>
     </div>
 
-    <!-- Views to be populated by JavaScript -->
     <div id="registration-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
     <div id="main-form-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
     
@@ -78,7 +78,6 @@
         let userProfile = null;
         let staffInfo = {};
 
-        // --- Main App Logic ---
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
@@ -109,7 +108,6 @@
             }
         }
 
-        // --- User & Admin Flow ---
         async function handleUserFlow() {
             try {
                 showView('loading-view');
@@ -134,6 +132,7 @@
                 document.getElementById('admin-appointment-id').textContent = appointmentId;
                 document.getElementById('admin-patient-name').textContent = details.patientFullName;
                 document.getElementById('admin-patient-id').textContent = details.patientId || '-';
+                document.getElementById('admin-patient-phone').textContent = details.patientPhone || '-';
                 document.getElementById('admin-staff-name').textContent = `${details.staffFullName} (HN: ${details.staffHn})`;
                 document.getElementById('admin-patient-relation').textContent = details.patientRelation;
                 document.getElementById('admin-patient-status').textContent = details.patientStatus;
@@ -167,7 +166,6 @@
                     rescheduleWrapper.classList.remove('hidden');
                     statusBanner.classList.remove('hidden');
                     document.getElementById('admin-status-text').textContent = `สถานะ: ${details.status.toUpperCase()} โดย ${details.adminApprover || 'N/A'}`;
-                    
                     statusBanner.className = 'p-3 rounded-md mb-4 text-center font-semibold';
                     const statusClasses = details.status.includes('approved') ? ['bg-green-100', 'text-green-800'] : ['bg-red-100', 'text-red-800'];
                     statusBanner.classList.add(...statusClasses);
@@ -187,7 +185,7 @@
                 <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาลสันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
                 <div id="reg-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
                 <form id="registration-form" class="space-y-4">
-                    <div><label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ไม่ต้องใส่คำนำหน้านาม)</label><input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                    <div><label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ตรงกับในระบบ)</label><input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                     <div><label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label><input type="text" id="reg-hn" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                     <button type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700">ลงทะเบียน</button>
                 </form>`;
@@ -239,6 +237,7 @@
                         <div id="other-relation-wrapper" class="hidden mt-4"><label for="other-relation-detail" class="block text-sm font-medium">โปรดระบุ</label><input type="text" id="other-relation-detail" name="other-relation-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label for="patient-fullname" class="block text-sm font-medium">ชื่อ-นามสกุล ผู้รับบริการ</label><input type="text" id="patient-fullname" name="patient-fullname" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label for="patient-id" class="block text-sm font-medium">เลขบัตรประชาชน</label><input type="text" id="patient-id" name="patient-id" maxlength="13" pattern="\\d{13}" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div class="mt-4"><label for="patient-phone" class="block text-sm font-medium">เบอร์โทรศัพท์</label><input type="tel" id="patient-phone" name="patient-phone" pattern="[0-9]{10}" maxlength="10" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label class="block text-sm font-medium">สถานะทางกายภาพ</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="patient-status" value="เดินได้" checked class="form-radio"><span class="ml-2">เดินได้</span></label><label class="inline-flex items-center"><input type="radio" name="patient-status" value="นั่งรถเข็น" class="form-radio"><span class="ml-2">นั่งรถเข็น</span></label><label class="inline-flex items-center"><input type="radio" name="patient-status" value="นอนเปล" class="form-radio"><span class="ml-2">นอนเปล</span></label></div></div>
                     </fieldset>
                     <fieldset class="border p-4 rounded-md">
@@ -259,10 +258,18 @@
             
             document.getElementById('staff-name').textContent = staffInfo.fullName;
             document.getElementById('staff-hn').textContent = staffInfo.hn;
-            document.getElementById('patient-relation').addEventListener('change', (e) => {
+            
+            const relationSelect = document.getElementById('patient-relation');
+            const patientNameInput = document.getElementById('patient-fullname');
+            if (relationSelect.value === 'เจ้าหน้าที่เอง') {
+                patientNameInput.value = staffInfo.fullName;
+            }
+            
+            relationSelect.addEventListener('change', (e) => {
                 document.getElementById('other-relation-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
-                document.getElementById('patient-fullname').value = (e.target.value === 'เจ้าหน้าที่เอง') ? staffInfo.fullName : '';
+                patientNameInput.value = (e.target.value === 'เจ้าหน้าที่เอง') ? staffInfo.fullName : '';
             });
+
             document.getElementById('department').addEventListener('change', (e) => {
                 document.getElementById('dental-options-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องฟัน');
                 document.getElementById('other-department-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
@@ -310,6 +317,7 @@
             const spinner = document.getElementById('submit-spinner');
             submitBtn.disabled = true;
             spinner.classList.remove('hidden');
+            document.getElementById('submit-text').classList.add('hidden');
 
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
@@ -320,7 +328,8 @@
             const appointmentData = {
                 action: 'submitAppointment', userId: userProfile.userId, staffFullName: staffInfo.fullName,
                 staffHn: staffInfo.hn, patientRelation, patientFullName: data['patient-fullname'],
-                patientId: data['patient-id'], patientStatus: data['patient-status'], symptoms: data.symptoms,
+                patientId: data['patient-id'], patientPhone: data['patient-phone'], 
+                patientStatus: data['patient-status'], symptoms: data.symptoms,
                 appointmentType: data['appointment-type'], department,
                 followUpOnSchedule: data['follow-up-on-schedule'] || '', appointmentDateTime: data['appointment-datetime'],
                 notes: data.notes, isOtherRelation: data['patient-relation'] === 'อื่นๆ',
@@ -335,6 +344,7 @@
                 document.getElementById('form-error-message').classList.remove('hidden');
                 submitBtn.disabled = false;
                 spinner.classList.add('hidden');
+                document.getElementById('submit-text').classList.remove('hidden');
             }
         }
 
@@ -363,3 +373,4 @@
     </script>
 </body>
 </html>
+
