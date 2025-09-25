@@ -144,11 +144,48 @@
                     </div>
                 </div>
             </fieldset>
-            <fieldset class="border p-4 rounded-md">
+<fieldset class="border p-4 rounded-md">
                 <legend class="text-lg font-medium text-gray-900 px-2">รายละเอียดการนัดหมาย</legend>
                  <div>
                     <label for="symptoms" class="block text-sm font-medium text-gray-700">อาการ/ความผิดปกติ</label>
                     <textarea id="symptoms" name="symptoms" rows="3" required class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                </div>
+                
+                <div class="mt-4">
+                    <label for="department" class="block text-sm font-medium text-gray-700">แผนกที่ต้องการเข้ารับบริการ</label>
+                    <select id="department" name="department" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="" disabled selected>-- กรุณาเลือกแผนก --</option>
+                        <option>ห้องตรวจโรคทั่วไป</option>
+                        <option>ห้องฉุกเฉิน</option>
+                        <option>คลินิกโรคเบาหวาน ความดัน</option>
+                        <option>คลินิกโรคหัวใจ</option>
+                        <option>คลินิกโรคไต</option>
+                        <option>คลินิกโรคปอด</option>
+                        <option>คลินิกผู้สูงอายุ</option>
+                        <option>คลินิกกระดูกและข้อ</option>
+                        <option>ห้องทำแผล</option>
+                        <option>กายภาพบำบัด</option>
+                        <option>คลินิกแม่และเด็ก (ฝากท้อง)</option>
+                        <option>วัคซีนเด็ก</option>
+                        <option>คลินิกวางแผนครอบครัว (คุมกำเนิด/มะเร็งปากมดลูก)</option>
+                        <option>ห้องฟัน</option>
+                        <option>แพทย์แผนไทย</option>
+                        <option>คลินิกตรวจสุขภาพคนทำงาน (อาชีวเวชกรรม)</option>
+                        <option>คลินิกรักษ์จิต (จิตเวช)</option>
+                        <option>ห้องยา</option>
+                        <option>ห้องเอกซเรย์</option>
+                        <option>ห้องอัลตร้าซาวน์</option>
+                        <option>ห้อง CT Scan</option>
+                        <option>ห้องเจาะเลือด/ตรวจแล็บ</option>
+                        <option>หอผู้ป่วยใน (ตึกนอน)</option>
+                        <option>คลินิกศัลยกรรม</option>
+                        <option>ห้องตรวจสุขภาพ (Check-up)</option>
+                        <option value="อื่นๆ">อื่นๆ (โปรดระบุ)</option>
+                    </select>
+                </div>
+                <div id="other-department-wrapper" class="hidden mt-4">
+                    <label for="other-department-detail" class="block text-sm font-medium text-gray-700">โปรดระบุแผนก</label>
+                    <input type="text" id="other-department-detail" name="other-department-detail" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
                 <div class="mt-4">
                     <label class="block text-sm font-medium text-gray-700">ประเภทการนัด</label>
@@ -158,10 +195,6 @@
                     </div>
                 </div>
                 <div id="follow-up-details" class="hidden mt-4 space-y-4">
-                    <div>
-                        <label for="department" class="block text-sm font-medium text-gray-700">แผนกที่มีนัด</label>
-                        <input type="text" id="department" name="department" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
                      <div>
                         <label class="block text-sm font-medium text-gray-700">มาตามนัดหรือไม่</label>
                         <div class="mt-2 space-x-4">
@@ -174,8 +207,7 @@
                     <label for="appointment-datetime" class="block text-sm font-medium text-gray-700">วันและเวลาที่ต้องการนัด</label>
                     <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
-            </fieldset>
-            <div>
+            </fieldset>            <div>
                 <label for="notes" class="block text-sm font-medium text-gray-700">หมายเหตุ/ข้อมูลเพิ่มเติม (ถ้ามี)</label>
                 <textarea id="notes" name="notes" rows="2" class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
             </div>
