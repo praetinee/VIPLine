@@ -62,6 +62,7 @@
                 <p id="admin-notes" class="mt-1 p-2 bg-gray-50 rounded break-words"></p>
             </div>
         </div>
+
         <div class="mt-6 space-y-3">
             <div id="admin-action-buttons" class="hidden">
                 <div class="flex flex-row gap-2">
@@ -81,6 +82,10 @@
         </div>
     </div>
 
+    <div id="registration-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
+    <div id="main-form-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
+    <div id="error-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
+
     <script>
         // --- CONFIG ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlyLQIG7CieonQ_umP1NgsaVGPmq8O6F8EDzqa-Lx8V1lIHNHX_hcRcGWfHHhukDny4A/exec";
@@ -91,13 +96,43 @@
         let userProfile = null;
         let staffInfo = {};
 
+        // --- Main App Logic ---
         async function main() {
-            // ... (no changes in this function)
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) { liff.login(); return; }
+                
+                userProfile = await liff.getProfile();
+                const urlParams = new URLSearchParams(window.location.search);
+                const action = urlParams.get('action');
+
+                if (action === 'admin_view') {
+                    const appointmentId = urlParams.get('appointmentId');
+                    loadAdminView(appointmentId);
+                } else {
+                    handleUserFlow();
+                }
+            } catch (error) {
+                showError(`Initialization Error: ${error.message}`);
+            }
         }
 
-        // ... (no changes in showView, showError)
+        function showView(viewToShow) {
+            views.forEach(viewId => document.getElementById(viewId)?.classList.add('hidden'));
+            document.getElementById(viewToShow)?.classList.remove('hidden');
+        }
 
-        // --- MODIFIED: loadAdminView function ---
+        function showError(message) {
+            console.error(message);
+            const errorView = document.getElementById('error-view');
+            if (errorView) {
+                const pre = errorView.querySelector('pre');
+                if (pre) pre.textContent = message;
+                showView('error-view');
+            }
+        }
+
+        // --- Admin View Logic (CORRECTED) ---
         async function loadAdminView(appointmentId) {
             try {
                 showView('loading-view');
@@ -112,7 +147,6 @@
                 document.getElementById('admin-patient-status').textContent = details.patientStatus;
                 document.getElementById('admin-datetime-request').textContent = new Date(details.appointmentDateTime).toLocaleString('th-TH');
                 
-                // --- Display Department ---
                 document.getElementById('admin-department').textContent = details.department || '-';
 
                 let appointmentTypeDisplay = details.appointmentType;
@@ -121,7 +155,6 @@
                 }
                 document.getElementById('admin-appointment-type').textContent = appointmentTypeDisplay;
                 
-                // --- Display Dental Info ---
                 const dentalWrapper = document.getElementById('admin-dental-info-wrapper');
                 if (details.dentalService) {
                     document.getElementById('admin-dental-service').textContent = details.dentalService;
@@ -158,9 +191,9 @@
                 showError(`Failed to load admin details: ${error.message}`);
             }
         }
-        // --- END MODIFICATION ---
+        
+        // ... (rest of the script is the same, no changes needed for user flow logic etc.)
 
-        // ... (rest of the script remains the same)
     </script>
 </body>
 </html>
