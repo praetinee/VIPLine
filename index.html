@@ -291,7 +291,7 @@
                         <div id="med-warning-wrapper" class="hidden mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
                             <p class="font-bold">ข้อควรทราบ</p>
                             <p class="text-sm">เนื่องจากอายุรแพทย์มีเพียง 1-2 ท่านต่อวัน ในขณะที่มีผู้รับบริการจำนวนมาก ส่งผลให้ระยะเวลารอคอยการตรวจเนิ่นนานกว่าปกติ</p>
-                            <p class="text-sm mt-1">หากท่านต้องการความสะดวกและรวดเร็วยิ่งขึ้น ท่านสามารถเลือกเข้ารับบริการที่แผนก "ห้องตรวจโรคทั่วไป" แทนได้</p>
+                            <p class="text-sm mt-1">หากท่านต้องการความสะดวกและรวดเร็วยิ่งขึ้น ท่านสามารถเลือกเข้ารับบริการที่แผนก "ห้องตรวจโรคทั่วไป" แทนได้ค่ะ</p>
                         </div>
                         <div id="dental-options-wrapper" class="hidden mt-4 border-t pt-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-sm font-medium">บริการ</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อุดฟัน" class="form-radio"><span class="ml-2">อุดฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ขูดหินปูน" class="form-radio"><span class="ml-2">ขูดหินปูน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ถอนฟัน" class="form-radio"><span class="ml-2">ถอนฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อื่นๆ" class="form-radio"><span class="ml-2">อื่นๆ</span></label></div><input type="text" id="other-dental-service" name="other-dental-service" placeholder="โปรดระบุ" class="hidden mt-2 text-sm block w-full px-2 py-1 border rounded-md"></div><div><label class="block text-sm font-medium">อาการปวด</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="มีอาการปวด" class="form-radio"><span class="ml-2">มีอาการปวด</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="ไม่มีอาการปวด" class="form-radio"><span class="ml-2">ไม่มีอาการปวด</span></label></div></div></div></div>
                         <div id="other-department-wrapper" class="hidden mt-4"><label for="other-department-detail" class="block text-sm font-medium">โปรดระบุแผนก</label><input type="text" id="other-department-detail" name="other-department-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
@@ -327,26 +327,7 @@
             const datetimeError = document.getElementById('datetime-error');
             const submitBtn = document.getElementById('submit-button');
 
-            const validateDateTime = () => {
-                const selected = new Date(appointmentDateTimeInput.value);
-                const day = selected.getDay();
-                const hour = selected.getHours();
-                const isValid = (day > 0 && day < 6) && (hour >= 8 && hour < 15);
-                
-                if (!appointmentDateTimeInput.value || isValid) {
-                    datetimeError.classList.add('hidden');
-                    submitBtn.disabled = false;
-                } else {
-                    datetimeError.textContent = 'กรุณาเลือกวันจันทร์-ศุกร์ และเวลา 08:00-15:00 น.';
-                    datetimeError.classList.remove('hidden');
-                    submitBtn.disabled = true;
-                }
-            };
-            
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            appointmentDateTimeInput.min = now.toISOString().slice(0, 16);
-            appointmentDateTimeInput.addEventListener('input', validateDateTime);
+            validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn);
 
             document.getElementById('department').addEventListener('change', (e) => {
                 document.getElementById('dental-options-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องฟัน');
@@ -377,27 +358,8 @@
             const adminDateTimeInput = document.getElementById('admin-new-datetime');
             const adminDatetimeError = document.getElementById('admin-datetime-error');
             const adminSubmitBtn = document.getElementById('admin-reschedule-submit');
-
-            const validateAdminDateTime = () => {
-                const selected = new Date(adminDateTimeInput.value);
-                const day = selected.getDay();
-                const hour = selected.getHours();
-                const isValid = (day > 0 && day < 6) && (hour >= 8 && hour < 15);
-
-                if (!adminDateTimeInput.value || isValid) {
-                    adminDatetimeError.classList.add('hidden');
-                    adminSubmitBtn.disabled = false;
-                } else {
-                    adminDatetimeError.textContent = 'กรุณาเลือกวันจันทร์-ศุกร์ และเวลา 08:00-15:00 น.';
-                    adminDatetimeError.classList.remove('hidden');
-                    adminSubmitBtn.disabled = true;
-                }
-            };
-
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            adminDateTimeInput.min = now.toISOString().slice(0, 16);
-            adminDateTimeInput.addEventListener('input', validateAdminDateTime);
+            
+            validateAndSetMinDate(adminDateTimeInput, adminDatetimeError, adminSubmitBtn);
             
             document.getElementById('admin-new-department').addEventListener('change', (e) => {
                 document.getElementById('admin-other-department-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
@@ -412,6 +374,56 @@
                 }
                 handleAdminActionClick('reschedule', appointmentId, { newDateTime, newDepartment });
             };
+        }
+
+        function validateAndSetMinDate(inputElement, errorElement, submitButton) {
+            const validate = () => {
+                if (!inputElement.value) { // Don't show error if input is empty
+                    errorElement.classList.add('hidden');
+                    submitButton.disabled = !inputElement.required;
+                    return;
+                }
+                const selected = new Date(inputElement.value);
+                const day = selected.getDay();
+                const hour = selected.getHours();
+                
+                if (day === 0 || day === 6) {
+                    errorElement.textContent = 'กรุณาเลือกวันจันทร์-ศุกร์';
+                    errorElement.classList.remove('hidden');
+                    submitButton.disabled = true;
+                    return;
+                }
+                if (hour < 8 || hour >= 15) {
+                    errorElement.textContent = 'กรุณาเลือกเวลาในช่วง 08:00-15:00 น.';
+                    errorElement.classList.remove('hidden');
+                    submitButton.disabled = true;
+                    return;
+                }
+                const now = new Date();
+                const tomorrow = new Date();
+                tomorrow.setDate(now.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0);
+
+                if (now.getHours() >= 15) {
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                }
+
+                if (selected < tomorrow) {
+                    errorElement.textContent = 'ทำการนัดหมายก่อนเวลา 15.00 น. 1 วันก่อนเข้ารับบริการ';
+                    errorElement.classList.remove('hidden');
+                    submitButton.disabled = true;
+                    return;
+                }
+
+                errorElement.classList.add('hidden');
+                submitButton.disabled = false;
+            };
+
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            inputElement.min = now.toISOString().slice(0, 16);
+            inputElement.addEventListener('input', validate);
+            validate(); // Initial check
         }
 
         async function handleAdminActionClick(adminAction, appointmentId, options = {}) {
