@@ -378,7 +378,7 @@
 
         function validateAndSetMinDate(inputElement, errorElement, submitButton) {
             const validate = () => {
-                if (!inputElement.value) { // Don't show error if input is empty
+                if (!inputElement.value) {
                     errorElement.classList.add('hidden');
                     submitButton.disabled = !inputElement.required;
                     return;
@@ -409,7 +409,7 @@
                 }
 
                 if (selected < tomorrow) {
-                    errorElement.textContent = 'ทำการนัดหมายก่อนเวลา 15.00 น. 1 วันก่อนเข้ารับบริการ';
+                    errorElement.textContent = 'เนื่องด้วยช่องทางนี้เป็นระบบนัดหมายล่วงหน้า กรุณาทำการนัดหมายล่วงหน้าอย่างน้อย 1 วัน ก่อนเข้ารับบริการ';
                     errorElement.classList.remove('hidden');
                     submitButton.disabled = true;
                     return;
@@ -423,7 +423,7 @@
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             inputElement.min = now.toISOString().slice(0, 16);
             inputElement.addEventListener('input', validate);
-            validate(); // Initial check
+            validate();
         }
 
         async function handleAdminActionClick(adminAction, appointmentId, options = {}) {
