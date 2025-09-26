@@ -61,6 +61,11 @@
                 
                 <label for="admin-new-department" class="block text-sm font-medium text-gray-700 mt-4">เปลี่ยนแผนก (ถ้าต้องการ)</label>
                 <select id="admin-new-department" name="admin-new-department" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"></select>
+                
+                <div id="admin-other-department-wrapper" class="hidden mt-2">
+                    <label for="admin-other-department-detail" class="block text-sm font-medium text-gray-700">โปรดระบุแผนก</label>
+                    <input type="text" id="admin-other-department-detail" name="admin-other-department-detail" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
 
                 <button type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
             </form>
@@ -163,8 +168,8 @@
                 document.getElementById('admin-notes').textContent = details.notes || '-';
                 
                 const adminNewDepartmentSelect = document.getElementById('admin-new-department');
-                adminNewDepartmentSelect.innerHTML = departmentOptionsHTML.replace('<option value="" disabled selected>-- กรุณาเลือก --</option>', '');
-                adminNewDepartmentSelect.value = details.department || '';
+                adminNewDepartmentSelect.innerHTML = departmentOptionsHTML.replace('<option value="" disabled>-- กรุณาเลือก --</option>', '<option value="">-- ไม่เปลี่ยนแปลง --</option>');
+                adminNewDepartmentSelect.value = ''; // Default to no change
 
                 let appointmentTypeDisplay = details.appointmentType + (details.appointmentType === 'นัดเดิม' ? ` (${details.followUpOnSchedule || 'ไม่ระบุ'})` : '');
                 document.getElementById('admin-appointment-type').textContent = appointmentTypeDisplay;
@@ -319,10 +324,18 @@
             const toggleReschedule = () => rescheduleForm.classList.toggle('hidden');
             document.getElementById('admin-reschedule-toggle-btn').onclick = toggleReschedule;
             document.getElementById('admin-reschedule-toggle-btn-processed').onclick = toggleReschedule;
+            
+            document.getElementById('admin-new-department').addEventListener('change', (e) => {
+                document.getElementById('admin-other-department-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+            });
+
             rescheduleForm.onsubmit = (e) => {
                 e.preventDefault();
                 const newDateTime = document.getElementById('admin-new-datetime').value;
-                const newDepartment = document.getElementById('admin-new-department').value;
+                let newDepartment = document.getElementById('admin-new-department').value;
+                if (newDepartment === 'อื่นๆ') {
+                    newDepartment = document.getElementById('admin-other-department-detail').value;
+                }
                 handleAdminActionClick('reschedule', appointmentId, { newDateTime, newDepartment });
             };
         }
