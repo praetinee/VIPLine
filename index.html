@@ -58,7 +58,8 @@
             <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden bg-yellow-50">
                 <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
                 <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                
+                <div id="admin-datetime-error" class="hidden mt-1 text-sm text-red-600"></div>
+
                 <label for="admin-new-department" class="block text-sm font-medium text-gray-700 mt-4">เปลี่ยนแผนก (ถ้าต้องการ)</label>
                 <select id="admin-new-department" name="admin-new-department" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"></select>
                 
@@ -67,7 +68,7 @@
                     <input type="text" id="admin-other-department-detail" name="admin-other-department-detail" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
                 </div>
 
-                <button type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
+                <button id="admin-reschedule-submit" type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
             </form>
         </div>
     </div>
@@ -290,13 +291,17 @@
                         <div id="med-warning-wrapper" class="hidden mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
                             <p class="font-bold">ข้อควรทราบ</p>
                             <p class="text-sm">เนื่องจากอายุรแพทย์มีเพียง 1-2 ท่านต่อวัน ในขณะที่มีผู้รับบริการจำนวนมาก ส่งผลให้ระยะเวลารอคอยการตรวจเนิ่นนานกว่าปกติ</p>
-                            <p class="text-sm mt-1">หากท่านต้องการความสะดวกและรวดเร็วยิ่งขึ้น ท่านสามารถเลือกเข้ารับบริการที่แผนก "ห้องตรวจโรคทั่วไป" แทน</p>
+                            <p class="text-sm mt-1">หากท่านต้องการความสะดวกและรวดเร็วยิ่งขึ้น ท่านสามารถเลือกเข้ารับบริการที่แผนก "ห้องตรวจโรคทั่วไป" แทนได้ค่ะ</p>
                         </div>
                         <div id="dental-options-wrapper" class="hidden mt-4 border-t pt-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-sm font-medium">บริการ</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อุดฟัน" class="form-radio"><span class="ml-2">อุดฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ขูดหินปูน" class="form-radio"><span class="ml-2">ขูดหินปูน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ถอนฟัน" class="form-radio"><span class="ml-2">ถอนฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อื่นๆ" class="form-radio"><span class="ml-2">อื่นๆ</span></label></div><input type="text" id="other-dental-service" name="other-dental-service" placeholder="โปรดระบุ" class="hidden mt-2 text-sm block w-full px-2 py-1 border rounded-md"></div><div><label class="block text-sm font-medium">อาการปวด</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="มีอาการปวด" class="form-radio"><span class="ml-2">มีอาการปวด</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="ไม่มีอาการปวด" class="form-radio"><span class="ml-2">ไม่มีอาการปวด</span></label></div></div></div></div>
                         <div id="other-department-wrapper" class="hidden mt-4"><label for="other-department-detail" class="block text-sm font-medium">โปรดระบุแผนก</label><input type="text" id="other-department-detail" name="other-department-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label class="block text-sm font-medium">ประเภทการนัด</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดใหม่" checked class="form-radio"><span class="ml-2">นัดใหม่</span></label><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดเดิม" class="form-radio"><span class="ml-2">นัดเดิม</span></label></div></div>
                         <div id="follow-up-details" class="hidden mt-4"><div><label class="block text-sm font-medium">มาตามนัดหรือไม่</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="มาตามนัด" class="form-radio"><span class="ml-2">มาตามนัด</span></label><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="ผิดนัดเดิม" class="form-radio"><span class="ml-2">ผิดนัดเดิม</span></label></div></div></div>
-                        <div class="mt-4"><label for="appointment-datetime" class="block text-sm font-medium">วันเวลาที่ต้องการนัด</label><input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div class="mt-4">
+                            <label for="appointment-datetime" class="block text-sm font-medium">วันเวลาที่ต้องการนัด</label>
+                            <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 border rounded-md">
+                            <div id="datetime-error" class="hidden mt-1 text-sm text-red-600"></div>
+                        </div>
                     </fieldset>
                     <div><label for="notes" class="block text-sm font-medium">หมายเหตุ</label><textarea id="notes" name="notes" rows="2" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
                     <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700"><span id="submit-text">ส่งข้อมูล</span><div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div></button>
@@ -317,6 +322,31 @@
                 document.getElementById('other-relation-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
                 patientNameInput.value = (e.target.value === 'เจ้าหน้าที่เอง') ? staffInfo.fullName : '';
             });
+
+            const appointmentDateTimeInput = document.getElementById('appointment-datetime');
+            const datetimeError = document.getElementById('datetime-error');
+            const submitBtn = document.getElementById('submit-button');
+
+            const validateDateTime = () => {
+                const selected = new Date(appointmentDateTimeInput.value);
+                const day = selected.getDay();
+                const hour = selected.getHours();
+                const isValid = (day > 0 && day < 6) && (hour >= 8 && hour < 15);
+                
+                if (!appointmentDateTimeInput.value || isValid) {
+                    datetimeError.classList.add('hidden');
+                    submitBtn.disabled = false;
+                } else {
+                    datetimeError.textContent = 'กรุณาเลือกวันจันทร์-ศุกร์ และเวลา 08:00-15:00 น.';
+                    datetimeError.classList.remove('hidden');
+                    submitBtn.disabled = true;
+                }
+            };
+            
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            appointmentDateTimeInput.min = now.toISOString().slice(0, 16);
+            appointmentDateTimeInput.addEventListener('input', validateDateTime);
 
             document.getElementById('department').addEventListener('change', (e) => {
                 document.getElementById('dental-options-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องฟัน');
@@ -343,6 +373,31 @@
             const toggleReschedule = () => rescheduleForm.classList.toggle('hidden');
             document.getElementById('admin-reschedule-toggle-btn').onclick = toggleReschedule;
             document.getElementById('admin-reschedule-toggle-btn-processed').onclick = toggleReschedule;
+            
+            const adminDateTimeInput = document.getElementById('admin-new-datetime');
+            const adminDatetimeError = document.getElementById('admin-datetime-error');
+            const adminSubmitBtn = document.getElementById('admin-reschedule-submit');
+
+            const validateAdminDateTime = () => {
+                const selected = new Date(adminDateTimeInput.value);
+                const day = selected.getDay();
+                const hour = selected.getHours();
+                const isValid = (day > 0 && day < 6) && (hour >= 8 && hour < 15);
+
+                if (!adminDateTimeInput.value || isValid) {
+                    adminDatetimeError.classList.add('hidden');
+                    adminSubmitBtn.disabled = false;
+                } else {
+                    adminDatetimeError.textContent = 'กรุณาเลือกวันจันทร์-ศุกร์ และเวลา 08:00-15:00 น.';
+                    adminDatetimeError.classList.remove('hidden');
+                    adminSubmitBtn.disabled = true;
+                }
+            };
+
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            adminDateTimeInput.min = now.toISOString().slice(0, 16);
+            adminDateTimeInput.addEventListener('input', validateAdminDateTime);
             
             document.getElementById('admin-new-department').addEventListener('change', (e) => {
                 document.getElementById('admin-other-department-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
