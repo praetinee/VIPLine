@@ -92,16 +92,29 @@
         let staffInfo = {};
 
         const departmentOptionsHTML = `
-            <option value="" disabled>-- กรุณาเลือก --</option>
-            <option>ห้องตรวจโรคทั่วไป</option><option>ห้องฉุกเฉิน</option><option>คลินิกโรคเบาหวาน ความดัน</option>
-            <option>คลินิกกระดูกและข้อ</option><option>คลินิกแม่และเด็ก (ฝากท้อง)</option><option>วัคซีนเด็ก</option>
-            <option>ห้องทำแผล</option><option>ห้องฟัน</option><option>ห้องเจาะเลือด/ตรวจแล็บ</option>
-            <option>ห้องยา</option><option>กายภาพบำบัด</option><option>คลินิกโรคหัวใจ</option>
-            <option>คลินิกโรคไต</option><option>คลินิกโรคปอด</option><option>คลินิกผู้สูงอายุ</option>
-            <option>คลินิกศัลยกรรม</option><option>แพทย์แผนไทย</option><option>คลินิกวางแผนครอบครัว (คุมกำเนิด/มะเร็งปากมดลูก)</option>
-            <option>คลินิกรักษ์จิต (จิตเวช)</option><option>คลินิกตรวจสุขภาพคนทำงาน (อาชีวเวชกรรม)</option>
-            <option>ห้องตรวจสุขภาพ (Check-up)</option><option>ห้องเอกซเรย์</option><option>ห้องอัลตร้าซาวน์</option>
-            <option>ห้อง CT Scan</option><option>หอผู้ป่วยใน (ตึกนอน)</option><option value="อื่นๆ">อื่นๆ (โปรดระบุ)</option>
+            <option value="" disabled selected>-- กรุณาเลือก --</option>
+            <option>ห้องตรวจโรคทั่วไป</option>
+            <option>ห้องตรวจอายุรกรรม</option>
+            <option>ห้องตรวจนรีเวช</option>
+            <option>ห้องตรวจศัลยกรรมกระดูกและข้อ</option>
+            <option>ห้องตรวจเฉพาะทางกุมาร</option>
+            <option>ห้องเจาะเลือด/ตรวจแล็บ</option>
+            <option>คลินิกฝากครรภ์</option>
+            <option>วัคซีนเด็กและพัฒนาการ</option>
+            <option>คลินิกรักษ์จิต (จิตเวช)</option>
+            <option>ห้องตรวจหู คอ จมูก</option>
+            <option>ห้องฟัน</option>
+            <option>ห้องส่องกล้องระบบทางเดินอาหาร</option>
+            <option>คลินิกตรวจสุขภาพคนทำงาน (อาชีวเวชกรรม)</option>
+            <option>ห้องเอกซเรย์</option>
+            <option>ห้องอัลตร้าซาวน์</option>
+            <option>ห้อง CT Scan</option>
+            <option>คลินิกโรคไตเรื้อรัง</option>
+            <option>กายภาพบำบัด</option>
+            <option>แพทย์แผนไทย</option>
+            <option>ห้องฉุกเฉิน</option>
+            <option>ห้องยา</option>
+            <option value="อื่นๆ">อื่นๆ (โปรดระบุ)</option>
         `;
 
         async function main() {
@@ -168,8 +181,8 @@
                 document.getElementById('admin-notes').textContent = details.notes || '-';
                 
                 const adminNewDepartmentSelect = document.getElementById('admin-new-department');
-                adminNewDepartmentSelect.innerHTML = departmentOptionsHTML.replace('<option value="" disabled>-- กรุณาเลือก --</option>', '<option value="">-- ไม่เปลี่ยนแปลง --</option>');
-                adminNewDepartmentSelect.value = ''; // Default to no change
+                adminNewDepartmentSelect.innerHTML = departmentOptionsHTML.replace('<option value="" disabled selected>-- กรุณาเลือก --</option>', '<option value="">-- ไม่เปลี่ยนแปลง --</option>');
+                adminNewDepartmentSelect.value = '';
 
                 let appointmentTypeDisplay = details.appointmentType + (details.appointmentType === 'นัดเดิม' ? ` (${details.followUpOnSchedule || 'ไม่ระบุ'})` : '');
                 document.getElementById('admin-appointment-type').textContent = appointmentTypeDisplay;
