@@ -84,11 +84,21 @@
         </div>
     </div>
 
+    <div id="success-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
+        <div class="text-center p-6">
+            <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h1 class="text-2xl font-bold text-gray-800 mt-4">ส่งข้อมูลสำเร็จ</h1>
+            <p class="text-gray-600 mt-2">ได้รับเรื่องการนัดหมายของท่านแล้ว</p>
+            <p class="text-gray-600 mt-1">เจ้าหน้าที่จะแจ้งผลการนัดหมายให้ท่านทราบในภายหลัง</p>
+            <p class="text-sm text-gray-500 mt-4">ท่านสามารถปิดหน้าต่างการนัดหมายนี้ได้</p>
+        </div>
+    </div>
+
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwH3SqQVKGaIVPRouLHD7iwaSk5wYCSLdIYYxRBvgaaSNNmOnXkl356sqNUX4UiOoex2w/exec";
         const LIFF_ID = "2008050252-bNYeKBrd";
 
-        const views = ['loading-view', 'admin-view', 'registration-view', 'main-form-view', 'error-view'];
+        const views = ['loading-view', 'admin-view', 'registration-view', 'main-form-view', 'error-view', 'success-view'];
         let userProfile = null;
         let staffInfo = {};
 
@@ -464,7 +474,7 @@
             
             try {
                 await postToServer(appointmentData);
-                liff.closeWindow();
+                showView('success-view');
             } catch (error) {
                 document.getElementById('form-error-message').textContent = error.message;
                 document.getElementById('form-error-message').classList.remove('hidden');
@@ -499,4 +509,3 @@
     </script>
 </body>
 </html>
-
