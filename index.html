@@ -241,14 +241,34 @@
                 <form id="registration-form" class="space-y-4">
                     <div><label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ไม่ต้องมีคำนำหน้าชื่อ)</label><input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                     <div><label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label><input type="text" id="reg-hn" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700">ลงทะเบียน</button>
+                    
+                    <!-- PDPA Consent Checkbox -->
+                    <div class="pt-2">
+                        <label for="reg-pdpa" class="flex items-start">
+                            <input type="checkbox" id="reg-pdpa" name="pdpa-consent" class="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <span class="ml-3 text-sm text-gray-600">
+                                ข้าพเจ้ายินยอมให้เก็บรวบรวมและประมวลผลข้อมูลส่วนบุคคล (ได้แก่ ชื่อ-นามสกุล, HN, และ LINE User ID) เพื่อวัตถุประสงค์ในการลงทะเบียนและใช้งานระบบนัดหมายนี้
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <button id="reg-submit-btn" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>ลงทะเบียน</button>
                 </form>`;
             
-            document.getElementById('registration-form').addEventListener('submit', async (e) => {
+            const registrationForm = document.getElementById('registration-form');
+            const pdpaCheckbox = document.getElementById('reg-pdpa');
+            const submitButton = document.getElementById('reg-submit-btn');
+
+            // Enable submit button only when PDPA checkbox is checked
+            pdpaCheckbox.addEventListener('change', () => {
+                submitButton.disabled = !pdpaCheckbox.checked;
+            });
+
+            registrationForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const submitButton = e.target.querySelector('button');
                 submitButton.disabled = true;
                 submitButton.textContent = 'กำลังลงทะเบียน...';
+                
                 const fullName = document.getElementById('reg-fullname').value;
                 const hn = document.getElementById('reg-hn').value;
                 const regError = document.getElementById('reg-error-message');
@@ -262,13 +282,13 @@
                     } else {
                        regError.textContent = response.data.message;
                        regError.classList.remove('hidden');
-                       submitButton.disabled = false;
+                       submitButton.disabled = !pdpaCheckbox.checked; // Re-evaluate disabled state
                        submitButton.textContent = 'ลงทะเบียน';
                     }
                 } catch (error) {
                     regError.textContent = error.message;
                     regError.classList.remove('hidden');
-                    submitButton.disabled = false;
+                    submitButton.disabled = !pdpaCheckbox.checked; // Re-evaluate disabled state
                     submitButton.textContent = 'ลงทะเบียน';
                 }
             });
