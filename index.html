@@ -15,78 +15,135 @@
         .btn-green { @apply bg-green-500 hover:bg-green-600 text-white; }
         .btn-red { @apply bg-red-500 hover:bg-red-600 text-white; }
         .btn-yellow { @apply bg-yellow-500 hover:bg-yellow-600 text-black; }
-        .modal-overlay { @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50; }
-        .modal-content { @apply bg-white p-6 rounded-lg shadow-xl max-w-sm w-full; }
     </style>
 </head>
 <body class="bg-gray-100">
 
-    <!-- Loading View -->
     <div id="loading-view" class="flex flex-col items-center justify-center h-screen">
         <div class="spinner"></div>
         <p class="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
     </div>
     
-    <!-- PDPA Consent Modal -->
-    <div id="consent-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h2 class="text-lg font-bold mb-2">นโยบายความเป็นส่วนตัว</h2>
-            <p class="text-sm text-gray-600 mb-4">
-                โรงพยาบาลจะเก็บรวบรวมข้อมูลของท่าน เช่น ชื่อ, HN, และข้อมูลการนัดหมาย เพื่อใช้ในการอำนวยความสะดวกและประสานงานการนัดหมายเท่านั้น
-                ข้อมูลของท่านจะถูกเก็บรักษาเป็นอย่างดีและจะไม่ถูกเปิดเผยโดยไม่ได้รับอนุญาต
-            </p>
-            <div class="flex items-center mb-4">
-                <input id="consent-checkbox" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                <label for="consent-checkbox" class="ml-2 block text-sm text-gray-900">ข้าพเจ้ารับทราบและยินยอม</label>
+    <!-- Admin View -->
+    <div id="admin-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">จัดการการนัดหมาย</h1>
+        <p class="text-center text-gray-500 text-sm mb-4">หมายเลขนัดหมาย: <span id="admin-appointment-id" class="font-mono"></span></p>
+        <div id="admin-status-banner" class="p-3 rounded-md mb-4 text-center hidden"><p id="admin-status-text" class="font-semibold"></p></div>
+        <div class="border rounded-md p-4 text-sm">
+            <h2 class="text-lg font-semibold mb-3 border-b pb-2">ข้อมูลการนัดหมาย</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                <div><strong>ผู้ป่วย:</strong> <span id="admin-patient-name" class="break-words"></span></div>
+                <div><strong>เลขบัตรประชาชน:</strong> <span id="admin-patient-id" class="break-words"></span></div>
+                <div><strong>เบอร์โทร:</strong> <span id="admin-patient-phone" class="break-words"></span></div>
+                <div><strong>ผู้ขอ:</strong> <span id="admin-staff-name" class="break-words"></span></div>
+                <div><strong>ความสัมพันธ์:</strong> <span id="admin-patient-relation" class="break-words"></span></div>
+                <div class="col-span-1 sm:col-span-2"><strong>แผนก:</strong> <span id="admin-department" class="font-bold"></span></div>
+                <div><strong>ประเภทนัด:</strong> <span id="admin-appointment-type"></span></div>
+                <div><strong>สถานะทางกายภาพ:</strong> <span id="admin-patient-status"></span></div>
+                <div class="col-span-1 sm:col-span-2"><strong>ขอรับบริการวันที่:</strong> <span id="admin-datetime-request" class="font-bold text-blue-600"></span></div>
             </div>
-            <button id="consent-accept-btn" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400" disabled>
-                ยอมรับและดำเนินการต่อ
-            </button>
+            <div id="admin-dental-info-wrapper" class="hidden mt-3 pt-3 border-t">
+                <h3 class="font-semibold text-gray-800">ข้อมูลห้องฟัน</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-1">
+                    <div><strong>บริการ:</strong> <span id="admin-dental-service"></span></div>
+                    <div><strong>อาการปวด:</strong> <span id="admin-dental-pain"></span></div>
+                </div>
+            </div>
+            <div class="mt-3 pt-3 border-t"><p><strong>อาการ/ความผิดปกติ:</strong></p><p id="admin-symptoms" class="mt-1 p-2 bg-gray-50 rounded break-words"></p></div>
+            <div class="mt-3 pt-3 border-t"><p><strong>หมายเหตุ:</strong></p><p id="admin-notes" class="mt-1 p-2 bg-gray-50 rounded break-words"></p></div>
+        </div>
+        <div class="mt-6 space-y-3">
+            <div id="admin-action-buttons" class="hidden"><div class="flex flex-row gap-2"><button id="admin-approve-btn" class="btn btn-green flex-1">อนุมัติ</button><button id="admin-deny-btn" class="btn btn-red flex-1">ปฏิเสธ</button><button id="admin-reschedule-toggle-btn" class="btn btn-yellow flex-1">เลื่อนนัด</button></div></div>
+            <div id="reschedule-only-wrapper" class="hidden"><button id="admin-reschedule-toggle-btn-processed" class="btn btn-yellow">เลื่อนนัดหมายนี้</button></div>
+            <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden bg-yellow-50">
+                <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
+                <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                <div id="admin-datetime-error" class="hidden mt-1 text-sm text-red-600"></div>
+
+                <label for="admin-new-department" class="block text-sm font-medium text-gray-700 mt-4">เปลี่ยนแผนก (ถ้าต้องการ)</label>
+                <select id="admin-new-department" name="admin-new-department" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"></select>
+                
+                <div id="admin-other-department-wrapper" class="hidden mt-2">
+                    <label for="admin-other-department-detail" class="block text-sm font-medium text-gray-700">โปรดระบุแผนก</label>
+                    <input type="text" id="admin-other-department-detail" name="admin-other-department-detail" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+
+                <button id="admin-reschedule-submit" type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
+            </form>
         </div>
     </div>
 
-    <!-- Views (Admin, Registration, Main Form, etc.) -->
-    <div id="admin-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
     <div id="registration-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
     <div id="main-form-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
-    <div id="error-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
-    <div id="success-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden"></div>
+    
+    <div id="error-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
+        <h1 class="text-2xl font-bold text-center text-red-600 mb-4">เกิดข้อผิดพลาด</h1>
+        <div class="bg-red-50 p-3 rounded-md">
+            <p class="text-sm font-bold text-red-800">รายละเอียด:</p>
+            <pre id="error-message" class="text-xs text-red-700 whitespace-pre-wrap mt-2"></pre>
+        </div>
+    </div>
+
+    <div id="success-view" class="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md mt-5 hidden">
+        <div class="text-center p-6">
+            <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h1 class="text-2xl font-bold text-gray-800 mt-4">ส่งข้อมูลสำเร็จ</h1>
+            <p class="text-gray-600 mt-2">ได้รับเรื่องการนัดหมายของท่านแล้ว</p>
+            <p class="text-gray-600 mt-1">เจ้าหน้าที่จะแจ้งผลการนัดหมายให้ท่านทราบในภายหลัง</p>
+            <p class="text-sm text-gray-500 mt-4">ท่านสามารถปิดหน้าต่างการนัดหมายนี้ได้</p>
+        </div>
+    </div>
 
     <script>
-        // --- CONFIGURATION ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwH3SqQVKGaIVPRouLHD7iwaSk5wYCSLdIYYxRBvgaaSNNmOnXkl356sqNUX4UiOoex2w/exec";
         const LIFF_ID = "2008050252-bNYeKBrd";
 
-        // --- GLOBAL STATE ---
-        const views = ['loading-view', 'admin-view', 'registration-view', 'main-form-view', 'error-view', 'success-view', 'consent-modal'];
+        const views = ['loading-view', 'admin-view', 'registration-view', 'main-form-view', 'error-view', 'success-view'];
         let userProfile = null;
-        let idToken = null; // SECURITY: Store ID Token for backend verification
         let staffInfo = {};
 
-        const departmentOptionsHTML = `<option value="" disabled selected>-- กรุณาเลือก --</option><option>ห้องตรวจโรคทั่วไป</option><option>ห้องตรวจอายุรกรรม</option><option>ห้องตรวจนรีเวช</option><option>ห้องตรวจศัลยกรรมกระดูกและข้อ</option><option>ห้องตรวจเฉพาะทางกุมาร</option><option>ห้องเจาะเลือด/ตรวจแล็บ</option><option>คลินิกฝากครรภ์</option><option>วัคซีนเด็กและพัฒนาการ</option><option>คลินิกรักษ์จิต (จิตเวช)</option><option>ห้องตรวจหู คอ จมูก</option><option>ห้องฟัน</option><option>ห้องส่องกล้องระบบทางเดินอาหาร</option><option>คลินิกตรวจสุขภาพคนทำงาน (อาชีวเวชกรรม)</option><option>ห้องเอกซเรย์</option><option>ห้องอัลตร้าซาวน์</option><option>ห้อง CT Scan</option><option>คลินิกโรคไตเรื้อรัง</option><option>กายภาพบำบัด</option><option>แพทย์แผนไทย</option><option>ห้องฉุกเฉิน</option><option>ห้องยา</option><option value="อื่นๆ">อื่นๆ (โปรดระบุ)</option>`;
+        const departmentOptionsHTML = `
+            <option value="" disabled selected>-- กรุณาเลือก --</option>
+            <option>ห้องตรวจโรคทั่วไป</option>
+            <option>ห้องตรวจอายุรกรรม</option>
+            <option>ห้องตรวจนรีเวช</option>
+            <option>ห้องตรวจศัลยกรรมกระดูกและข้อ</option>
+            <option>ห้องตรวจเฉพาะทางกุมาร</option>
+            <option>ห้องเจาะเลือด/ตรวจแล็บ</option>
+            <option>คลินิกฝากครรภ์</option>
+            <option>วัคซีนเด็กและพัฒนาการ</option>
+            <option>คลินิกรักษ์จิต (จิตเวช)</option>
+            <option>ห้องตรวจหู คอ จมูก</option>
+            <option>ห้องฟัน</option>
+            <option>ห้องส่องกล้องระบบทางเดินอาหาร</option>
+            <option>คลินิกตรวจสุขภาพคนทำงาน (อาชีวเวชกรรม)</option>
+            <option>ห้องเอกซเรย์</option>
+            <option>ห้องอัลตร้าซาวน์</option>
+            <option>ห้อง CT Scan</option>
+            <option>คลินิกโรคไตเรื้อรัง</option>
+            <option>กายภาพบำบัด</option>
+            <option>แพทย์แผนไทย</option>
+            <option>ห้องฉุกเฉิน</option>
+            <option>ห้องยา</option>
+            <option value="อื่นๆ">อื่นๆ (โปรดระบุ)</option>
+        `;
 
-        // --- INITIALIZATION ---
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
-                
                 userProfile = await liff.getProfile();
-                idToken = liff.getIDToken(); // SECURITY: Get the ID token
-                if (!idToken) throw new Error("Could not retrieve ID Token. Please try again.");
-
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('action') === 'admin_view') {
                     await loadAdminView(urlParams.get('appointmentId'));
                 } else {
-                    handleUserConsentFlow();
+                    await handleUserFlow();
                 }
             } catch (error) {
                 showError(`[main] ${error.message}`);
             }
         }
-        
-        // --- VIEW MANAGEMENT ---
+
         function showView(viewToShow) {
             views.forEach(id => document.getElementById(id)?.classList.add('hidden'));
             document.getElementById(viewToShow)?.classList.remove('hidden');
@@ -94,40 +151,17 @@
 
         function showError(message) {
             console.error(message);
-            const errorView = document.getElementById('error-view');
-            errorView.innerHTML = `<h1 class="text-2xl font-bold text-center text-red-600 mb-4">เกิดข้อผิดพลาด</h1><div class="bg-red-50 p-3 rounded-md"><p class="text-sm font-bold text-red-800">รายละเอียด:</p><pre class="text-xs text-red-700 whitespace-pre-wrap mt-2">${message}</pre></div>`;
-            showView('error-view');
-        }
-
-        // --- PDPA CONSENT FLOW ---
-        function handleUserConsentFlow() {
-            const consentGiven = localStorage.getItem('pdpaConsent');
-            if (consentGiven) {
-                handleUserFlow();
-            } else {
-                setupConsentModal();
-                showView('consent-modal');
+            const errorMessage = document.getElementById('error-message');
+            if (errorMessage) {
+                errorMessage.textContent = message;
+                showView('error-view');
             }
         }
 
-        function setupConsentModal() {
-            const checkbox = document.getElementById('consent-checkbox');
-            const acceptBtn = document.getElementById('consent-accept-btn');
-            checkbox.addEventListener('change', () => {
-                acceptBtn.disabled = !checkbox.checked;
-            });
-            acceptBtn.addEventListener('click', () => {
-                localStorage.setItem('pdpaConsent', 'true');
-                showView('loading-view');
-                handleUserFlow();
-            });
-        }
-
-        // --- USER FLOW (POST-CONSENT) ---
         async function handleUserFlow() {
             try {
                 showView('loading-view');
-                const response = await postToServer({ action: 'checkUser' });
+                const response = await postToServer({ action: 'checkUser', userId: userProfile.userId });
                 if (response.data.isRegistered) {
                     staffInfo = response.data.staffInfo;
                     setupAndShowMainForm();
@@ -139,173 +173,8 @@
             }
         }
         
-        // --- DYNAMIC VIEW SETUP (Registration, Main Form, Admin) ---
-        function setupAndShowRegistrationForm() {
-            const container = document.getElementById('registration-view');
-            container.innerHTML = `
-                <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน</h1>
-                <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาล กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
-                <div id="reg-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
-                <form id="registration-form" class="space-y-4">
-                    <div><label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ไม่ต้องมีคำนำหน้าชื่อ)</label><input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
-                    <div><label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label><input type="text" id="reg-hn" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700">ลงทะเบียน</button>
-                </form>`;
-            
-            document.getElementById('registration-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const submitButton = e.target.querySelector('button');
-                submitButton.disabled = true;
-                submitButton.textContent = 'กำลังลงทะเบียน...';
-                
-                const payload = {
-                    action: 'registerUser',
-                    fullName: document.getElementById('reg-fullname').value,
-                    hn: document.getElementById('reg-hn').value,
-                };
-
-                try {
-                    const response = await postToServer(payload);
-                    if (response.data.success) {
-                        staffInfo = response.data.staffInfo;
-                        setupAndShowMainForm();
-                    } else {
-                       document.getElementById('reg-error-message').textContent = response.data.message;
-                       document.getElementById('reg-error-message').classList.remove('hidden');
-                       submitButton.disabled = false;
-                       submitButton.textContent = 'ลงทะเบียน';
-                    }
-                } catch (error) {
-                    document.getElementById('reg-error-message').textContent = error.message;
-                    document.getElementById('reg-error-message').classList.remove('hidden');
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'ลงทะเบียน';
-                }
-            });
-            showView('registration-view');
-        }
-
-        function setupAndShowMainForm() {
-            const container = document.getElementById('main-form-view');
-            container.innerHTML = `
-                <h1 class="text-2xl font-bold text-center text-green-600 mb-4">ฟอร์มนัดหมายสำหรับเจ้าหน้าที่</h1>
-                <div class="bg-blue-50 p-3 rounded-md mb-4">
-                    <p class="text-sm text-gray-700">เจ้าหน้าที่ผู้ขอ: <span id="staff-name" class="font-bold"></span></p>
-                    <p class="text-sm text-gray-700">HN: <span id="staff-hn" class="font-bold"></span></p>
-                </div>
-                <div id="form-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"></div>
-                <form id="appointment-form" class="space-y-4">
-                    <fieldset class="border p-4 rounded-md">
-                        <legend class="text-lg font-medium text-gray-900 px-2">ข้อมูลผู้รับบริการ</legend>
-                        <div><label for="patient-relation" class="block text-sm font-medium text-gray-700">ความสัมพันธ์</label><select id="patient-relation" name="patient-relation" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"><option>เจ้าหน้าที่เอง</option><option>บิดา</option><option>มารดา</option><option>คู่สมรส (ตามกฎหมาย)</option><option>บุตร</option><option>อื่นๆ</option></select></div>
-                        <div id="other-relation-wrapper" class="hidden mt-4"><label for="other-relation-detail" class="block text-sm font-medium">โปรดระบุ</label><input type="text" id="other-relation-detail" name="other-relation-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                        <div class="mt-4"><label for="patient-fullname" class="block text-sm font-medium">ชื่อ-นามสกุล ผู้รับบริการ</label><input type="text" id="patient-fullname" name="patient-fullname" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                        <div class="mt-4"><label for="patient-id" class="block text-sm font-medium">เลขบัตรประชาชน</label><input type="text" id="patient-id" name="patient-id" maxlength="13" pattern="\\d{13}" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                        <div class="mt-4"><label for="patient-phone" class="block text-sm font-medium">เบอร์โทรศัพท์</label><input type="tel" id="patient-phone" name="patient-phone" pattern="[0-9]{10}" maxlength="10" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                        <div class="mt-4"><label class="block text-sm font-medium">สถานะทางกายภาพ</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="patient-status" value="เดินได้" checked class="form-radio"><span class="ml-2">เดินได้</span></label><label class="inline-flex items-center"><input type="radio" name="patient-status" value="นั่งรถเข็น" class="form-radio"><span class="ml-2">นั่งรถเข็น</span></label><label class="inline-flex items-center"><input type="radio" name="patient-status" value="นอนเปล" class="form-radio"><span class="ml-2">นอนเปล</span></label></div></div>
-                    </fieldset>
-                    <fieldset class="border p-4 rounded-md">
-                        <legend class="text-lg font-medium text-gray-900 px-2">รายละเอียดการนัดหมาย</legend>
-                        <div><label for="symptoms" class="block text-sm font-medium">อาการ/ความผิดปกติ</label><textarea id="symptoms" name="symptoms" rows="3" required class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
-                        <div class="mt-4"><label for="department" class="block text-sm font-medium">แผนก</label><select id="department" name="department" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md">${departmentOptionsHTML}</select></div>
-                        <div id="med-warning-wrapper" class="hidden mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
-                            <p class="font-bold">ข้อควรทราบ</p>
-                            <p class="text-sm">เนื่องจากอายุรแพทย์มีเพียง 1-2 ท่านต่อวัน ในขณะที่มีผู้รับบริการจำนวนมาก ส่งผลให้ระยะเวลารอคอยการตรวจเนิ่นนานกว่าปกติ</p>
-                            <p class="text-sm mt-1">หากท่านต้องการความสะดวกและรวดเร็วยิ่งขึ้น ท่านสามารถเลือกเข้ารับบริการที่แผนก "ห้องตรวจโรคทั่วไป" แทนได้</p>
-                        </div>
-                        <div id="dental-options-wrapper" class="hidden mt-4 border-t pt-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-sm font-medium">บริการ</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อุดฟัน" class="form-radio"><span class="ml-2">อุดฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ขูดหินปูน" class="form-radio"><span class="ml-2">ขูดหินปูน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ถอนฟัน" class="form-radio"><span class="ml-2">ถอนฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อื่นๆ" class="form-radio"><span class="ml-2">อื่นๆ</span></label></div><input type="text" id="other-dental-service" name="other-dental-service" placeholder="โปรดระบุ" class="hidden mt-2 text-sm block w-full px-2 py-1 border rounded-md"></div><div><label class="block text-sm font-medium">อาการปวด</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="มีอาการปวด" class="form-radio"><span class="ml-2">มีอาการปวด</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="ไม่มีอาการปวด" class="form-radio"><span class="ml-2">ไม่มีอาการปวด</span></label></div></div></div></div>
-                        <div id="other-department-wrapper" class="hidden mt-4"><label for="other-department-detail" class="block text-sm font-medium">โปรดระบุแผนก</label><input type="text" id="other-department-detail" name="other-department-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                        <div class="mt-4"><label class="block text-sm font-medium">ประเภทการนัด</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดใหม่" checked class="form-radio"><span class="ml-2">นัดใหม่</span></label><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดเดิม" class="form-radio"><span class="ml-2">นัดเดิม</span></label></div></div>
-                        <div id="follow-up-details" class="hidden mt-4"><div><label class="block text-sm font-medium">มาตามนัดหรือไม่</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="มาตามนัด" class="form-radio"><span class="ml-2">มาตามนัด</span></label><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="ผิดนัดเดิม" class="form-radio"><span class="ml-2">ผิดนัดเดิม</span></label></div></div></div>
-                        <div class="mt-4"><label for="appointment-datetime" class="block text-sm font-medium">วันเวลาที่ต้องการนัด</label><input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 border rounded-md"><div id="datetime-error" class="hidden mt-1 text-sm text-red-600"></div></div>
-                    </fieldset>
-                    <div><label for="notes" class="block text-sm font-medium">หมายเหตุ</label><textarea id="notes" name="notes" rows="2" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
-                    <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700"><span id="submit-text">ส่งข้อมูล</span><div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div></button>
-                </form>`;
-
-            document.getElementById('staff-name').textContent = staffInfo.fullName;
-            document.getElementById('staff-hn').textContent = staffInfo.hn;
-             
-            const relationSelect = document.getElementById('patient-relation');
-            const patientNameInput = document.getElementById('patient-fullname');
-            if (relationSelect.value === 'เจ้าหน้าที่เอง') {
-                patientNameInput.value = staffInfo.fullName;
-            }
-            relationSelect.addEventListener('change', (e) => {
-                document.getElementById('other-relation-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
-                patientNameInput.value = (e.target.value === 'เจ้าหน้าที่เอง') ? staffInfo.fullName : '';
-            });
-
-            document.getElementById('department').addEventListener('change', (e) => {
-                document.getElementById('dental-options-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องฟัน');
-                document.getElementById('other-department-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
-                document.getElementById('med-warning-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องตรวจอายุรกรรม');
-            });
-
-            document.querySelectorAll('input[name="dental-service"]').forEach(r => r.addEventListener('change', (e) => {
-                document.getElementById('other-dental-service').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
-            }));
-
-            document.querySelectorAll('input[name="appointment-type"]').forEach(r => r.addEventListener('change', (e) => {
-                document.getElementById('follow-up-details').classList.toggle('hidden', e.target.value !== 'นัดเดิม');
-            }));
-             
-            const appointmentDateTimeInput = document.getElementById('appointment-datetime');
-            const datetimeError = document.getElementById('datetime-error');
-            const submitBtn = document.getElementById('submit-button');
-            validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn);
-
-            document.getElementById('appointment-form').addEventListener('submit', handleAppointmentSubmit);
-            showView('main-form-view');
-        }
-
         async function loadAdminView(appointmentId) {
-            const container = document.getElementById('admin-view');
-            container.innerHTML = `
-                <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">จัดการการนัดหมาย</h1>
-                <p class="text-center text-gray-500 text-sm mb-4">หมายเลขนัดหมาย: <span id="admin-appointment-id" class="font-mono"></span></p>
-                <div id="admin-status-banner" class="p-3 rounded-md mb-4 text-center hidden"><p id="admin-status-text" class="font-semibold"></p></div>
-                <div class="border rounded-md p-4 text-sm">
-                    <h2 class="text-lg font-semibold mb-3 border-b pb-2">ข้อมูลการนัดหมาย</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                        <div><strong>ผู้ป่วย:</strong> <span id="admin-patient-name" class="break-words"></span></div>
-                        <div><strong>เลขบัตรประชาชน:</strong> <span id="admin-patient-id" class="break-words"></span></div>
-                        <div><strong>เบอร์โทร:</strong> <span id="admin-patient-phone" class="break-words"></span></div>
-                        <div><strong>ผู้ขอ:</strong> <span id="admin-staff-name" class="break-words"></span></div>
-                        <div><strong>ความสัมพันธ์:</strong> <span id="admin-patient-relation" class="break-words"></span></div>
-                        <div class="col-span-1 sm:col-span-2"><strong>แผนก:</strong> <span id="admin-department" class="font-bold"></span></div>
-                        <div><strong>ประเภทนัด:</strong> <span id="admin-appointment-type"></span></div>
-                        <div><strong>สถานะทางกายภาพ:</strong> <span id="admin-patient-status"></span></div>
-                        <div class="col-span-1 sm:col-span-2"><strong>ขอรับบริการวันที่:</strong> <span id="admin-datetime-request" class="font-bold text-blue-600"></span></div>
-                    </div>
-                    <div id="admin-dental-info-wrapper" class="hidden mt-3 pt-3 border-t">
-                        <h3 class="font-semibold text-gray-800">ข้อมูลห้องฟัน</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-1">
-                            <div><strong>บริการ:</strong> <span id="admin-dental-service"></span></div>
-                            <div><strong>อาการปวด:</strong> <span id="admin-dental-pain"></span></div>
-                        </div>
-                    </div>
-                    <div class="mt-3 pt-3 border-t"><p><strong>อาการ/ความผิดปกติ:</strong></p><p id="admin-symptoms" class="mt-1 p-2 bg-gray-50 rounded break-words"></p></div>
-                    <div class="mt-3 pt-3 border-t"><p><strong>หมายเหตุ:</strong></p><p id="admin-notes" class="mt-1 p-2 bg-gray-50 rounded break-words"></p></div>
-                </div>
-                <div class="mt-6 space-y-3">
-                    <div id="admin-action-buttons" class="hidden"><div class="flex flex-row gap-2"><button id="admin-approve-btn" class="btn btn-green flex-1">อนุมัติ</button><button id="admin-deny-btn" class="btn btn-red flex-1">ปฏิเสธ</button><button id="admin-reschedule-toggle-btn" class="btn btn-yellow flex-1">เลื่อนนัด</button></div></div>
-                    <div id="reschedule-only-wrapper" class="hidden"><button id="admin-reschedule-toggle-btn-processed" class="btn btn-yellow">เลื่อนนัดหมายนี้</button></div>
-                    <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden bg-yellow-50">
-                        <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
-                        <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                        <div id="admin-datetime-error" class="hidden mt-1 text-sm text-red-600"></div>
-                        <label for="admin-new-department" class="block text-sm font-medium text-gray-700 mt-4">เปลี่ยนแผนก (ถ้าต้องการ)</label>
-                        <select id="admin-new-department" name="admin-new-department" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"></select>
-                        <div id="admin-other-department-wrapper" class="hidden mt-2">
-                            <label for="admin-other-department-detail" class="block text-sm font-medium text-gray-700">โปรดระบุแผนก</label>
-                            <input type="text" id="admin-other-department-detail" name="admin-other-department-detail" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                        </div>
-                        <button id="admin-reschedule-submit" type="submit" class="btn btn-yellow mt-3">ยืนยันการเลื่อนนัด</button>
-                    </form>
-                </div>`;
-            
-             try {
+            try {
                 showView('loading-view');
                 const response = await postToServer({ action: 'getAppointmentDetails', appointmentId });
                 const details = response.data;
@@ -358,12 +227,133 @@
                 
                 setupAdminButtonListeners(appointmentId);
                 showView('admin-view');
-             } catch (error) {
+            } catch (error) {
                 showError(`[loadAdminView] ${error.message}`);
-             }
+            }
+        }
+        
+        function setupAndShowRegistrationForm() {
+            const container = document.getElementById('registration-view');
+            container.innerHTML = `
+                <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน</h1>
+                <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาลสันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
+                <div id="reg-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+                <form id="registration-form" class="space-y-4">
+                    <div><label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ไม่ต้องมีคำนำหน้าชื่อ)</label><input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                    <div><label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label><input type="text" id="reg-hn" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700">ลงทะเบียน</button>
+                </form>`;
+            
+            document.getElementById('registration-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitButton = e.target.querySelector('button');
+                submitButton.disabled = true;
+                submitButton.textContent = 'กำลังลงทะเบียน...';
+                const fullName = document.getElementById('reg-fullname').value;
+                const hn = document.getElementById('reg-hn').value;
+                const regError = document.getElementById('reg-error-message');
+                regError.classList.add('hidden');
+
+                try {
+                    const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn });
+                    if (response.data.success) {
+                        staffInfo = response.data.staffInfo;
+                        setupAndShowMainForm();
+                    } else {
+                       regError.textContent = response.data.message;
+                       regError.classList.remove('hidden');
+                       submitButton.disabled = false;
+                       submitButton.textContent = 'ลงทะเบียน';
+                    }
+                } catch (error) {
+                    regError.textContent = error.message;
+                    regError.classList.remove('hidden');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'ลงทะเบียน';
+                }
+            });
+            showView('registration-view');
+        }
+        
+        function setupAndShowMainForm() {
+            const container = document.getElementById('main-form-view');
+            container.innerHTML = `
+                <h1 class="text-2xl font-bold text-center text-green-600 mb-4">ฟอร์มนัดหมายสำหรับเจ้าหน้าที่</h1>
+                <div class="bg-blue-50 p-3 rounded-md mb-4">
+                    <p class="text-sm text-gray-700">เจ้าหน้าที่ผู้ขอ: <span id="staff-name" class="font-bold"></span></p>
+                    <p class="text-sm text-gray-700">HN: <span id="staff-hn" class="font-bold"></span></p>
+                </div>
+                <div id="form-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"></div>
+                <form id="appointment-form" class="space-y-4">
+                    <fieldset class="border p-4 rounded-md">
+                        <legend class="text-lg font-medium text-gray-900 px-2">ข้อมูลผู้รับบริการ</legend>
+                        <div><label for="patient-relation" class="block text-sm font-medium text-gray-700">ความสัมพันธ์</label><select id="patient-relation" name="patient-relation" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"><option>เจ้าหน้าที่เอง</option><option>บิดา</option><option>มารดา</option><option>คู่สมรส (ตามกฎหมาย)</option><option>บุตร</option><option>อื่นๆ</option></select></div>
+                        <div id="other-relation-wrapper" class="hidden mt-4"><label for="other-relation-detail" class="block text-sm font-medium">โปรดระบุ</label><input type="text" id="other-relation-detail" name="other-relation-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div class="mt-4"><label for="patient-fullname" class="block text-sm font-medium">ชื่อ-นามสกุล ผู้รับบริการ</label><input type="text" id="patient-fullname" name="patient-fullname" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div class="mt-4"><label for="patient-id" class="block text-sm font-medium">เลขบัตรประชาชน</label><input type="text" id="patient-id" name="patient-id" maxlength="13" pattern="\\d{13}" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div class="mt-4"><label for="patient-phone" class="block text-sm font-medium">เบอร์โทรศัพท์</label><input type="tel" id="patient-phone" name="patient-phone" pattern="[0-9]{10}" maxlength="10" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div class="mt-4"><label class="block text-sm font-medium">สถานะทางกายภาพ</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="patient-status" value="เดินได้" checked class="form-radio"><span class="ml-2">เดินได้</span></label><label class="inline-flex items-center"><input type="radio" name="patient-status" value="นั่งรถเข็น" class="form-radio"><span class="ml-2">นั่งรถเข็น</span></label><label class="inline-flex items-center"><input type="radio" name="patient-status" value="นอนเปล" class="form-radio"><span class="ml-2">นอนเปล</span></label></div></div>
+                    </fieldset>
+                    <fieldset class="border p-4 rounded-md">
+                        <legend class="text-lg font-medium text-gray-900 px-2">รายละเอียดการนัดหมาย</legend>
+                        <div><label for="symptoms" class="block text-sm font-medium">อาการ/ความผิดปกติ</label><textarea id="symptoms" name="symptoms" rows="3" required class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
+                        <div class="mt-4"><label for="department" class="block text-sm font-medium">แผนก</label><select id="department" name="department" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md">${departmentOptionsHTML}</select></div>
+                        <div id="med-warning-wrapper" class="hidden mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
+                            <p class="font-bold">ข้อควรทราบ</p>
+                            <p class="text-sm">เนื่องจากอายุรแพทย์มีเพียง 1-2 ท่านต่อวัน ในขณะที่มีผู้รับบริการจำนวนมาก ส่งผลให้ระยะเวลารอคอยการตรวจเนิ่นนานกว่าปกติ</p>
+                            <p class="text-sm mt-1">หากท่านต้องการความสะดวกและรวดเร็วยิ่งขึ้น ท่านสามารถเลือกเข้ารับบริการที่แผนก "ห้องตรวจโรคทั่วไป" แทนได้</p>
+                        </div>
+                        <div id="dental-options-wrapper" class="hidden mt-4 border-t pt-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-sm font-medium">บริการ</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อุดฟัน" class="form-radio"><span class="ml-2">อุดฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ขูดหินปูน" class="form-radio"><span class="ml-2">ขูดหินปูน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ถอนฟัน" class="form-radio"><span class="ml-2">ถอนฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อื่นๆ" class="form-radio"><span class="ml-2">อื่นๆ</span></label></div><input type="text" id="other-dental-service" name="other-dental-service" placeholder="โปรดระบุ" class="hidden mt-2 text-sm block w-full px-2 py-1 border rounded-md"></div><div><label class="block text-sm font-medium">อาการปวด</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="มีอาการปวด" class="form-radio"><span class="ml-2">มีอาการปวด</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="ไม่มีอาการปวด" class="form-radio"><span class="ml-2">ไม่มีอาการปวด</span></label></div></div></div></div>
+                        <div id="other-department-wrapper" class="hidden mt-4"><label for="other-department-detail" class="block text-sm font-medium">โปรดระบุแผนก</label><input type="text" id="other-department-detail" name="other-department-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div class="mt-4"><label class="block text-sm font-medium">ประเภทการนัด</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดใหม่" checked class="form-radio"><span class="ml-2">นัดใหม่</span></label><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดเดิม" class="form-radio"><span class="ml-2">นัดเดิม</span></label></div></div>
+                        <div id="follow-up-details" class="hidden mt-4"><div><label class="block text-sm font-medium">มาตามนัดหรือไม่</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="มาตามนัด" class="form-radio"><span class="ml-2">มาตามนัด</span></label><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="ผิดนัดเดิม" class="form-radio"><span class="ml-2">ผิดนัดเดิม</span></label></div></div></div>
+                        <div class="mt-4">
+                            <label for="appointment-datetime" class="block text-sm font-medium">วันเวลาที่ต้องการนัด</label>
+                            <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 border rounded-md">
+                            <div id="datetime-error" class="hidden mt-1 text-sm text-red-600"></div>
+                        </div>
+                    </fieldset>
+                    <div><label for="notes" class="block text-sm font-medium">หมายเหตุ</label><textarea id="notes" name="notes" rows="2" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
+                    <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700"><span id="submit-text">ส่งข้อมูล</span><div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div></button>
+                </form>
+                <div class="mt-6 text-center"><p class="text-sm text-gray-600">พบปัญหากรุณาติดต่อเจ้าหน้าที่</p></div>
+            `;
+            
+            document.getElementById('staff-name').textContent = staffInfo.fullName;
+            document.getElementById('staff-hn').textContent = staffInfo.hn;
+            
+            const relationSelect = document.getElementById('patient-relation');
+            const patientNameInput = document.getElementById('patient-fullname');
+            if (relationSelect.value === 'เจ้าหน้าที่เอง') {
+                patientNameInput.value = staffInfo.fullName;
+            }
+            
+            relationSelect.addEventListener('change', (e) => {
+                document.getElementById('other-relation-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+                patientNameInput.value = (e.target.value === 'เจ้าหน้าที่เอง') ? staffInfo.fullName : '';
+            });
+
+            const appointmentDateTimeInput = document.getElementById('appointment-datetime');
+            const datetimeError = document.getElementById('datetime-error');
+            const submitBtn = document.getElementById('submit-button');
+
+            validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn);
+
+            document.getElementById('department').addEventListener('change', (e) => {
+                document.getElementById('dental-options-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องฟัน');
+                document.getElementById('other-department-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+                document.getElementById('med-warning-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องตรวจอายุรกรรม');
+            });
+            document.querySelectorAll('input[name="dental-service"]').forEach(r => r.addEventListener('change', (e) => {
+                document.getElementById('other-dental-service').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+            }));
+            document.querySelectorAll('input[name="appointment-type"]').forEach(r => r.addEventListener('change', (e) => {
+                document.getElementById('follow-up-details').classList.toggle('hidden', e.target.value !== 'นัดเดิม');
+            }));
+            document.getElementById('appointment-form').addEventListener('submit', handleAppointmentSubmit);
+            showView('main-form-view');
         }
 
-        // --- UTILITY FUNCTIONS (Listeners, Validation) ---
         function setupAdminButtonListeners(appointmentId) {
             document.getElementById('admin-approve-btn').onclick = () => handleAdminActionClick('approve', appointmentId);
             document.getElementById('admin-deny-btn').onclick = () => {
@@ -397,27 +387,39 @@
         }
 
         function validateAndSetMinDate(inputElement, errorElement, submitButton) {
+            // ฟังก์ชันนี้ถูกแก้ไขตาม requirement ใหม่
             const now = new Date();
+            
+            // คำนวณวันที่ขั้นต่ำที่สามารถจองได้
             const minBookingDate = new Date();
+            // เริ่มต้นโดยตั้งเป็นวันพรุ่งนี้
             minBookingDate.setDate(now.getDate() + 1);
-            minBookingDate.setHours(8, 0, 0, 0); 
+            minBookingDate.setHours(8, 0, 0, 0); // เวลาทำการเริ่ม 8:00 น.
+
+            // ถ้าปัจจุบันเป็นเวลา 15:00 น. หรือหลังจากนั้น ให้เลื่อนวันที่จองได้เร็วที่สุดเป็นวันมะรืน
             if (now.getHours() >= 15) {
                 minBookingDate.setDate(minBookingDate.getDate() + 1);
             }
+            
+            // กำหนดค่า 'min' ให้กับ input element เพื่อให้ปฏิทินแสดงวันที่เลือกได้ถูกต้อง
+            // ต้องสร้าง object Date ชั่วคราวขึ้นมาเพื่อจัดการกับ timezone offset
             const tempMinDate = new Date(minBookingDate);
             tempMinDate.setMinutes(tempMinDate.getMinutes() - tempMinDate.getTimezoneOffset());
             inputElement.min = tempMinDate.toISOString().slice(0, 16);
             
             const validate = () => {
+                // ถ้าไม่มีการเลือกค่า ให้ซ่อนข้อความ error และปิดการใช้งานปุ่ม (ถ้าจำเป็น)
                 if (!inputElement.value) {
                     errorElement.classList.add('hidden');
                     submitButton.disabled = inputElement.required;
                     return;
                 }
+
                 const selected = new Date(inputElement.value);
                 const day = selected.getDay();
                 const hour = selected.getHours();
                 
+                // กฎข้อที่ 1: ห้ามจองวันหยุด (เสาร์ = 6, อาทิตย์ = 0)
                 if (day === 0 || day === 6) {
                     errorElement.textContent = 'ขออภัย ระบบไม่เปิดรับการนัดหมายในวันเสาร์-อาทิตย์';
                     errorElement.classList.remove('hidden');
@@ -425,6 +427,7 @@
                     return;
                 }
 
+                // กฎข้อที่ 2: ต้องจองในเวลาทำการ (8:00 - 15:00 น.)
                 if (hour < 8 || hour >= 15) {
                     errorElement.textContent = 'กรุณาเลือกเวลาในช่วงเวลาบริการ 08:00-15:00 น.';
                     errorElement.classList.remove('hidden');
@@ -432,27 +435,36 @@
                     return;
                 }
 
+                // กฎข้อที่ 3: ตรวจสอบกับวันที่ขั้นต่ำที่คำนวณไว้ (ซึ่งรวมเงื่อนไขเวลา 15:00 น. แล้ว)
                 if (selected < minBookingDate) {
                     let errorMessage = 'กรุณานัดหมายล่วงหน้า: ';
-                    errorMessage += (now.getHours() >= 15) ? 'หลัง 15:00น. สามารถนัดได้เร็วที่สุดคือวันมะรืนนี้' : 'หากต้องการนัดวันพรุ่งนี้ กรุณาทำรายการภายใน 15:00น. ของวันนี้';
+                    if (now.getHours() >= 15) {
+                        errorMessage += 'หลัง 15:00น. สามารถนัดหมายได้เร็วที่สุดคือวันมะรืนนี้';
+                    } else {
+                        errorMessage += 'หากต้องการนัดวันพรุ่งนี้ กรุณาทำรายการภายใน 15:00น. ของวันนี้';
+                    }
                     errorElement.textContent = errorMessage;
                     errorElement.classList.remove('hidden');
                     submitButton.disabled = true;
                     return;
                 }
+
+                // ถ้าผ่านทุกเงื่อนไข ให้ซ่อน error และเปิดใช้งานปุ่ม
                 errorElement.classList.add('hidden');
                 submitButton.disabled = false;
             };
+
+            // เรียกใช้ฟังก์ชัน validate ทุกครั้งที่มีการเปลี่ยนแปลงค่าใน input
             inputElement.addEventListener('input', validate);
+            
+            // เรียกใช้การตรวจสอบครั้งแรกเมื่อโหลดฟอร์ม
             validate();
         }
 
-        // --- DATA SUBMISSION & ACTIONS ---
         async function handleAdminActionClick(adminAction, appointmentId, options = {}) {
             showView('loading-view');
             try {
-                const payload = { action: 'handleAdminAction', adminAction, appointmentId, ...options };
-                await postToServer(payload);
+                await postToServer({ action: 'handleAdminAction', adminAction, appointmentId, adminName: userProfile.displayName, ...options });
                 liff.closeWindow();
             } catch (error) {
                 showError(`[handleAdminAction] ${error.message}`);
@@ -470,30 +482,23 @@
 
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
-            
+            let patientRelation = data['patient-relation'] === 'อื่นๆ' ? data['other-relation-detail'] : data['patient-relation'];
+            let department = data.department === 'อื่นๆ' ? data['other-department-detail'] : data.department;
+            let dentalService = data['dental-service'] === 'อื่นๆ' ? data['other-dental-service'] : data['dental-service'];
+
             const appointmentData = {
-                action: 'submitAppointment',
-                staffFullName: staffInfo.fullName,
-                staffHn: staffInfo.hn,
-                patientRelation: data['patient-relation'] === 'อื่นๆ' ? data['other-relation-detail'] : data['patient-relation'],
-                department: data.department === 'อื่นๆ' ? data['other-department-detail'] : data.department,
-                patientFullName: data['patient-fullname'],
-                patientId: data['patient-id'], 
-                patientPhone: data['patient-phone'], 
-                patientStatus: data['patient-status'], 
-                symptoms: data.symptoms,
-                appointmentType: data['appointment-type'],
-                followUpOnSchedule: data['follow-up-on-schedule'] || '',
-                appointmentDateTime: data['appointment-datetime'],
-                notes: data.notes || '',
-                isOtherRelation: data['patient-relation'] === 'อื่นๆ',
-                dentalService: data['dental-service'] === 'อื่นๆ' ? data['other-dental-service'] : data['dental-service'],
-                dentalPain: data['dental-pain'] || ''
+                action: 'submitAppointment', userId: userProfile.userId, staffFullName: staffInfo.fullName,
+                staffHn: staffInfo.hn, patientRelation, patientFullName: data['patient-fullname'],
+                patientId: data['patient-id'], patientPhone: data['patient-phone'], 
+                patientStatus: data['patient-status'], symptoms: data.symptoms,
+                appointmentType: data['appointment-type'], department,
+                followUpOnSchedule: data['follow-up-on-schedule'] || '', appointmentDateTime: data['appointment-datetime'],
+                notes: data.notes, isOtherRelation: data['patient-relation'] === 'อื่นๆ',
+                dentalService, dentalPain: data['dental-pain'] || ''
             };
             
             try {
                 await postToServer(appointmentData);
-                document.getElementById('success-view').innerHTML = `<div class="text-center p-6"><svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h1 class="text-2xl font-bold text-gray-800 mt-4">ส่งข้อมูลสำเร็จ</h1><p class="text-gray-600 mt-2">เจ้าหน้าที่จะแจ้งผลการนัดหมายให้ท่านทราบในภายหลัง</p></div>`;
                 showView('success-view');
             } catch (error) {
                 document.getElementById('form-error-message').textContent = error.message;
@@ -504,14 +509,11 @@
             }
         }
 
-        // --- SERVER COMMUNICATION ---
         async function postToServer(data) {
             try {
-                const payload = { ...data, idToken };
-
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(data),
                     headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
                 });
                 if (!response.ok) {
@@ -528,9 +530,7 @@
             }
         }
 
-        // --- START THE APP ---
         main();
     </script>
 </body>
 </html>
-
