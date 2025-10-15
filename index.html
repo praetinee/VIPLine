@@ -41,6 +41,8 @@
                 <div><strong>ความสัมพันธ์:</strong> <span id="admin-patient-relation" class="break-words"></span></div>
                 <div class="col-span-1 sm:col-span-2"><strong>แผนก:</strong> <span id="admin-department" class="font-bold"></span></div>
                 <div><strong>ประเภทนัด:</strong> <span id="admin-appointment-type"></span></div>
+                <!-- ADDED: Wrapper for Doctor's Name -->
+                <div id="admin-doctor-name-wrapper" class="hidden"><strong>แพทย์เจ้าของไข้:</strong> <span id="admin-doctor-name"></span></div>
                 <div><strong>สถานะทางกายภาพ:</strong> <span id="admin-patient-status"></span></div>
                 <div class="col-span-1 sm:col-span-2"><strong>ขอรับบริการวันที่:</strong> <span id="admin-datetime-request" class="font-bold text-blue-600"></span></div>
             </div>
@@ -200,6 +202,15 @@
                 let appointmentTypeDisplay = details.appointmentType + (details.appointmentType === 'นัดเดิม' ? ` (${details.followUpOnSchedule || 'ไม่ระบุ'})` : '');
                 document.getElementById('admin-appointment-type').textContent = appointmentTypeDisplay;
                 
+                // ADDED: Show doctor's name in admin view if it exists
+                const doctorNameWrapper = document.getElementById('admin-doctor-name-wrapper');
+                if (details.doctorName) {
+                    document.getElementById('admin-doctor-name').textContent = details.doctorName;
+                    doctorNameWrapper.classList.remove('hidden');
+                } else {
+                    doctorNameWrapper.classList.add('hidden');
+                }
+
                 const dentalWrapper = document.getElementById('admin-dental-info-wrapper');
                 if (details.dentalService) {
                     dentalWrapper.classList.remove('hidden');
@@ -234,7 +245,6 @@
             }
         }
         
-        // --- COMPLETELY REWRITTEN FUNCTION ---
         function setupAndShowRegistrationForm() {
             const container = document.getElementById('registration-view');
             container.innerHTML = `
@@ -344,7 +354,7 @@
                         <div id="dental-options-wrapper" class="hidden mt-4 border-t pt-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-sm font-medium">บริการ</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อุดฟัน" class="form-radio"><span class="ml-2">อุดฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ขูดหินปูน" class="form-radio"><span class="ml-2">ขูดหินปูน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ถอนฟัน" class="form-radio"><span class="ml-2">ถอนฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อื่นๆ" class="form-radio"><span class="ml-2">อื่นๆ</span></label></div><input type="text" id="other-dental-service" name="other-dental-service" placeholder="โปรดระบุ" class="hidden mt-2 text-sm block w-full px-2 py-1 border rounded-md"></div><div><label class="block text-sm font-medium">อาการปวด</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="มีอาการปวด" class="form-radio"><span class="ml-2">มีอาการปวด</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="ไม่มีอาการปวด" class="form-radio"><span class="ml-2">ไม่มีอาการปวด</span></label></div></div></div></div>
                         <div id="other-department-wrapper" class="hidden mt-4"><label for="other-department-detail" class="block text-sm font-medium">โปรดระบุแผนก</label><input type="text" id="other-department-detail" name="other-department-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label class="block text-sm font-medium">ประเภทการนัด</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดใหม่" checked class="form-radio"><span class="ml-2">นัดใหม่</span></label><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดเดิม" class="form-radio"><span class="ml-2">นัดเดิม</span></label></div></div>
-                        <div id="follow-up-details" class="hidden mt-4"><div><label class="block text-sm font-medium">มาตามนัดหรือไม่</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="มาตามนัด" class="form-radio"><span class="ml-2">มาตามนัด</span></label><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="ผิดนัดเดิม" class="form-radio"><span class="ml-2">ผิดนัดเดิม</span></label></div></div></div>
+                        <div id="follow-up-details" class="hidden mt-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-sm font-medium">มาตามนัดหรือไม่</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="มาตามนัด" class="form-radio"><span class="ml-2">มาตามนัด</span></label><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="ผิดนัดเดิม" class="form-radio"><span class="ml-2">ผิดนัดเดิม</span></label></div></div><!-- ADDED: Doctor name input field --><div><label for="doctor-name" class="block text-sm font-medium">ชื่อแพทย์เจ้าของไข้ (ถ้ามี)</label><input type="text" id="doctor-name" name="doctor-name" class="mt-1 block w-full px-3 py-2 border rounded-md"></div></div></div>
                         <div class="mt-4">
                             <label for="appointment-datetime" class="block text-sm font-medium">วันเวลาที่ต้องการนัด</label>
                             <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 border rounded-md">
@@ -362,16 +372,13 @@
             
             const relationSelect = document.getElementById('patient-relation');
             const patientNameInput = document.getElementById('patient-fullname');
-            // MODIFIED: Added patientIdInput for autofill
             const patientIdInput = document.getElementById('patient-id');
 
             function autofillStaffInfo() {
                  patientNameInput.value = staffInfo.fullName;
-                 // MODIFIED: Autofill ThaiID if it exists
                  patientIdInput.value = staffInfo.thaiId || '';
             }
             
-            // Autofill for the first time
             if (relationSelect.value === 'เจ้าหน้าที่เอง') {
                 autofillStaffInfo();
             }
@@ -525,7 +532,9 @@
                 patientId: data['patient-id'], patientPhone: data['patient-phone'], 
                 patientStatus: data['patient-status'], symptoms: data.symptoms,
                 appointmentType: data['appointment-type'], department,
-                followUpOnSchedule: data['follow-up-on-schedule'] || '', appointmentDateTime: data['appointment-datetime'],
+                followUpOnSchedule: data['follow-up-on-schedule'] || '',
+                doctorName: data['doctor-name'] || '', // ADDED: Send doctor's name to backend
+                appointmentDateTime: data['appointment-datetime'],
                 notes: data.notes, isOtherRelation: data['patient-relation'] === 'อื่นๆ',
                 dentalService, dentalPain: data['dental-pain'] || ''
             };
