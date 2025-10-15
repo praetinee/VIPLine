@@ -15,6 +15,8 @@
         .btn-green { @apply bg-green-500 hover:bg-green-600 text-white; }
         .btn-red { @apply bg-red-500 hover:bg-red-600 text-white; }
         .btn-yellow { @apply bg-yellow-500 hover:bg-yellow-600 text-black; }
+        /* Style for disabled button */
+        .btn:disabled { @apply bg-gray-400 cursor-not-allowed hover:scale-100; }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -232,43 +234,73 @@
             }
         }
         
+        // --- COMPLETELY REWRITTEN FUNCTION ---
         function setupAndShowRegistrationForm() {
             const container = document.getElementById('registration-view');
             container.innerHTML = `
                 <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน</h1>
-                <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาลสันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
+                <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่ รพ.สันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
                 <div id="reg-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
                 <form id="registration-form" class="space-y-4">
-                    <div><label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ไม่ต้องมีคำนำหน้าชื่อ)</label><input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
-                    <div><label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label><input type="text" id="reg-hn" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700">ลงทะเบียน</button>
+                    <p class="text-sm text-center text-gray-500">กรุณากรอกอย่างน้อย 1 อย่างเพื่อยืนยันตัวตน</p>
+                    <div>
+                        <label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label>
+                        <input type="text" id="reg-hn" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                     <div>
+                        <label for="reg-thai-id" class="block text-sm font-medium text-gray-700">เลขบัตรประชาชน</label>
+                        <input type="text" id="reg-thai-id" maxlength="13" pattern="\\d{13}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mt-4 pt-4 border-t">
+                        <label class="flex items-start">
+                            <input type="checkbox" id="reg-pdpa" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-3 text-sm text-gray-600">
+                                ข้าพเจ้ายินยอมให้เก็บรวบรวมและใช้ข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อวัตถุประสงค์ในการอำนวยความสะดวกในการนัดหมายผ่านระบบนี้
+                            </span>
+                        </label>
+                    </div>
+                    <button id="reg-submit-btn" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700 btn" disabled>ลงทะเบียน</button>
                 </form>`;
             
+            const pdpaCheckbox = document.getElementById('reg-pdpa');
+            const submitButton = document.getElementById('reg-submit-btn');
+            pdpaCheckbox.addEventListener('change', () => {
+                submitButton.disabled = !pdpaCheckbox.checked;
+            });
+
             document.getElementById('registration-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const submitButton = e.target.querySelector('button');
                 submitButton.disabled = true;
                 submitButton.textContent = 'กำลังลงทะเบียน...';
-                const fullName = document.getElementById('reg-fullname').value;
+
                 const hn = document.getElementById('reg-hn').value;
+                const thaiId = document.getElementById('reg-thai-id').value;
                 const regError = document.getElementById('reg-error-message');
                 regError.classList.add('hidden');
 
+                if (!hn && !thaiId) {
+                    regError.textContent = 'กรุณากรอก HN หรือ เลขบัตรประชาชน';
+                    regError.classList.remove('hidden');
+                    submitButton.disabled = !pdpaCheckbox.checked;
+                    submitButton.textContent = 'ลงทะเบียน';
+                    return;
+                }
+
                 try {
-                    const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn });
+                    const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, hn, thaiId });
                     if (response.data.success) {
                         staffInfo = response.data.staffInfo;
                         setupAndShowMainForm();
                     } else {
-                       regError.textContent = response.data.message;
+                       regError.textContent = 'ลงทะเบียนไม่สำเร็จ กรุณาติดต่อเจ้าหน้าที่เพื่อตรวจสอบข้อมูล';
                        regError.classList.remove('hidden');
-                       submitButton.disabled = false;
+                       submitButton.disabled = !pdpaCheckbox.checked;
                        submitButton.textContent = 'ลงทะเบียน';
                     }
                 } catch (error) {
-                    regError.textContent = error.message;
+                    regError.textContent = 'ลงทะเบียนไม่สำเร็จ กรุณาติดต่อเจ้าหน้าที่เพื่อตรวจสอบข้อมูล';
                     regError.classList.remove('hidden');
-                    submitButton.disabled = false;
+                    submitButton.disabled = !pdpaCheckbox.checked;
                     submitButton.textContent = 'ลงทะเบียน';
                 }
             });
@@ -314,7 +346,7 @@
                         </div>
                     </fieldset>
                     <div><label for="notes" class="block text-sm font-medium">หมายเหตุ</label><textarea id="notes" name="notes" rows="2" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
-                    <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700"><span id="submit-text">ส่งข้อมูล</span><div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div></button>
+                    <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700 btn"><span id="submit-text">ส่งข้อมูล</span><div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div></button>
                 </form>
                 <div class="mt-6 text-center"><p class="text-sm text-gray-600">พบปัญหากรุณาติดต่อเจ้าหน้าที่</p></div>
             `;
@@ -324,13 +356,28 @@
             
             const relationSelect = document.getElementById('patient-relation');
             const patientNameInput = document.getElementById('patient-fullname');
+            // MODIFIED: Added patientIdInput for autofill
+            const patientIdInput = document.getElementById('patient-id');
+
+            function autofillStaffInfo() {
+                 patientNameInput.value = staffInfo.fullName;
+                 // MODIFIED: Autofill ThaiID if it exists
+                 patientIdInput.value = staffInfo.thaiId || '';
+            }
+            
+            // Autofill for the first time
             if (relationSelect.value === 'เจ้าหน้าที่เอง') {
-                patientNameInput.value = staffInfo.fullName;
+                autofillStaffInfo();
             }
             
             relationSelect.addEventListener('change', (e) => {
                 document.getElementById('other-relation-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
-                patientNameInput.value = (e.target.value === 'เจ้าหน้าที่เอง') ? staffInfo.fullName : '';
+                if (e.target.value === 'เจ้าหน้าที่เอง') {
+                    autofillStaffInfo();
+                } else {
+                    patientNameInput.value = '';
+                    patientIdInput.value = '';
+                }
             });
 
             const appointmentDateTimeInput = document.getElementById('appointment-datetime');
@@ -387,55 +434,40 @@
         }
 
         function validateAndSetMinDate(inputElement, errorElement, submitButton) {
-            // ฟังก์ชันนี้ถูกแก้ไขตาม requirement ใหม่
             const now = new Date();
-            
-            // คำนวณวันที่ขั้นต่ำที่สามารถจองได้
             const minBookingDate = new Date();
-            // เริ่มต้นโดยตั้งเป็นวันพรุ่งนี้
             minBookingDate.setDate(now.getDate() + 1);
-            minBookingDate.setHours(8, 0, 0, 0); // เวลาทำการเริ่ม 8:00 น.
-
-            // ถ้าปัจจุบันเป็นเวลา 15:00 น. หรือหลังจากนั้น ให้เลื่อนวันที่จองได้เร็วที่สุดเป็นวันมะรืน
+            minBookingDate.setHours(8, 0, 0, 0); 
             if (now.getHours() >= 15) {
                 minBookingDate.setDate(minBookingDate.getDate() + 1);
             }
             
-            // กำหนดค่า 'min' ให้กับ input element เพื่อให้ปฏิทินแสดงวันที่เลือกได้ถูกต้อง
-            // ต้องสร้าง object Date ชั่วคราวขึ้นมาเพื่อจัดการกับ timezone offset
             const tempMinDate = new Date(minBookingDate);
             tempMinDate.setMinutes(tempMinDate.getMinutes() - tempMinDate.getTimezoneOffset());
             inputElement.min = tempMinDate.toISOString().slice(0, 16);
             
             const validate = () => {
-                // ถ้าไม่มีการเลือกค่า ให้ซ่อนข้อความ error และปิดการใช้งานปุ่ม (ถ้าจำเป็น)
                 if (!inputElement.value) {
                     errorElement.classList.add('hidden');
                     submitButton.disabled = inputElement.required;
                     return;
                 }
-
                 const selected = new Date(inputElement.value);
                 const day = selected.getDay();
                 const hour = selected.getHours();
                 
-                // กฎข้อที่ 1: ห้ามจองวันหยุด (เสาร์ = 6, อาทิตย์ = 0)
                 if (day === 0 || day === 6) {
                     errorElement.textContent = 'ขออภัย ระบบไม่เปิดรับการนัดหมายในวันเสาร์-อาทิตย์';
                     errorElement.classList.remove('hidden');
                     submitButton.disabled = true;
                     return;
                 }
-
-                // กฎข้อที่ 2: ต้องจองในเวลาทำการ (8:00 - 15:00 น.)
                 if (hour < 8 || hour >= 15) {
                     errorElement.textContent = 'กรุณาเลือกเวลาในช่วงเวลาบริการ 08:00-15:00 น.';
                     errorElement.classList.remove('hidden');
                     submitButton.disabled = true;
                     return;
                 }
-
-                // กฎข้อที่ 3: ตรวจสอบกับวันที่ขั้นต่ำที่คำนวณไว้ (ซึ่งรวมเงื่อนไขเวลา 15:00 น. แล้ว)
                 if (selected < minBookingDate) {
                     let errorMessage = 'กรุณานัดหมายล่วงหน้า: ';
                     if (now.getHours() >= 15) {
@@ -448,16 +480,11 @@
                     submitButton.disabled = true;
                     return;
                 }
-
-                // ถ้าผ่านทุกเงื่อนไข ให้ซ่อน error และเปิดใช้งานปุ่ม
                 errorElement.classList.add('hidden');
                 submitButton.disabled = false;
             };
 
-            // เรียกใช้ฟังก์ชัน validate ทุกครั้งที่มีการเปลี่ยนแปลงค่าใน input
             inputElement.addEventListener('input', validate);
-            
-            // เรียกใช้การตรวจสอบครั้งแรกเมื่อโหลดฟอร์ม
             validate();
         }
 
@@ -534,3 +561,4 @@
     </script>
 </body>
 </html>
+
