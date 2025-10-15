@@ -242,7 +242,11 @@
                 <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่ รพ.สันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
                 <div id="reg-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
                 <form id="registration-form" class="space-y-4">
-                    <p class="text-sm text-center text-gray-500">กรุณากรอกอย่างน้อย 1 อย่างเพื่อยืนยันตัวตน</p>
+                    <div>
+                        <label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ไม่ต้องมีคำนำหน้า)</label>
+                        <input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <p class="text-sm text-center text-gray-500 pt-2 border-t">และกรอกอย่างน้อย 1 อย่างเพื่อยืนยันตัวตน</p>
                     <div>
                         <label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label>
                         <input type="text" id="reg-hn" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
@@ -273,6 +277,7 @@
                 submitButton.disabled = true;
                 submitButton.textContent = 'กำลังลงทะเบียน...';
 
+                const fullName = document.getElementById('reg-fullname').value;
                 const hn = document.getElementById('reg-hn').value;
                 const thaiId = document.getElementById('reg-thai-id').value;
                 const regError = document.getElementById('reg-error-message');
@@ -287,15 +292,16 @@
                 }
 
                 try {
-                    const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, hn, thaiId });
+                    const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn, thaiId });
                     if (response.data.success) {
                         staffInfo = response.data.staffInfo;
                         setupAndShowMainForm();
                     } else {
-                       regError.textContent = 'ลงทะเบียนไม่สำเร็จ กรุณาติดต่อเจ้าหน้าที่เพื่อตรวจสอบข้อมูล';
-                       regError.classList.remove('hidden');
-                       submitButton.disabled = !pdpaCheckbox.checked;
-                       submitButton.textContent = 'ลงทะเบียน';
+                        const serverMessage = response.data.message || 'ข้อมูลไม่ถูกต้อง';
+                        regError.textContent = `${serverMessage} กรุณาตรวจสอบข้อมูลและลองอีกครั้ง หรือติดต่อเจ้าหน้าที่`;
+                        regError.classList.remove('hidden');
+                        submitButton.disabled = !pdpaCheckbox.checked;
+                        submitButton.textContent = 'ลงทะเบียน';
                     }
                 } catch (error) {
                     regError.textContent = 'ลงทะเบียนไม่สำเร็จ กรุณาติดต่อเจ้าหน้าที่เพื่อตรวจสอบข้อมูล';
