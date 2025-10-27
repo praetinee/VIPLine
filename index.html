@@ -107,6 +107,7 @@
         const departmentOptionsHTML = `
             <option value="" disabled selected>-- กรุณาเลือก --</option>
             <option>ห้องตรวจโรคทั่วไป</option>
+            <!-- ... existing department options ... -->
             <option>ห้องตรวจอายุรกรรม</option>
             <option>ห้องตรวจนรีเวช</option>
             <option>ห้องตรวจศัลยกรรมกระดูกและข้อ</option>
@@ -245,8 +246,28 @@
                 <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาลสันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
                 <div id="reg-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
                 <form id="registration-form" class="space-y-4">
-                    <div><label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ไม่ต้องมีคำนำหน้าชื่อ)</label><input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
-                    <div><label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label><input type="text" id="reg-hn" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
+                    <div>
+                        <label for="reg-fullname" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ไม่ต้องมีคำนำหน้าชื่อ)</label>
+                        <input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    
+                    <!-- --- ✅ MODIFIED: Registration Form --- -->
+                    <p class="text-sm text-gray-600 text-center pt-2">กรุณากรอกอย่างใดอย่างหนึ่ง เพื่อยืนยันตัวตน:</p>
+                    
+                    <div>
+                        <label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label>
+                        <!-- Removed 'required' attribute -->
+                        <input type="text" id="reg-hn" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+
+                    <p class="text-center text-gray-500 text-sm">หรือ</p>
+
+                    <div>
+                        <label for="reg-thai-id" class="block text-sm font-medium text-gray-700">เลขบัตรประชาชน</label>
+                        <input type="tel" id="reg-thai-id" pattern="\\d{13}" maxlength="13" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="1234567890123">
+                    </div>
+                    <!-- --- End of Modification --- -->
+
                     <button type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700">ลงทะเบียน</button>
                 </form>`;
             
@@ -255,13 +276,28 @@
                 const submitButton = e.target.querySelector('button');
                 submitButton.disabled = true;
                 submitButton.textContent = 'กำลังลงทะเบียน...';
+                
                 const fullName = document.getElementById('reg-fullname').value;
-                const hn = document.getElementById('reg-hn').value;
                 const regError = document.getElementById('reg-error-message');
                 regError.classList.add('hidden');
 
+                // --- ✅ MODIFIED: Get Thai ID and add validation ---
+                const hn = document.getElementById('reg-hn').value.trim();
+                const thaiId = document.getElementById('reg-thai-id').value.trim();
+
+                if (!hn && !thaiId) {
+                    regError.textContent = 'กรุณากรอกหมายเลข HN หรือ เลขบัตรประชาชน อย่างใดอย่างหนึ่ง';
+                    regError.classList.remove('hidden');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'ลงทะเบียน';
+                    return; // Stop submission
+                }
+                // --- End of Modification ---
+
                 try {
-                    const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn });
+                    // --- ✅ MODIFIED: Send 'thaiId' to server ---
+                    const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn, thaiId });
+                    
                     if (response.data.success) {
                         staffInfo = response.data.staffInfo;
                         setupAndShowMainForm();
@@ -316,10 +352,10 @@
                             <p class="text-sm">เนื่องจากอายุรแพทย์มีเพียง 1-2 ท่านต่อวัน ในขณะที่มีผู้รับบริการจำนวนมาก ส่งผลให้ระยะเวลารอคอยการตรวจเนิ่นนานกว่าปกติ</p>
                             <p class="text-sm mt-1">หากท่านต้องการความสะดวกและรวดเร็วยิ่งขึ้น ท่านสามารถเลือกเข้ารับบริการที่แผนก "ห้องตรวจโรคทั่วไป" แทนได้</p>
                         </div>
-                        <div id="dental-options-wrapper" class="hidden mt-4 border-t pt-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-sm font-medium">บริการ</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อุดฟัน" class="form-radio"><span class="ml-2">อุดฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ขูดหินปูน" class="form-radio"><span class="ml-2">ขูดหินปูน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="ถอนฟัน" class="form-radio"><span class="ml-2">ถอนฟัน</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-service" value="อื่นๆ" class="form-radio"><span class="ml-2">อื่นๆ</span></label></div><input type="text" id="other-dental-service" name="other-dental-service" placeholder="โปรดระบุ" class="hidden mt-2 text-sm block w-full px-2 py-1 border rounded-md"></div><div><label class="block text-sm font-medium">อาการปวด</label><div class="mt-2 space-y-1"><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="มีอาการปวด" class="form-radio"><span class="ml-2">มีอาการปวด</span></label><br><label class="inline-flex items-center"><input type="radio" name="dental-pain" value="ไม่มีอาการปวด" class="form-radio"><span class="ml-2">ไม่มีอาการปวด</span></label></div></div></div></div>
+                        <div id="dental-options-wrapper" class="hidden mt-4 border-t pt-4"><!-- ... existing code ... --></div>
                         <div id="other-department-wrapper" class="hidden mt-4"><label for="other-department-detail" class="block text-sm font-medium">โปรดระบุแผนก</label><input type="text" id="other-department-detail" name="other-department-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label class="block text-sm font-medium">ประเภทการนัด</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดใหม่" checked class="form-radio"><span class="ml-2">นัดใหม่</span></label><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดเดิม" class="form-radio"><span class="ml-2">นัดเดิม</span></label></div></div>
-                        <div id="follow-up-details" class="hidden mt-4"><div><label class="block text-sm font-medium">มาตามนัดหรือไม่</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="มาตามนัด" class="form-radio"><span class="ml-2">มาตามนัด</span></label><label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="ผิดนัดเดิม" class="form-radio"><span class="ml-2">ผิดนัดเดิม</span></label></div></div></div>
+                        <div id="follow-up-details" class="hidden mt-4"><!-- ... existing code ... --></div>
                         <div class="mt-4">
                             <label for="appointment-datetime" class="block text-sm font-medium">วันเวลาที่ต้องการนัด</label>
                             <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 border rounded-md">
