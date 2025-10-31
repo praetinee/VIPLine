@@ -477,12 +477,14 @@
 
             validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn);
             
-            // --- 🔴 START OF FIX: Force enable submit button on load ---
-            // บังคับให้ปุ่ม submit ใช้งานได้ทันทีที่ฟอร์มโหลด
-            // หากผู้ใช้ไม่กรอกช่องที่ required ตัวเบราว์เซอร์จะจัดการแจ้งเตือนเอง
+            // --- 🔴 START OF FIX: (REMOVED) ---
+            // ลบการบังคับ enable ปุ่ม submit ออกจากจุดนี้
+            // เพื่อให้ validateAndSetMinDate เป็นตัวควบคุมสถานะปุ่ม
+            /*
             if (submitBtn) {
                 submitBtn.disabled = false;
             }
+            */
             // --- 🔴 END OF FIX ---
 
             document.getElementById('department').addEventListener('change', (e) => {
@@ -595,7 +597,7 @@
                     
                     // If the input is empty, the button should be ENABLED
                     // to allow form submission to trigger native HTML5 'required' validation.
-                    // The admin form's input isn't required, so it should also be enabled.
+                    // The admin form's input isn't required (it has custom validation), so it should also be enabled.
                     submitButton.disabled = false;
                     
                     return;
@@ -648,16 +650,16 @@
             // We call validate() but also need to check the 'required' status
             // for the submit button's initial state.
             
-            // If the element is NOT required, the button should be enabled by default
-            // (assuming other required fields are filled).
             /* --- 🔴 REMOVED THIS BLOCK ---
             if (!inputElement.required) {
                 submitButton.disabled = false;
             }
             */
             
+            // --- 🔴 START OF FIX ---
             // Then run validate() to set initial error messages if a value already exists
-            // validate(); // --- 🔴 REMOVED THIS CALL to prevent disabling button on load
+            validate(); // <-- เปิดการใช้งานบรรทัดนี้
+            // --- 🔴 END OF FIX ---
         }
 
         async function handleAdminActionClick(adminActionType, appointmentId, options = {}) {
@@ -799,4 +801,3 @@
     </script>
 </body>
 </html>
-
