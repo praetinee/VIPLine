@@ -642,19 +642,10 @@
 
             inputElement.addEventListener('input', validate);
             
-            // --- MODIFICATION: Trigger validation on load ---
-            // We call validate() but also need to check the 'required' status
-            // for the submit button's initial state.
-            
-            /* --- 🔴 REMOVED THIS BLOCK ---
-            if (!inputElement.required) {
-                submitButton.disabled = false;
-            }
-            */
-            
-            // --- 🔴 START OF FIX ---
-            // Then run validate() to set initial error messages if a value already exists
-            validate(); // <-- เปิดการใช้งานบรรทัดนี้
+            // --- 🔴 START OF FIX (REVERTING TO USER'S EXAMPLE LOGIC) ---
+            // We REMOVE the initial call to validate()
+            // This will make the button ENABLED on load.
+            // validate(); // <-- ลบบรรทัดนี้ออก
             // --- 🔴 END OF FIX ---
         }
 
@@ -797,5 +788,4 @@
     </script>
 </body>
 </html>
-
 
