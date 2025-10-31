@@ -447,8 +447,10 @@
                         </div>
                     </fieldset>
                     <div><label for="notes" class="block text-sm font-medium">หมายเหตุ</label><textarea id="notes" name="notes" rows="2" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
-                    <!-- --- 🔴 FIX: Add 'disabled' attribute by default --- -->
-                    <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                    <!-- --- 🔴 START OF FINAL FIX --- -->
+                    <!-- Remove 'disabled' attribute to make button enabled by default -->
+                    <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    <!-- --- 🔴 END OF FINAL FIX --- -->
                         <span id="submit-text">ส่งข้อมูล</span>
                         <div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div>
                     </button>
@@ -476,7 +478,10 @@
             const datetimeError = document.getElementById('datetime-error');
             const submitBtn = document.getElementById('submit-button');
 
-            validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn);
+            // --- 🔴 START OF FINAL FIX ---
+            // We are no longer calling the complex validation function for the main form.
+            // validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn); // <-- DELETED
+            // --- 🔴 END OF FINAL FIX ---
             
             document.getElementById('department').addEventListener('change', (e) => {
                 const isDental = e.target.value === 'ห้องฟัน';
@@ -530,6 +535,7 @@
             const adminDatetimeError = document.getElementById('admin-datetime-error');
             const adminSubmitBtn = document.getElementById('admin-reschedule-submit');
             
+            // --- Admin validation remains untouched ---
             validateAndSetMinDate(adminDateTimeInput, adminDatetimeError, adminSubmitBtn);
             
             document.getElementById('admin-new-department').addEventListener('change', (e) => {
@@ -554,6 +560,7 @@
             };
         }
 
+        // --- 🔴 This function is now ONLY used by the Admin Panel ---
         function validateAndSetMinDate(inputElement, errorElement, submitButton) {
             const now = new Date();
             const minBookingDate = new Date();
@@ -568,9 +575,8 @@
             inputElement.min = tempMinDate.toISOString().slice(0, 16);
             
             const validate = () => {
-                // --- 🔴 START OF SIMPLIFIED TEST LOGIC ---
-                // This logic is temporary to find the problem.
-                // It will enable the button if *any* date is entered.
+                // --- This is the original, complex logic ---
+                // It's OK for the admin panel, but was breaking the main form.
                 if (!inputElement.value) {
                     errorElement.textContent = 'กรุณาเลือกวันเวลาที่ต้องการนัด';
                     errorElement.classList.remove('hidden');
@@ -578,12 +584,42 @@
                     return;
                 }
 
-                // If we are here, it means the user has entered *something*.
-                // For this test, we will just enable the button.
+                const selected = new Date(inputElement.value);
+                const day = selected.getDay();
+                const hour = selected.getHours();
+                
+                if (day === 0 || day === 6) {
+                    errorElement.textContent = 'ขออภัย ระบบไม่เปิดรับการนัดหมายในวันเสาร์-อาทิตย์';
+                    errorElement.classList.remove('hidden');
+                    submitButton.disabled = true;
+                    return;
+                }
+
+                if (hour < 8 || hour >= 15) {
+                    errorElement.textContent = 'กรุณาเลือกเวลาในช่วงเวลาบริการ 08:00-15:00 น.';
+                    errorElement.classList.remove('hidden');
+                    submitButton.disabled = true;
+                    return;
+                }
+
+                // Use a slightly adjusted minBookingDate for comparison to avoid timezone issues
+                const minCompareDate = new Date(minBookingDate.getTime() - 60000); // 1 minute buffer
+                if (selected < minCompareDate) {
+                    let errorMessage = 'กรุณานัดหมายล่วงหน้า: ';
+                    if (now.getHours() >= 15) {
+                        errorMessage += 'หลัง 15:00น. สามารถนัดหมายได้เร็วที่สุดคือวันมะรืนนี้';
+                    } else {
+                        errorMessage += 'หากต้องการนัดวันพรุ่งนี้ กรุณาทำรายการภายใน 15:00น. ของวันนี้';
+                    }
+                    errorElement.textContent = errorMessage;
+                    errorElement.classList.remove('hidden');
+                    submitButton.disabled = true;
+                    return;
+                }
+
                 errorElement.classList.add('hidden');
                 submitButton.disabled = false;
                 
-                // --- 🔴 END OF SIMPLIFIED TEST LOGIC ---
             };
 
             inputElement.addEventListener('input', validate);
@@ -650,7 +686,7 @@
                 return; 
             }
 
-            if (data.department === 'ห้องฟัน' && data['dental-service'] === 'อื่นๆ' && !data['other-dental-service-detail']?.trim()) {
+            if (data.department === 'ห้องฟัน' && data['dental-service'] === 'อื่นๆ' && !data['other-department-detail']?.trim()) {
                 showFormError('คุณเลือก "บริการห้องฟันอื่นๆ" กรุณาพิมพ์รายละเอียดในช่อง "โปรดระบุ" ด้วยครับ');
                 return; 
             }
