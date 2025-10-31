@@ -447,7 +447,12 @@
                         </div>
                     </fieldset>
                     <div><label for="notes" class="block text-sm font-medium">หมายเหตุ</label><textarea id="notes" name="notes" rows="2" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
-                    <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700"><span id="submit-text">ส่งข้อมูล</span><div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div></button>
+                    <!-- --- 🔴 START OF FIX: Add 'disabled' attribute to button by default --- -->
+                    <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                    <!-- --- 🔴 END OF FIX --- -->
+                        <span id="submit-text">ส่งข้อมูล</span>
+                        <div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div>
+                    </button>
                 </form>
                 <div class="mt-6 text-center"><p class="text-sm text-gray-600">พบปัญหากรุณาติดต่อเจ้าหน้าที่</p></div>
             `;
@@ -477,16 +482,6 @@
 
             validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn);
             
-            // --- 🔴 START OF FIX: (REMOVED) ---
-            // ลบการบังคับ enable ปุ่ม submit ออกจากจุดนี้
-            // เพื่อให้ validateAndSetMinDate เป็นตัวควบคุมสถานะปุ่ม
-            /*
-            if (submitBtn) {
-                submitBtn.disabled = false;
-            }
-            */
-            // --- 🔴 END OF FIX ---
-
             document.getElementById('department').addEventListener('change', (e) => {
                 const isDental = e.target.value === 'ห้องฟัน';
                 const isOther = e.target.value === 'อื่นๆ';
@@ -591,14 +586,15 @@
             inputElement.min = tempMinDate.toISOString().slice(0, 16);
             
             const validate = () => {
-                // --- 🔴 START OF FIX (Applying user's example logic) ---
+                // --- 🔴 START OF FINAL FIX (Method 5) ---
                 if (!inputElement.value) {
-                    errorElement.textContent = 'กรุณาเลือกวันเวลา'; // Set error message
-                    errorElement.classList.remove('hidden'); // Show error
-                    submitButton.disabled = true; // Explicitly disable button
+                    // ถ้าช่องว่าง (ซึ่งเป็นค่าเริ่มต้น) ให้ "ปิด" ปุ่ม
+                    errorElement.textContent = 'กรุณาเลือกวันเวลาที่ต้องการนัด';
+                    errorElement.classList.remove('hidden');
+                    submitButton.disabled = true; // <-- **THE FIX**
                     return;
                 }
-                // --- 🔴 END OF FIX ---
+                // --- 🔴 END OF FINAL FIX ---
 
                 const selected = new Date(inputElement.value);
                 const day = selected.getDay();
@@ -634,19 +630,14 @@
                 }
 
                 errorElement.classList.add('hidden');
-                // --- MODIFICATION: Allow submit if field is optional and empty ---
-                // This logic is now implicitly handled by removing 'required'
-                // We just need to ensure the button is enabled if valid or optionally empty.
+                // --- ปุ่มจะถูกเปิด (Enabled) ก็ต่อเมื่อผ่านการตรวจสอบทั้งหมด ---
                 submitButton.disabled = false;
             };
 
             inputElement.addEventListener('input', validate);
             
-            // --- 🔴 START OF FIX (REVERTING TO USER'S EXAMPLE LOGIC) ---
-            // We REMOVE the initial call to validate()
-            // This will make the button ENABLED on load.
-            // validate(); // <-- ลบบรรทัดนี้ออก
-            // --- 🔴 END OF FIX ---
+            // --- 🔴 (Correct Logic) CALL validate() on load ---
+            validate(); // <-- **THE FIX**
         }
 
         async function handleAdminActionClick(adminActionType, appointmentId, options = {}) {
@@ -726,10 +717,9 @@
             let patientRelation = data['patient-relation'] === 'อื่นๆ' ? data['other-relation-detail'] : data['patient-relation'];
             let department = data.department === 'อื่นๆ' ? data['other-department-detail'] : data.department;
             
-            // --- 🔴 START OF FIX 2 ---
-            // บั๊กอยู่ที่นี่ครับ โค้ดเดิมอ้างอิง 'other-dental-service' ซึ่งไม่มีอยู่
-            // ต้องอ้างอิง 'other-dental-service-detail' ครับ
-            let dentalService = data['dental-service'] === 'อื่นๆ' ? data['other-dental-service-detail'] : data['dental-service'];
+            // --- 🔴 START OF FIX 2 (Modified for safety) ---
+            // ป้องกันค่า undefined หาก "ห้องฟัน" ไม่ได้ถูกเลือก
+            let dentalService = (data['dental-service'] === 'อื่นๆ' ? data['other-dental-service-detail'] : data['dental-service']) || '';
             // --- 🔴 END OF FIX 2 ---
 
             const appointmentData = {
@@ -748,7 +738,8 @@
 
                 followUpOnSchedule: data['follow-up-on-schedule'] || '', appointmentDateTime: data['appointment-datetime'],
                 notes: data.notes, isOtherRelation: data['patient-relation'] === 'อื่นๆ',
-                dentalService, dentalPain: data['dental-pain'] || ''
+                dentalService, // (Fixed)
+                dentalPain: data['dental-pain'] || ''
             };
             
             try {
