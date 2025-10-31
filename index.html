@@ -654,7 +654,12 @@
             const data = Object.fromEntries(formData.entries());
             let patientRelation = data['patient-relation'] === 'อื่นๆ' ? data['other-relation-detail'] : data['patient-relation'];
             let department = data.department === 'อื่นๆ' ? data['other-department-detail'] : data.department;
-            let dentalService = data['dental-service'] === 'อื่นๆ' ? data['other-dental-service'] : data['dental-service'];
+            
+            // --- 🔴 START OF FIX 2 ---
+            // บั๊กอยู่ที่นี่ครับ โค้ดเดิมอ้างอิง 'other-dental-service' ซึ่งไม่มีอยู่
+            // ต้องอ้างอิง 'other-dental-service-detail' ครับ
+            let dentalService = data['dental-service'] === 'อื่นๆ' ? data['other-dental-service-detail'] : data['dental-service'];
+            // --- 🔴 END OF FIX 2 ---
 
             const appointmentData = {
                 action: 'submitAppointment', userId: userProfile.userId, staffFullName: staffInfo.fullName,
@@ -679,11 +684,19 @@
                 await postToServer(appointmentData);
                 showView('success-view');
             } catch (error) {
-                document.getElementById('form-error-message').textContent = error.message;
-                document.getElementById('form-error-message').classList.remove('hidden');
+                // --- 🔴 START OF FIX 3: Improve Error Handling ---
+                // เพิ่มการ log และการเลื่อนหน้าจอไปดู Error
+                console.error("Submission Error:", error); // สำหรับ Debug
+                const errorMsgElement = document.getElementById('form-error-message');
+                errorMsgElement.textContent = error.message;
+                errorMsgElement.classList.remove('hidden');
+                // เลื่อนไปที่ข้อความ Error ให้ผู้ใช้เห็น
+                errorMsgElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+
                 submitBtn.disabled = false;
                 spinner.classList.add('hidden');
                 submitText.classList.remove('hidden');
+                // --- 🔴 END OF FIX 3 ---
             }
         }
 
@@ -713,3 +726,4 @@
     </script>
 </body>
 </html>
+
