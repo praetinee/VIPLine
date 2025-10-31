@@ -591,17 +591,11 @@
             inputElement.min = tempMinDate.toISOString().slice(0, 16);
             
             const validate = () => {
-                // --- 🔴 START OF FIX ---
+                // --- 🔴 START OF FIX (Applying user's example logic) ---
                 if (!inputElement.value) {
-                    errorElement.classList.add('hidden');
-                    
-                    // --- 🔴 START OF FIX: This is the correct logic ---
-                    // If the input is required (like the main form), disable the button.
-                    // If it's not required (future use), enable it.
-                    // The admin form's input *is* required, so this will correctly disable its button too.
-                    submitButton.disabled = inputElement.required;
-                    // --- 🔴 END OF FIX ---
-                    
+                    errorElement.textContent = 'กรุณาเลือกวันเวลา'; // Set error message
+                    errorElement.classList.remove('hidden'); // Show error
+                    submitButton.disabled = true; // Explicitly disable button
                     return;
                 }
                 // --- 🔴 END OF FIX ---
@@ -803,4 +797,5 @@
     </script>
 </body>
 </html>
+
 
