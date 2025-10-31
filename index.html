@@ -595,10 +595,12 @@
                 if (!inputElement.value) {
                     errorElement.classList.add('hidden');
                     
-                    // If the input is empty, the button should be ENABLED
-                    // to allow form submission to trigger native HTML5 'required' validation.
-                    // The admin form's input isn't required (it has custom validation), so it should also be enabled.
-                    submitButton.disabled = false;
+                    // --- 🔴 START OF FIX: This is the correct logic ---
+                    // If the input is required (like the main form), disable the button.
+                    // If it's not required (future use), enable it.
+                    // The admin form's input *is* required, so this will correctly disable its button too.
+                    submitButton.disabled = inputElement.required;
+                    // --- 🔴 END OF FIX ---
                     
                     return;
                 }
@@ -801,3 +803,4 @@
     </script>
 </body>
 </html>
+
