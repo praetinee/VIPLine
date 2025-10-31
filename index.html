@@ -545,14 +545,18 @@
             inputElement.min = tempMinDate.toISOString().slice(0, 16);
             
             const validate = () => {
+                // --- 🔴 START OF FIX ---
                 if (!inputElement.value) {
                     errorElement.classList.add('hidden');
-                    // Do not disable submit button if the input is not required (like in reschedule form initially)
-                    if (inputElement.required) {
-                        submitButton.disabled = true;
-                    }
+                    
+                    // If the input is empty, the button should be ENABLED
+                    // to allow form submission to trigger native HTML5 'required' validation.
+                    // The admin form's input isn't required, so it should also be enabled.
+                    submitButton.disabled = false;
+                    
                     return;
                 }
+                // --- 🔴 END OF FIX ---
 
                 const selected = new Date(inputElement.value);
                 const day = selected.getDay();
@@ -709,4 +713,3 @@
     </script>
 </body>
 </html>
-
