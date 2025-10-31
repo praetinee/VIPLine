@@ -365,7 +365,7 @@
                 <form id="appointment-form" class="space-y-4">
                     <fieldset class="border p-4 rounded-md">
                         <legend class="text-lg font-medium text-gray-900 px-2">ข้อมูลผู้รับบริการ</legend>
-                        <div><label for="patient-relation" class="block text-sm font-medium text-gray-700">ความสัมพันธ์</label><select id="patient-relation" name="patient-relation" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"><option>เจ้าหน้าที่เอง</option><option>บิดา</option><option>มารดา</option><option>คู่สมรส (ตามกฎหมาย)</option><option>บุตร</option><option>อื่นๆ</option></select></div>
+                        <div><label for="patient-relation" class="block text-sm font-medium text-gray-700">ความสัมพันธ์</label><select id="patient-relation" name="patient-relation" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"><option>เจ้าหน้าที่เอง</option><option>บิดา</option><option>มารดา</option><option>คู่สมรส (ตามกฎหมาย)</option><option>บุตร</option><option value="อื่นๆ">อื่นๆ</option></select></div>
                         <div id="other-relation-wrapper" class="hidden mt-4"><label for="other-relation-detail" class="block text-sm font-medium">โปรดระบุ</label><input type="text" id="other-relation-detail" name="other-relation-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label for="patient-fullname" class="block text-sm font-medium">ชื่อ-นามสกุล ผู้รับบริการ</label><input type="text" id="patient-fullname" name="patient-fullname" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         
@@ -396,10 +396,12 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">บริการที่ต้องการ (จำเป็น)</label>
                                 <div class="mt-2 space-y-2">
-                                    <label class="inline-flex items-center"><input type="radio" name="dental-service" value="ขูดหินปูน" class="form-radio" required><span class="ml-2">ขูดหินปูน</span></label>
+                                    <!-- --- 🔴 START OF FIX: Removed static 'required' --- -->
+                                    <label class="inline-flex items-center"><input type="radio" name="dental-service" value="ขูดหินปูน" class="form-radio"><span class="ml-2">ขูดหินปูน</span></label>
                                     <label class="inline-flex items-center"><input type="radio" name="dental-service" value="อุดฟัน" class="form-radio"><span class="ml-2">อุดฟัน</span></label>
                                     <label class="inline-flex items-center"><input type="radio" name="dental-service" value="ถอนฟัน" class="form-radio"><span class="ml-2">ถอนฟัน</span></label>
                                     <label class="inline-flex items-center"><input type="radio" name="dental-service" value="อื่นๆ" class="form-radio"><span class="ml-2">อื่นๆ</span></label>
+                                    <!-- --- 🔴 END OF FIX --- -->
                                 </div>
                                 <div id="other-dental-service" class="hidden mt-2">
                                     <label for="other-dental-service-detail" class="block text-sm font-medium">โปรดระบุ</label>
@@ -409,8 +411,10 @@
                             <div class="mt-4">
                                 <label class="block text-sm font-medium text-gray-700">มีอาการปวดฟันหรือไม่ (จำเป็น)</label>
                                 <div class="mt-2 space-x-4">
-                                    <label class="inline-flex items-center"><input type="radio" name="dental-pain" value="มี" class="form-radio" required><span class="ml-2">มี</span></label>
+                                    <!-- --- 🔴 START OF FIX: Removed static 'required' --- -->
+                                    <label class="inline-flex items-center"><input type="radio" name="dental-pain" value="มี" class="form-radio"><span class="ml-2">มี</span></label>
                                     <label class="inline-flex items-center"><input type="radio" name="dental-pain" value="ไม่มี" class="form-radio"><span class="ml-2">ไม่มี</span></label>
+                                    <!-- --- 🔴 END OF FIX --- -->
                                 </div>
                             </div>
                             <!-- End Dental options HTML -->
@@ -458,7 +462,12 @@
             }
             
             relationSelect.addEventListener('change', (e) => {
-                document.getElementById('other-relation-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+                const isOther = e.target.value === 'อื่นๆ';
+                document.getElementById('other-relation-wrapper').classList.toggle('hidden', !isOther);
+                // --- 🔴 START OF FIX (Validation) ---
+                // ทำให้ช่อง "โปรดระบุ" (other-relation-detail) เป็น required ถ้าเลือก "อื่นๆ"
+                document.getElementById('other-relation-detail').required = isOther;
+                // --- 🔴 END OF FIX ---
                 patientNameInput.value = (e.target.value === 'เจ้าหน้าที่เอง') ? staffInfo.fullName : '';
             });
 
@@ -477,12 +486,35 @@
             // --- 🔴 END OF FIX ---
 
             document.getElementById('department').addEventListener('change', (e) => {
-                document.getElementById('dental-options-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องฟัน');
-                document.getElementById('other-department-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+                const isDental = e.target.value === 'ห้องฟัน';
+                const isOther = e.target.value === 'อื่นๆ';
+                document.getElementById('dental-options-wrapper').classList.toggle('hidden', !isDental);
+                document.getElementById('other-department-wrapper').classList.toggle('hidden', !isOther);
                 document.getElementById('med-warning-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องตรวจอายุรกรรม');
+                
+                // --- 🔴 START OF FIX (Validation) ---
+                // ทำให้ช่อง "โปรดระบุ" (other-department-detail) เป็น required ถ้าเลือก "อื่นๆ"
+                document.getElementById('other-department-detail').required = isOther;
+                // --- 🔴 END OF FIX ---
+
+                // --- 🔴 START OF NEW FIX (Dental Validation) ---
+                // ทำให้ช่อง "บริการ" และ "อาการปวด" ของห้องฟัน เป็น required ต่อเมื่อเลือก "ห้องฟัน"
+                document.querySelectorAll('input[name="dental-service"]').forEach(radio => {
+                    radio.required = isDental;
+                });
+                document.querySelectorAll('input[name="dental-pain"]').forEach(radio => {
+                    radio.required = isDental;
+                });
+                // --- 🔴 END OF NEW FIX (Dental Validation) ---
             });
+            
             document.querySelectorAll('input[name="dental-service"]').forEach(r => r.addEventListener('change', (e) => {
-                document.getElementById('other-dental-service').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+                const isOtherDental = e.target.value === 'อื่นๆ';
+                document.getElementById('other-dental-service').classList.toggle('hidden', !isOtherDental);
+                // --- 🔴 START OF FIX (Validation) ---
+                // ทำให้ช่อง "โปรดระบุ" (other-dental-service-detail) เป็น required ถ้าเลือก "อื่นๆ"
+                document.getElementById('other-dental-service-detail').required = isOtherDental;
+                // --- 🔴 END OF FIX ---
             }));
             
             // --- ✅ MODIFIED: Toggle doctor name visibility ---
@@ -520,7 +552,11 @@
             validateAndSetMinDate(adminDateTimeInput, adminDatetimeError, adminSubmitBtn);
             
             document.getElementById('admin-new-department').addEventListener('change', (e) => {
-                document.getElementById('admin-other-department-wrapper').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
+                const isOther = e.target.value === 'อื่นๆ';
+                document.getElementById('admin-other-department-wrapper').classList.toggle('hidden', !isOther);
+                // --- 🔴 START OF FIX (Validation) ---
+                document.getElementById('admin-other-department-detail').required = isOther;
+                // --- 🔴 END OF FIX ---
             });
 
             rescheduleForm.onsubmit = (e) => {
@@ -656,12 +692,48 @@
             const submitBtn = document.getElementById('submit-button');
             const spinner = document.getElementById('submit-spinner');
             const submitText = document.getElementById('submit-text');
+            const errorMsgElement = document.getElementById('form-error-message');
+            
             submitBtn.disabled = true;
             spinner.classList.remove('hidden');
             submitText.classList.add('hidden');
+            errorMsgElement.classList.add('hidden'); // ซ่อน Error เดิมก่อน
 
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
+
+            // --- 🔴 START OF FIX (Validation) ---
+            // ฟังก์ชันสำหรับแสดง Error และหยุดการทำงาน
+            const showFormError = (message) => {
+                console.error("Validation Error:", message);
+                errorMsgElement.textContent = message;
+                errorMsgElement.classList.remove('hidden');
+                errorMsgElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                submitBtn.disabled = false;
+                spinner.classList.add('hidden');
+                submitText.classList.remove('hidden');
+            };
+
+            // 1. ตรวจสอบความสัมพันธ์ "อื่นๆ"
+            if (data['patient-relation'] === 'อื่นๆ' && !data['other-relation-detail']?.trim()) {
+                showFormError('กรุณาระบุ "ความสัมพันธ์" ให้ครบถ้วน');
+                return; // หยุดการทำงาน
+            }
+            
+            // 2. ตรวจสอบแผนก "อื่นๆ"
+            if (data.department === 'อื่นๆ' && !data['other-department-detail']?.trim()) {
+                showFormError('กรุณาระบุ "แผนก" ให้ครบถ้วน');
+                return; // หยุดการทำงาน
+            }
+
+            // 3. ตรวจสอบบริการห้องฟัน "อื่นๆ"
+            if (data.department === 'ห้องฟัน' && data['dental-service'] === 'อื่นๆ' && !data['other-dental-service-detail']?.trim()) {
+                showFormError('กรุณาระบุ "บริการห้องฟัน" ให้ครบถ้วน');
+                return; // หยุดการทำงาน
+            }
+            // --- 🔴 END OF FIX (Validation) ---
+
+
             let patientRelation = data['patient-relation'] === 'อื่นๆ' ? data['other-relation-detail'] : data['patient-relation'];
             let department = data.department === 'อื่นๆ' ? data['other-department-detail'] : data.department;
             
@@ -695,17 +767,8 @@
                 showView('success-view');
             } catch (error) {
                 // --- 🔴 START OF FIX 3: Improve Error Handling ---
-                // เพิ่มการ log และการเลื่อนหน้าจอไปดู Error
-                console.error("Submission Error:", error); // สำหรับ Debug
-                const errorMsgElement = document.getElementById('form-error-message');
-                errorMsgElement.textContent = error.message;
-                errorMsgElement.classList.remove('hidden');
-                // เลื่อนไปที่ข้อความ Error ให้ผู้ใช้เห็น
-                errorMsgElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
-
-                submitBtn.disabled = false;
-                spinner.classList.add('hidden');
-                submitText.classList.remove('hidden');
+                // ใช้ฟังก์ชัน showFormError ที่เราสร้างไว้
+                showFormError(error.message);
                 // --- 🔴 END OF FIX 3 ---
             }
         }
