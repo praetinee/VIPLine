@@ -33,6 +33,7 @@
             <h2 class="text-lg font-semibold mb-3 border-b pb-2">ข้อมูลการนัดหมาย</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                 <div><strong>ผู้ป่วย:</strong> <span id="admin-patient-name" class="break-words"></span></div>
+                <!-- ✅ MODIFIED: Changed label to reflect it's optional -->
                 <div><strong>เลขบัตรประชาชน:</strong> <span id="admin-patient-id" class="break-words"></span></div>
                 <div><strong>เบอร์โทร:</strong> <span id="admin-patient-phone" class="break-words"></span></div>
                 <div><strong>ผู้ขอ:</strong> <span id="admin-staff-name" class="break-words"></span></div>
@@ -332,7 +333,14 @@
                         <div><label for="patient-relation" class="block text-sm font-medium text-gray-700">ความสัมพันธ์</label><select id="patient-relation" name="patient-relation" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"><option>เจ้าหน้าที่เอง</option><option>บิดา</option><option>มารดา</option><option>คู่สมรส (ตามกฎหมาย)</option><option>บุตร</option><option>อื่นๆ</option></select></div>
                         <div id="other-relation-wrapper" class="hidden mt-4"><label for="other-relation-detail" class="block text-sm font-medium">โปรดระบุ</label><input type="text" id="other-relation-detail" name="other-relation-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label for="patient-fullname" class="block text-sm font-medium">ชื่อ-นามสกุล ผู้รับบริการ</label><input type="text" id="patient-fullname" name="patient-fullname" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                        <div class="mt-4"><label for="patient-id" class="block text-sm font-medium">เลขบัตรประชาชน</label><input type="text" id="patient-id" name="patient-id" maxlength="13" pattern="\\d{13}" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        
+                        <!-- --- ✅ MODIFICATION: Made patient-id (Thai ID) optional --- -->
+                        <div class="mt-4">
+                            <label for="patient-id" class="block text-sm font-medium">เลขบัตรประชาชน (ถ้ามี)</label>
+                            <input type="text" id="patient-id" name="patient-id" maxlength="13" pattern="\\d{13}" class="mt-1 block w-full px-3 py-2 border rounded-md" placeholder="13 หลัก (ไม่บังคับ)">
+                        </div>
+                        <!-- --- End of Modification --- -->
+                        
                         <div class="mt-4"><label for="patient-phone" class="block text-sm font-medium">เบอร์โทรศัพท์</label><input type="tel" id="patient-phone" name="patient-phone" pattern="[0-9]{10}" maxlength="10" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label class="block text-sm font-medium">สถานะทางกายภาพ</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="patient-status" value="เดินได้" checked class="form-radio"><span class="ml-2">เดินได้</span></label><label class="inline-flex items-center"><input type="radio" name="patient-status" value="นั่งรถเข็น" class="form-radio"><span class="ml-2">นั่งรถเข็น</span></label><label class="inline-flex items-center"><input type="radio" name="patient-status" value="นอนเปล" class="form-radio"><span class="ml-2">นอนเปล</span></label></div></div>
                     </fieldset>
@@ -350,12 +358,44 @@
                         <div id="med-warning-wrapper" class="hidden mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
                             <p class="font-bold">ข้อควรทราบ</p>
                             <p class="text-sm">เนื่องจากอายุรแพทย์มีเพียง 1-2 ท่านต่อวัน ในขณะที่มีผู้รับบริการจำนวนมาก ส่งผลให้ระยะเวลารอคอยการตรวจเนิ่นนานกว่าปกติ</p>
-                            <p class="text-sm mt-1">หากท่านต้องการความสะดวกและรวดเร็วยิ่งขึ้น ท่านสามารถเลือกเข้ารับบริการที่แผนก "ห้องตรวจโรคทั่วไป" แทนได้</p>
+                            <p class="text-sm mt-1">หากท่านต้องการความสะดวกและรวดเร็วบิ่งขึ้น ท่านสามารถเลือกเข้ารับบริการที่แผนก "ห้องตรวจโรคทั่วไป" แทนได้</p>
                         </div>
-                        <div id="dental-options-wrapper" class="hidden mt-4 border-t pt-4"><!-- ... existing code ... --></div>
+                        <div id="dental-options-wrapper" class="hidden mt-4 border-t pt-4">
+                            <!-- Dental options HTML -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">บริการที่ต้องการ</label>
+                                <div class="mt-2 space-y-2">
+                                    <label class="inline-flex items-center"><input type="radio" name="dental-service" value="ขูดหินปูน" class="form-radio"><span class="ml-2">ขูดหินปูน</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="dental-service" value="อุดฟัน" class="form-radio"><span class="ml-2">อุดฟัน</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="dental-service" value="ถอนฟัน" class="form-radio"><span class="ml-2">ถอนฟัน</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="dental-service" value="อื่นๆ" class="form-radio"><span class="ml-2">อื่นๆ</span></label>
+                                </div>
+                                <div id="other-dental-service" class="hidden mt-2">
+                                    <label for="other-dental-service-detail" class="block text-sm font-medium">โปรดระบุ</label>
+                                    <input type="text" id="other-dental-service-detail" name="other-dental-service-detail" class="mt-1 block w-full px-3 py-2 border rounded-md">
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700">มีอาการปวดหรือไม่</label>
+                                <div class="mt-2 space-x-4">
+                                    <label class="inline-flex items-center"><input type="radio" name="dental-pain" value="มี" class="form-radio"><span class="ml-2">มี</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="dental-pain" value="ไม่มี" class="form-radio"><span class="ml-2">ไม่มี</span></label>
+                                </div>
+                            </div>
+                            <!-- End Dental options HTML -->
+                        </div>
                         <div id="other-department-wrapper" class="hidden mt-4"><label for="other-department-detail" class="block text-sm font-medium">โปรดระบุแผนก</label><input type="text" id="other-department-detail" name="other-department-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label class="block text-sm font-medium">ประเภทการนัด</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดใหม่" checked class="form-radio"><span class="ml-2">นัดใหม่</span></label><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดเดิม" class="form-radio"><span class="ml-2">นัดเดิม</span></label></div></div>
-                        <div id="follow-up-details" class="hidden mt-4"><!-- ... existing code ... --></div>
+                        <div id="follow-up-details" class="hidden mt-4">
+                            <!-- Follow-up details HTML -->
+                            <label for="follow-up-on-schedule" class="block text-sm font-medium text-gray-700">การนัดเดิม</label>
+                            <div class="mt-2 space-x-4">
+                                <label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="ตามนัด" class="form-radio"><span class="ml-2">ตามนัด</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="ก่อนนัด" class="form-radio"><span class="ml-2">ก่อนนัด</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="follow-up-on-schedule" value="หลังนัด" class="form-radio"><span class="ml-2">หลังนัด</span></label>
+                            </div>
+                            <!-- End Follow-up details HTML -->
+                        </div>
                         <div class="mt-4">
                             <label for="appointment-datetime" class="block text-sm font-medium">วันเวลาที่ต้องการนัด</label>
                             <input type="datetime-local" id="appointment-datetime" name="appointment-datetime" required class="mt-1 block w-full px-3 py-2 border rounded-md">
@@ -499,10 +539,25 @@
                 }
 
                 errorElement.classList.add('hidden');
+                // --- MODIFICATION: Allow submit if field is optional and empty ---
+                // This logic is now implicitly handled by removing 'required'
+                // We just need to ensure the button is enabled if valid or optionally empty.
                 submitButton.disabled = false;
             };
 
             inputElement.addEventListener('input', validate);
+            
+            // --- MODIFICATION: Trigger validation on load ---
+            // We call validate() but also need to check the 'required' status
+            // for the submit button's initial state.
+            
+            // If the element is NOT required, the button should be enabled by default
+            // (assuming other required fields are filled).
+            if (!inputElement.required) {
+                submitButton.disabled = false;
+            }
+            
+            // Then run validate() to set initial error messages if a value already exists
             validate();
         }
 
@@ -551,7 +606,11 @@
             const appointmentData = {
                 action: 'submitAppointment', userId: userProfile.userId, staffFullName: staffInfo.fullName,
                 staffHn: staffInfo.hn, patientRelation, patientFullName: data['patient-fullname'],
-                patientId: data['patient-id'], patientPhone: data['patient-phone'], 
+                
+                // --- MODIFICATION: 'patient-id' is now optional, send whatever is provided (even empty string) ---
+                patientId: data['patient-id'] || '', // Send empty string if not provided
+                
+                patientPhone: data['patient-phone'], 
                 patientStatus: data['patient-status'], symptoms: data.symptoms,
                 appointmentType: data['appointment-type'], department,
                 
@@ -601,4 +660,3 @@
     </script>
 </body>
 </html>
-
