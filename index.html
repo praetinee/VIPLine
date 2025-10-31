@@ -467,6 +467,14 @@
             const submitBtn = document.getElementById('submit-button');
 
             validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn);
+            
+            // --- 🔴 START OF FIX: Force enable submit button on load ---
+            // บังคับให้ปุ่ม submit ใช้งานได้ทันทีที่ฟอร์มโหลด
+            // หากผู้ใช้ไม่กรอกช่องที่ required ตัวเบราว์เซอร์จะจัดการแจ้งเตือนเอง
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+            // --- 🔴 END OF FIX ---
 
             document.getElementById('department').addEventListener('change', (e) => {
                 document.getElementById('dental-options-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องฟัน');
@@ -606,12 +614,14 @@
             
             // If the element is NOT required, the button should be enabled by default
             // (assuming other required fields are filled).
+            /* --- 🔴 REMOVED THIS BLOCK ---
             if (!inputElement.required) {
                 submitButton.disabled = false;
             }
+            */
             
             // Then run validate() to set initial error messages if a value already exists
-            validate();
+            // validate(); // --- 🔴 REMOVED THIS CALL to prevent disabling button on load
         }
 
         async function handleAdminActionClick(adminActionType, appointmentId, options = {}) {
@@ -726,4 +736,5 @@
     </script>
 </body>
 </html>
+
 
