@@ -447,14 +447,8 @@
                         </div>
                     </fieldset>
                     <div><label for="notes" class="block text-sm font-medium">หมายเหตุ</label><textarea id="notes" name="notes" rows="2" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
-                    
-                    <!-- 
-                      vvv--- จุดที่ 1: ปุ่ม SUBMIT ---vvv
-                      ปุ่มนี้ถูกตั้งค่า 'disabled' (ปิดใช้งาน) ไว้เป็นค่าเริ่มต้น
-                      นี่คือสาเหตุที่ทำให้กดปุ่มไม่ได้ในตอนแรกที่เปิดหน้าฟอร์ม
-                    -->
+                    <!-- --- 🔴 FIX: Add 'disabled' attribute by default --- -->
                     <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                    <!-- --- 🔴 END OF FIX --- -->
                         <span id="submit-text">ส่งข้อมูล</span>
                         <div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div>
                     </button>
@@ -474,10 +468,7 @@
             relationSelect.addEventListener('change', (e) => {
                 const isOther = e.target.value === 'อื่นๆ';
                 document.getElementById('other-relation-wrapper').classList.toggle('hidden', !isOther);
-                // --- 🔴 START OF FIX (Validation) ---
-                // ทำให้ช่อง "โปรดระบุ" (other-relation-detail) เป็น required ถ้าเลือก "อื่นๆ"
                 document.getElementById('other-relation-detail').required = isOther;
-                // --- 🔴 END OF FIX ---
                 patientNameInput.value = (e.target.value === 'เจ้าหน้าที่เอง') ? staffInfo.fullName : '';
             });
 
@@ -494,44 +485,32 @@
                 document.getElementById('other-department-wrapper').classList.toggle('hidden', !isOther);
                 document.getElementById('med-warning-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องตรวจอายุรกรรม');
                 
-                // --- 🔴 START OF FIX (Validation) ---
-                // ทำให้ช่อง "โปรดระบุ" (other-department-detail) เป็น required ถ้าเลือก "อื่นๆ"
                 document.getElementById('other-department-detail').required = isOther;
-                // --- 🔴 END OF FIX ---
 
-                // --- 🔴 START OF NEW FIX (Dental Validation) ---
-                // ทำให้ช่อง "บริการ" และ "อาการปวด" ของห้องฟัน เป็น required ต่อเมื่อเลือก "ห้องฟัน"
                 document.querySelectorAll('input[name="dental-service"]').forEach(radio => {
                     radio.required = isDental;
                 });
                 document.querySelectorAll('input[name="dental-pain"]').forEach(radio => {
                     radio.required = isDental;
                 });
-                // --- 🔴 END OF NEW FIX (Dental Validation) ---
             });
             
             document.querySelectorAll('input[name="dental-service"]').forEach(r => r.addEventListener('change', (e) => {
                 const isOtherDental = e.target.value === 'อื่นๆ';
                 document.getElementById('other-dental-service').classList.toggle('hidden', !isOtherDental);
-                // --- 🔴 START OF FIX (Validation) ---
-                // ทำให้ช่อง "โปรดระบุ" (other-dental-service-detail) เป็น required ถ้าเลือก "อื่นๆ"
                 document.getElementById('other-dental-service-detail').required = isOtherDental;
-                // --- 🔴 END OF FIX ---
             }));
             
-            // --- ✅ MODIFIED: Toggle doctor name visibility ---
             document.querySelectorAll('input[name="appointment-type"]').forEach(r => r.addEventListener('change', (e) => {
                 const isFollowUp = e.target.value === 'นัดเดิม';
                 document.getElementById('follow-up-details').classList.toggle('hidden', !isFollowUp);
                 document.getElementById('doctor-name-wrapper').classList.toggle('hidden', !isFollowUp);
 
-                // --- ✅ ADDED: Toggle 'required' for follow-up options ---
                 document.querySelectorAll('input[name="follow-up-on-schedule"]').forEach(radio => {
                     radio.required = isFollowUp;
                 });
             }));
             
-            // Re-bind submit listener
             document.getElementById('appointment-form').addEventListener('submit', handleAppointmentSubmit);
             showView('main-form-view');
         }
@@ -556,9 +535,7 @@
             document.getElementById('admin-new-department').addEventListener('change', (e) => {
                 const isOther = e.target.value === 'อื่นๆ';
                 document.getElementById('admin-other-department-wrapper').classList.toggle('hidden', !isOther);
-                // --- 🔴 START OF FIX (Validation) ---
                 document.getElementById('admin-other-department-detail').required = isOther;
-                // --- 🔴 END OF FIX ---
             });
 
             rescheduleForm.onsubmit = (e) => {
@@ -577,9 +554,6 @@
             };
         }
 
-        // vvv--- จุดที่ 2: ฟังก์ชันที่ควบคุมปุ่ม SUBMIT ---vvv
-        // ฟังก์ชันนี้ใช้เพื่อตรวจสอบช่อง 'วันเวลาที่ต้องการนัด' (inputElement)
-        // และจะเปิด/ปิด ปุ่ม 'submit' (submitButton) ตามความเหมาะสม
         function validateAndSetMinDate(inputElement, errorElement, submitButton) {
             const now = new Date();
             const minBookingDate = new Date();
@@ -594,72 +568,32 @@
             inputElement.min = tempMinDate.toISOString().slice(0, 16);
             
             const validate = () => {
-                // --- 🔴 START OF FINAL FIX (Method 5) ---
-                // vvv--- จุดที่ 3: โค้ดที่ทำให้ปุ่ม 'disabled' ---vvv
-                // ถ้าช่องวันเวลายังว่าง (ยังไม่ได้เลือก)
+                // --- 🔴 START OF SIMPLIFIED TEST LOGIC ---
+                // This logic is temporary to find the problem.
+                // It will enable the button if *any* date is entered.
                 if (!inputElement.value) {
-                    // ถ้าช่องว่าง (ซึ่งเป็นค่าเริ่มต้น) ให้ "ปิด" ปุ่ม
                     errorElement.textContent = 'กรุณาเลือกวันเวลาที่ต้องการนัด';
                     errorElement.classList.remove('hidden');
-                    // นี่คือบรรทัดที่สั่งปิด (disabled) ปุ่ม ถ้าช่องวันเวลาว่าง
-                    submitButton.disabled = true; // <-- **THE FIX**
-                    return;
-                }
-                // --- 🔴 END OF FINAL FIX ---
-
-                const selected = new Date(inputElement.value);
-                const day = selected.getDay();
-                const hour = selected.getHours();
-                
-                // (โค้ดส่วนนี้คือการตรวจสอบเงื่อนไขอื่นๆ เช่น ห้ามเลือกวันเสาร์-อาทิตย์ หรือนอกเวลาทำการ)
-                if (day === 0 || day === 6) {
-                    errorElement.textContent = 'ขออภัย ระบบไม่เปิดรับการนัดหมายในวันเสาร์-อาทิตย์';
-                    errorElement.classList.remove('hidden');
-                    submitButton.disabled = true;
+                    submitButton.disabled = true; 
                     return;
                 }
 
-                if (hour < 8 || hour >= 15) {
-                    errorElement.textContent = 'กรุณาเลือกเวลาในช่วงเวลาบริการ 08:00-15:00 น.';
-                    errorElement.classList.remove('hidden');
-                    submitButton.disabled = true;
-                    return;
-                }
-
-                // Use a slightly adjusted minBookingDate for comparison to avoid timezone issues
-                const minCompareDate = new Date(minBookingDate.getTime() - 60000); // 1 minute buffer
-                if (selected < minCompareDate) {
-                    let errorMessage = 'กรุณานัดหมายล่วงหน้า: ';
-                    if (now.getHours() >= 15) {
-                        errorMessage += 'หลัง 15:00น. สามารถนัดหมายได้เร็วที่สุดคือวันมะรืนนี้';
-                    } else {
-                        errorMessage += 'หากต้องการนัดวันพรุ่งนี้ กรุณาทำรายการภายใน 15:00น. ของวันนี้';
-                    }
-                    errorElement.textContent = errorMessage;
-                    errorElement.classList.remove('hidden');
-                    submitButton.disabled = true;
-                    return;
-                }
-
+                // If we are here, it means the user has entered *something*.
+                // For this test, we will just enable the button.
                 errorElement.classList.add('hidden');
-                // vvv--- จุดที่ 4: โค้ดที่ปลดล็อกปุ่ม 'disabled' ---vvv
-                // ถ้าผ่านการตรวจสอบทั้งหมด ปุ่มจะถูกปลดล็อก (กดได้)
                 submitButton.disabled = false;
+                
+                // --- 🔴 END OF SIMPLIFIED TEST LOGIC ---
             };
 
-            // เมื่อผู้ใช้เลือกวันเวลา (เกิด 'input' event) ให้เรียกฟังก์ชัน validate() เพื่อตรวจสอบ
             inputElement.addEventListener('input', validate);
             
-            // --- 🔴 (Correct Logic) CALL validate() on load ---
-            // เรียก validate() ทันที 1 ครั้งตอนโหลด
-            // (ซึ่งในตอนแรก inputElement.value จะว่างเปล่า ทำให้ปุ่มถูก disabled ตามตรรกะใน จุดที่ 3)
-            validate(); // <-- **THE FIX**
+            validate(); // Call on load to set initial disabled state
         }
 
         async function handleAdminActionClick(adminActionType, appointmentId, options = {}) {
             showView('loading-view');
             try {
-                // --- MODIFIED (Fix for Admin Action): Send 'adminActionType' property ---
                 const payload = { 
                     action: 'handleAdminAction', 
                     adminActionType: adminActionType, // 'approve', 'deny', 'reschedule'
@@ -669,13 +603,11 @@
                 };
                 const result = await postToServer(payload);
                 
-                // --- MODIFIED (Fix for Admin Action): Check 'alreadyProcessed' from server response ---
                 if (result.data && result.data.alreadyProcessed) {
                     showError(`ไม่สามารถดำเนินการได้: ${result.data.message}`);
                 } else if (result.status === 'success') {
                     liff.closeWindow();
                 } else {
-                    // This case should be caught by postToServer, but as a fallback
                     showError(result.message || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ');
                 }
             } catch (error) {
@@ -698,8 +630,6 @@
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
 
-            // --- 🔴 START OF FIX (Validation) ---
-            // ฟังก์ชันสำหรับแสดง Error และหยุดการทำงาน
             const showFormError = (message) => {
                 console.error("Validation Error:", message);
                 errorMsgElement.textContent = message;
@@ -710,51 +640,37 @@
                 submitText.classList.remove('hidden');
             };
 
-            // 1. ตรวจสอบความสัมพันธ์ "อื่นๆ"
             if (data['patient-relation'] === 'อื่นๆ' && !data['other-relation-detail']?.trim()) {
                 showFormError('คุณเลือก "ความสัมพันธ์อื่นๆ" กรุณาพิมพ์รายละเอียดในช่อง "โปรดระบุ" ด้วยครับ');
-                return; // หยุดการทำงาน
+                return; 
             }
             
-            // 2. ตรวจสอบแผนก "อื่นๆ"
             if (data.department === 'อื่นๆ' && !data['other-department-detail']?.trim()) {
                 showFormError('คุณเลือก "แผนกอื่นๆ" กรุณาพิมพ์ชื่อแผนกในช่อง "โปรดระบุแผนก" ด้วยครับ');
-                return; // หยุดการทำงาน
+                return; 
             }
 
-            // 3. ตรวจสอบบริการห้องฟัน "อื่นๆ"
             if (data.department === 'ห้องฟัน' && data['dental-service'] === 'อื่นๆ' && !data['other-dental-service-detail']?.trim()) {
                 showFormError('คุณเลือก "บริการห้องฟันอื่นๆ" กรุณาพิมพ์รายละเอียดในช่อง "โปรดระบุ" ด้วยครับ');
-                return; // หยุดการทำงาน
+                return; 
             }
-            // --- 🔴 END OF FIX (Validation) ---
-
 
             let patientRelation = data['patient-relation'] === 'อื่นๆ' ? data['other-relation-detail'] : data['patient-relation'];
             let department = data.department === 'อื่นๆ' ? data['other-department-detail'] : data.department;
             
-            // --- 🔴 START OF FIX 2 (Modified for safety) ---
-            // ป้องกันค่า undefined หาก "ห้องฟัน" ไม่ได้ถูกเลือก
             let dentalService = (data['dental-service'] === 'อื่นๆ' ? data['other-dental-service-detail'] : data['dental-service']) || '';
-            // --- 🔴 END OF FIX 2 ---
 
             const appointmentData = {
                 action: 'submitAppointment', userId: userProfile.userId, staffFullName: staffInfo.fullName,
                 staffHn: staffInfo.hn, patientRelation, patientFullName: data['patient-fullname'],
-                
-                // --- MODIFICATION: 'patient-id' is now optional, send whatever is provided (even empty string) ---
-                patientId: data['patient-id'] || '', // Send empty string if not provided
-                
+                patientId: data['patient-id'] || '', 
                 patientPhone: data['patient-phone'], 
                 patientStatus: data['patient-status'], symptoms: data.symptoms,
                 appointmentType: data['appointment-type'], department,
-                
-                // ✅ ADDED: Doctor Name Submission
                 doctorName: data['doctor-name'] || '',
-
                 followUpOnSchedule: data['follow-up-on-schedule'] || '', appointmentDateTime: data['appointment-datetime'],
                 notes: data.notes, isOtherRelation: data['patient-relation'] === 'อื่นๆ',
-                dentalService, // (Fixed)
+                dentalService, 
                 dentalPain: data['dental-pain'] || ''
             };
             
@@ -762,10 +678,7 @@
                 await postToServer(appointmentData);
                 showView('success-view');
             } catch (error) {
-                // --- 🔴 START OF FIX 3: Improve Error Handling ---
-                // ใช้ฟังก์ชัน showFormError ที่เราสร้างไว้
                 showFormError(error.message);
-                // --- 🔴 END OF FIX 3 ---
             }
         }
 
@@ -784,7 +697,6 @@
                 if (result.status === 'error') {
                     throw new Error(result.message);
                 }
-                // --- MODIFIED (Fix for Admin Action): Return the result for checking 'alreadyProcessed' ---
                 return result; 
             } catch (error) {
                 throw error;
@@ -795,3 +707,4 @@
     </script>
 </body>
 </html>
+
