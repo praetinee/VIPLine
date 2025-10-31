@@ -244,6 +244,7 @@
         
         function setupAndShowRegistrationForm() {
             const container = document.getElementById('registration-view');
+            // --- ✅ MODIFIED: Added PDPA Consent Box, Checkbox, and updated Button ---
             container.innerHTML = `
                 <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน</h1>
                 <p class="text-gray-700 mb-4 text-center">สำหรับเจ้าหน้าที่โรงพยาบาลสันทราย กรุณากรอกข้อมูลเพื่อยืนยันตัวตน (ครั้งแรกเท่านั้น)</p>
@@ -254,12 +255,10 @@
                         <input type="text" id="reg-fullname" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
                     
-                    <!-- --- ✅ MODIFIED: Registration Form --- -->
                     <p class="text-sm text-gray-600 text-center pt-2">กรุณากรอกอย่างใดอย่างหนึ่ง เพื่อยืนยันตัวตน:</p>
                     
                     <div>
                         <label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label>
-                        <!-- Removed 'required' attribute -->
                         <input type="text" id="reg-hn" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
 
@@ -269,36 +268,68 @@
                         <label for="reg-thai-id" class="block text-sm font-medium text-gray-700">เลขบัตรประชาชน</label>
                         <input type="tel" id="reg-thai-id" pattern="\\d{13}" maxlength="13" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="1234567890123">
                     </div>
-                    <!-- --- End of Modification --- -->
 
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700">ลงทะเบียน</button>
+                    <!-- --- ADDED: PDPA Consent Section --- -->
+                    <div class="mt-6 border rounded-md p-4 bg-gray-50">
+                        <h3 class="text-base font-semibold text-center mb-3">คำประกาศเกี่ยวกับความเป็นส่วนตัว (Privacy Notice)</h3>
+                        <div class="h-40 overflow-y-auto border rounded-md p-3 bg-white text-xs text-gray-600 space-y-2">
+                            <p>โรงพยาบาลสันทราย ให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน เพื่อให้ท่านมั่นใจได้ว่าข้อมูลส่วนบุคคลของท่านที่เราได้รับจะถูกนำไปใช้ตรงตามความต้องการของท่านและถูกต้องตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล</p>
+                            <p class="font-semibold mt-2">วัตถุประสงค์ในการเก็บรวบรวม ใช้ หรือเปิดเผยข้อมูลส่วนบุคคล</p>
+                            <ul class="list-disc list-inside ml-2">
+                                <li>เพื่อใช้ในการระบุและยืนยันตัวตนของท่านก่อนเข้าใช้งานระบบรายงานผลตรวจสุขภาพ</li>
+                                <li>เพื่อแสดงผลการตรวจสุขภาพและข้อมูลที่เกี่ยวข้องซึ่งเป็นข้อมูลส่วนบุคคลที่มีความอ่อนไหว</li>
+                                <li>เพื่อการวิเคราะห์ข้อมูลในภาพรวมสำหรับการพัฒนาคุณภาพบริการของโรงพยาบาล (โดยไม่ระบุตัวตน)</li>
+                            </ul>
+                            <p class="font-semibold mt-2">การรักษาความปลอดภัยของข้อมูล</p>
+                            <p>โรงพยาบาลมีมาตรการรักษาความปลอดภัยของข้อมูลส่วนบุคคลของท่านอย่างเข้มงวด เพื่อป้องกันการเข้าถึง การใช้ หรือการเปิดเผยข้อมูลโดยไม่ได้รับอนุญาต</p>
+                            <p class="font-semibold mt-2">การเปิดเผยข้อมูลส่วนบุคคล</p>
+                            <p>โรงพยาบาลจะไม่เปิดเผยข้อมูลส่วนบุคคลของท่านแก่บุคคลภายนอก เว้นแต่จะได้รับความยินยอมจากท่าน หรือเป็นไปตามที่กฎหมายกำหนด</p>
+                        </div>
+                        <div class="mt-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="reg-consent-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                                <span class="ml-2 text-sm text-gray-700">ข้าพเจ้ารับทราบและยินยอมตามคำประกาศนี้</span>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- --- End of PDPA Section --- -->
+
+                    <button type="submit" id="reg-submit-button" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>ยอมรับและลงทะเบียน</button>
                 </form>`;
             
+            // --- ✅ ADDED: Consent Checkbox Logic ---
+            const consentCheckbox = document.getElementById('reg-consent-checkbox');
+            const submitButton = document.getElementById('reg-submit-button');
+            
+            consentCheckbox.addEventListener('change', () => {
+                submitButton.disabled = !consentCheckbox.checked;
+            });
+            // --- End of Added Logic ---
+
             document.getElementById('registration-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const submitButton = e.target.querySelector('button');
-                submitButton.disabled = true;
-                submitButton.textContent = 'กำลังลงทะเบียน...';
+                // --- ✅ MODIFIED: Use ID to reference button ---
+                const regSubmitButton = document.getElementById('reg-submit-button');
+                regSubmitButton.disabled = true;
+                regSubmitButton.textContent = 'กำลังลงทะเบียน...';
                 
                 const fullName = document.getElementById('reg-fullname').value;
                 const regError = document.getElementById('reg-error-message');
                 regError.classList.add('hidden');
 
-                // --- ✅ MODIFIED: Get Thai ID and add validation ---
                 const hn = document.getElementById('reg-hn').value.trim();
                 const thaiId = document.getElementById('reg-thai-id').value.trim();
 
                 if (!hn && !thaiId) {
                     regError.textContent = 'กรุณากรอกหมายเลข HN หรือ เลขบัตรประชาชน อย่างใดอย่างหนึ่ง';
                     regError.classList.remove('hidden');
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'ลงทะเบียน';
+                    regSubmitButton.disabled = false;
+                    // --- ✅ MODIFIED: Reset button text correctly ---
+                    regSubmitButton.textContent = 'ยอมรับและลงทะเบียน';
                     return; // Stop submission
                 }
-                // --- End of Modification ---
 
                 try {
-                    // --- ✅ MODIFIED: Send 'thaiId' to server ---
                     const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn, thaiId });
                     
                     if (response.data.success) {
@@ -307,14 +338,16 @@
                     } else {
                        regError.textContent = response.data.message;
                        regError.classList.remove('hidden');
-                       submitButton.disabled = false;
-                       submitButton.textContent = 'ลงทะเบียน';
+                       regSubmitButton.disabled = false;
+                       // --- ✅ MODIFIED: Reset button text correctly ---
+                       regSubmitButton.textContent = 'ยอมรับและลงทะเบียน';
                     }
                 } catch (error) {
                     regError.textContent = error.message;
                     regError.classList.remove('hidden');
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'ลงทะเบียน';
+                    regSubmitButton.disabled = false;
+                    // --- ✅ MODIFIED: Reset button text correctly ---
+                    regSubmitButton.textContent = 'ยอมรับและลงทะเบียน';
                 }
             });
             showView('registration-view');
