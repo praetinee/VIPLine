@@ -351,12 +351,6 @@
                         <div><label for="symptoms" class="block text-sm font-medium">อาการ/ความผิดปกติ</label><textarea id="symptoms" name="symptoms" rows="3" required class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
                         <div class="mt-4"><label for="department" class="block text-sm font-medium">แผนก</label><select id="department" name="department" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md">${departmentOptionsHTML}</select></div>
                         
-                        <!-- ✅ ADDED: Doctor Name Input -->
-                        <div class="mt-4">
-                            <label for="doctor-name" class="block text-sm font-medium text-gray-700">ชื่อแพทย์ (ถ้ามี)</label>
-                            <input type="text" id="doctor-name" name="doctor-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-                        </div>
-                        
                         <div id="med-warning-wrapper" class="hidden mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
                             <p class="font-bold">ข้อควรทราบ</p>
                             <p class="text-sm">เนื่องจากอายุรแพทย์มีเพียง 1-2 ท่านต่อวัน ในขณะที่มีผู้รับบริการจำนวนมาก ส่งผลให้ระยะเวลารอคอยการตรวจเนิ่นนานกว่าปกติ</p>
@@ -392,6 +386,13 @@
                         
                         <div id="other-department-wrapper" class="hidden mt-4"><label for="other-department-detail" class="block text-sm font-medium">โปรดระบุแผนก</label><input type="text" id="other-department-detail" name="other-department-detail" class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                         <div class="mt-4"><label class="block text-sm font-medium">ประเภทการนัด</label><div class="mt-2 space-x-4"><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดใหม่" checked class="form-radio"><span class="ml-2">นัดใหม่</span></label><label class="inline-flex items-center"><input type="radio" name="appointment-type" value="นัดเดิม" class="form-radio"><span class="ml-2">นัดเดิม</span></label></div></div>
+                        
+                        <!-- --- ✅ MODIFIED: Doctor Name Input (now conditional) --- -->
+                        <div id="doctor-name-wrapper" class="mt-4 hidden">
+                            <label for="doctor-name" class="block text-sm font-medium text-gray-700">ชื่อแพทย์ (ถ้ามี)</label>
+                            <input type="text" id="doctor-name" name="doctor-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        
                         <div id="follow-up-details" class="hidden mt-4">
                             <!-- Follow-up details HTML -->
                             <label for="follow-up-on-schedule" class="block text-sm font-medium text-gray-700">การนัดเดิม</label>
@@ -442,8 +443,12 @@
             document.querySelectorAll('input[name="dental-service"]').forEach(r => r.addEventListener('change', (e) => {
                 document.getElementById('other-dental-service').classList.toggle('hidden', e.target.value !== 'อื่นๆ');
             }));
+            
+            // --- ✅ MODIFIED: Toggle doctor name visibility ---
             document.querySelectorAll('input[name="appointment-type"]').forEach(r => r.addEventListener('change', (e) => {
-                document.getElementById('follow-up-details').classList.toggle('hidden', e.target.value !== 'นัดเดิม');
+                const isFollowUp = e.target.value === 'นัดเดิม';
+                document.getElementById('follow-up-details').classList.toggle('hidden', !isFollowUp);
+                document.getElementById('doctor-name-wrapper').classList.toggle('hidden', !isFollowUp);
             }));
             
             // Re-bind submit listener
