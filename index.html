@@ -481,7 +481,8 @@
 
             // --- 🔴 START OF FINAL FIX ---
             // We are no longer calling the complex validation function for the main form.
-            // validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn); // <-- DELETED
+            // --- 🔴 MODIFIED (2025-11-03): Re-enabling validation ---
+            validateAndSetMinDate(appointmentDateTimeInput, datetimeError, submitBtn); // <-- RE-ENABLED
             // --- 🔴 END OF FINAL FIX ---
             
             document.getElementById('department').addEventListener('change', (e) => {
@@ -561,31 +562,40 @@
             };
         }
 
-        // --- 🔴 This function is now ONLY used by the Admin Panel ---
+        // --- 🔴 This function is now used by BOTH Admin Panel and Main Form ---
         function validateAndSetMinDate(inputElement, errorElement, submitButton) {
             const now = new Date();
-            const minBookingDate = new Date();
-            minBookingDate.setDate(now.getDate() + 1);
+            const minBookingDate = new Date(now);
+            
+            // Set time to 8:00 AM for comparison
             minBookingDate.setHours(8, 0, 0, 0); 
-            if (now.getHours() >= 15) {
-                minBookingDate.setDate(minBookingDate.getDate() + 1);
+
+            // --- 🔴 START OF NEW LOGIC (2025-11-03) ---
+            // Rule: If it's 15:30 (3:30 PM) or later, must book day after tomorrow.
+            // Otherwise, can book tomorrow.
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+
+            if (currentHour > 15 || (currentHour === 15 && currentMinute >= 30)) {
+                minBookingDate.setDate(now.getDate() + 2); // Day after tomorrow
+            } else {
+                minBookingDate.setDate(now.getDate() + 1); // Tomorrow
             }
+            // --- 🔴 END OF NEW LOGIC ---
             
             const tempMinDate = new Date(minBookingDate);
             tempMinDate.setMinutes(tempMinDate.getMinutes() - tempMinDate.getTimezoneOffset());
             inputElement.min = tempMinDate.toISOString().slice(0, 16);
             
             const validate = () => {
-                // --- This is the original, complex logic ---
-                // It's OK for the admin panel, but was breaking the main form.
+                
                 if (!inputElement.value) {
                     // --- 🔴 START OF NEW FIX (2025-11-03) ---
-                    // This was the real problem. This function runs on load,
-                    // finds the empty date field, and disables the button.
-                    // We will now explicitly ENABLE the button and just hide the error.
-                    // The 'required' attribute on the input will handle validation on submit.
+                    // On load, the field is empty. Disable the button but don't show an error.
+                    // This applies to both main form and admin form, which is fine.
                     errorElement.classList.add('hidden');
-                    submitButton.disabled = false; 
+                    errorElement.textContent = 'กรุณาเลือกวันเวลาที่ต้องการนัด'; // Set error text but keep hidden
+                    submitButton.disabled = true; 
                     return;
                     // --- 🔴 END OF NEW FIX ---
                 }
@@ -593,6 +603,7 @@
                 const selected = new Date(inputElement.value);
                 const day = selected.getDay();
                 const hour = selected.getHours();
+                const minute = selected.getMinutes(); // Get minutes
                 
                 if (day === 0 || day === 6) {
                     errorElement.textContent = 'ขออภัย ระบบไม่เปิดรับการนัดหมายในวันเสาร์-อาทิตย์';
@@ -601,22 +612,30 @@
                     return;
                 }
 
-                if (hour < 8 || hour >= 15) {
-                    errorElement.textContent = 'กรุณาเลือกเวลาในช่วงเวลาบริการ 08:00-15:00 น.';
+                // --- 🔴 START OF NEW TIME LOGIC (2025-11-03) ---
+                // Rule: 8:00 - 15:30.
+                // Invalid if: hour < 8
+                // Invalid if: hour > 15
+                // Invalid if: hour === 15 AND minute > 30
+                if (hour < 8 || hour > 15 || (hour === 15 && minute > 30)) {
+                    errorElement.textContent = 'กรุณาเลือกเวลาในช่วงเวลาบริการ 08:00 - 15:30 น.';
                     errorElement.classList.remove('hidden');
                     submitButton.disabled = true;
                     return;
                 }
+                // --- 🔴 END OF NEW TIME LOGIC ---
 
                 // Use a slightly adjusted minBookingDate for comparison to avoid timezone issues
                 const minCompareDate = new Date(minBookingDate.getTime() - 60000); // 1 minute buffer
                 if (selected < minCompareDate) {
                     let errorMessage = 'กรุณานัดหมายล่วงหน้า: ';
-                    if (now.getHours() >= 15) {
-                        errorMessage += 'หลัง 15:00น. สามารถนัดหมายได้เร็วที่สุดคือวันมะรืนนี้';
+                    // --- 🔴 START OF NEW ERROR LOGIC (2025-11-03) ---
+                    if (currentHour > 15 || (currentHour === 15 && currentMinute >= 30)) {
+                        errorMessage += 'หลัง 15:30น. สามารถนัดหมายได้เร็วที่สุดคือวันมะรืนนี้';
                     } else {
-                        errorMessage += 'หากต้องการนัดวันพรุ่งนี้ กรุณาทำรายการภายใน 15:00น. ของวันนี้';
+                        errorMessage += 'หากต้องการนัดวันพรุ่งนี้ กรุณาทำรายการภายใน 15:30น. ของวันนี้';
                     }
+                    // --- 🔴 END OF NEW ERROR LOGIC ---
                     errorElement.textContent = errorMessage;
                     errorElement.classList.remove('hidden');
                     submitButton.disabled = true;
