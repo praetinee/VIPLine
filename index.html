@@ -449,8 +449,8 @@
                     <div><label for="notes" class="block text-sm font-medium">หมายเหตุ</label><textarea id="notes" name="notes" rows="2" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md"></textarea></div>
                     
                     <!-- --- 🔴 START OF FINAL FIX (MODIFIED) --- -->
-                    <!-- Removed 'disabled' attribute to make button enabled by default -->
-                    <button id="submit-button" type="submit" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    <!-- Changed type="submit" to type="button" to fix click issue -->
+                    <button id="submit-button" type="button" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
                     <!-- --- 🔴 END OF FINAL FIX (MODIFIED) --- -->
                         <span id="submit-text">ส่งข้อมูล</span>
                         <div id="submit-spinner" class="spinner hidden" style="width:20px; height:20px; border-left-color: #fff;"></div>
@@ -518,7 +518,13 @@
                 });
             }));
             
-            document.getElementById('appointment-form').addEventListener('submit', handleAppointmentSubmit);
+            // --- 🔴 MODIFIED (2025-11-03): Changed from 'submit' on form to 'click' on button ---
+            document.getElementById('submit-button').addEventListener('click', (e) => {
+                const form = document.getElementById('appointment-form');
+                handleAppointmentSubmit(e, form);
+            });
+            // --- 🔴 END OF MODIFICATION ---
+            
             showView('main-form-view');
         }
 
@@ -676,7 +682,8 @@
             }
         }
         
-        async function handleAppointmentSubmit(e) {
+        // --- 🔴 MODIFIED (2025-11-03): Added 'formElement' parameter ---
+        async function handleAppointmentSubmit(e, formElement) {
             e.preventDefault();
             const submitBtn = document.getElementById('submit-button');
             const spinner = document.getElementById('submit-spinner');
@@ -688,7 +695,8 @@
             submitText.classList.add('hidden');
             errorMsgElement.classList.add('hidden'); // ซ่อน Error เดิมก่อน
 
-            const formData = new FormData(e.target);
+            // --- 🔴 MODIFIED (2025-11-03): Use 'formElement' instead of 'e.target' ---
+            const formData = new FormData(formElement);
             const data = Object.fromEntries(formData.entries());
 
             const showFormError = (message) => {
@@ -768,4 +776,5 @@
     </script>
 </body>
 </html>
+
 
