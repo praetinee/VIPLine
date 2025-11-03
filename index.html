@@ -579,10 +579,15 @@
                 // --- This is the original, complex logic ---
                 // It's OK for the admin panel, but was breaking the main form.
                 if (!inputElement.value) {
-                    errorElement.textContent = 'กรุณาเลือกวันเวลาที่ต้องการนัด';
-                    errorElement.classList.remove('hidden');
-                    submitButton.disabled = true; 
+                    // --- 🔴 START OF NEW FIX (2025-11-03) ---
+                    // This was the real problem. This function runs on load,
+                    // finds the empty date field, and disables the button.
+                    // We will now explicitly ENABLE the button and just hide the error.
+                    // The 'required' attribute on the input will handle validation on submit.
+                    errorElement.classList.add('hidden');
+                    submitButton.disabled = false; 
                     return;
+                    // --- 🔴 END OF NEW FIX ---
                 }
 
                 const selected = new Date(inputElement.value);
@@ -744,3 +749,4 @@
     </script>
 </body>
 </html>
+
