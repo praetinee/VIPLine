@@ -60,6 +60,8 @@
             <div id="admin-ttm-info-wrapper" class="hidden mt-3 pt-3 border-t">
                 <h3 class="font-semibold text-gray-800">ข้อมูลการประเมินอาการเบื้องต้น</h3>
                 <div id="admin-ttm-symptoms-list" class="mt-2 text-sm space-y-1"></div>
+                <!-- ✅ Added explicit seen doctor status display -->
+                <div class="mt-2"><strong>ประวัติพบแพทย์แผนปัจจุบัน:</strong> <span id="admin-ttm-seen-doctor-status" class="font-bold"></span></div>
                 <div id="admin-ttm-alert-box" class="mt-2 p-2 rounded text-xs font-bold hidden"></div>
             </div>
 
@@ -267,6 +269,7 @@
                 const ttmWrapper = document.getElementById('admin-ttm-info-wrapper');
                 const ttmList = document.getElementById('admin-ttm-symptoms-list');
                 const ttmAlert = document.getElementById('admin-ttm-alert-box');
+                const ttmSeenDoctorStatus = document.getElementById('admin-ttm-seen-doctor-status');
                 
                 // Hide all first
                 dentalWrapper.classList.add('hidden');
@@ -303,6 +306,18 @@
                         p.textContent = `• ${text}`;
                         ttmList.appendChild(p);
                     });
+
+                    // Explicitly show seen doctor status
+                    if (details.ttmSeenDoctor === 'yes') {
+                        ttmSeenDoctorStatus.textContent = 'เคยพบแล้ว (อนุญาตให้รักษา)';
+                        ttmSeenDoctorStatus.className = 'font-bold text-green-600';
+                    } else if (details.ttmSeenDoctor === 'no') {
+                        ttmSeenDoctorStatus.textContent = 'ยังไม่เคยพบแพทย์';
+                        ttmSeenDoctorStatus.className = 'font-bold text-red-600';
+                    } else {
+                        ttmSeenDoctorStatus.textContent = '-';
+                        ttmSeenDoctorStatus.className = 'font-bold text-gray-600';
+                    }
 
                     if (isHighRiskTTM) {
                         if (details.ttmSeenDoctor === 'no') {
