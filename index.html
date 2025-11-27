@@ -39,7 +39,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                 <div><strong>ผู้ป่วย:</strong> <span id="admin-patient-name" class="break-words"></span></div>
                 <div><strong>เลขบัตรประชาชน:</strong> <span id="admin-patient-id" class="break-words"></span></div>
-                <div><strong>เบอร์โทร:</strong> <span id="admin-patient-phone" class="break-words"></span></div>
+                <div><strong>เบอร์โทร:</strong> <span id="admin-patient-phone" class="break-words text-blue-600 font-bold"></span></div>
                 <div><strong>ผู้ขอ:</strong> <span id="admin-staff-name" class="break-words"></span></div>
                 <div><strong>แพทย์:</strong> <span id="admin-doctor-name" class="break-words"></span></div>
                 <div><strong>ความสัมพันธ์:</strong> <span id="admin-patient-relation" class="break-words"></span></div>
@@ -84,6 +84,16 @@
                 <label class="flex items-start space-x-2">
                     <input type="checkbox" id="dental-confirm-call" class="mt-1 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
                     <span class="text-sm text-gray-700">ยืนยันว่าได้แจ้ง จนท. ทันตกรรม ให้โทรนัดคิว/ตรวจสอบช่วงเวลากับผู้ป่วยแล้ว</span>
+                </label>
+            </div>
+
+            <!-- Psych Safety Check (New) -->
+            <div id="psych-safety-check" class="hidden bg-red-50 border border-red-300 p-3 rounded mb-3">
+                <p class="font-bold text-red-800 text-sm mb-2">⚠️ เช็คความพร้อม (นัดใหม่จิตเวช)</p>
+                <p class="text-xs text-gray-700 mb-2">กรุณาประสานงาน จนท. คลินิกเพื่อโทรคอนเฟิร์มวันเวลากับคนไข้ก่อนกดอนุมัติ</p>
+                <label class="flex items-start space-x-2">
+                    <input type="checkbox" id="psych-confirm-call" class="mt-1 h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                    <span class="text-sm text-gray-700">ยืนยันว่าได้แจ้งเบอร์คนไข้ให้ จนท. โทรนัดเรียบร้อยแล้ว</span>
                 </label>
             </div>
 
@@ -360,6 +370,7 @@
                 const rescheduleWrapper = document.getElementById('reschedule-only-wrapper');
                 const safetyChecks = document.getElementById('admin-safety-checks');
                 const dentalSafety = document.getElementById('dental-safety-check');
+                const psychSafety = document.getElementById('psych-safety-check'); // NEW
                 const ptSafety = document.getElementById('pt-safety-check');
                 
                 // Elements
@@ -383,18 +394,28 @@
                     denyBtn.textContent = "ปฏิเสธ";
                     denyBtn.onclick = () => promptDenyOrCancel(appointmentId, 'deny');
 
-                    // Show Safety Checks
+                    // Show Safety Checks Container
                     safetyChecks.classList.remove('hidden');
                     
-                    // Dental Safety
+                    // 1. Dental Safety
                     if (details.department === 'ห้องฟัน') {
                         dentalSafety.classList.remove('hidden');
                     } else {
                         dentalSafety.classList.add('hidden');
                     }
 
-                    // PT Safety (Only for New Appointment)
-                    if (details.department === 'กายภาพบำบัด' && details.appointmentType === 'นัดใหม่') {
+                    // 2. Psych Safety (NEW)
+                    const isPsych = details.department && (details.department.includes('คลินิกรักษ์จิต') || details.department.includes('จิตเวช'));
+                    const isNewAppt = details.appointmentType === 'นัดใหม่';
+                    
+                    if (isPsych && isNewAppt) {
+                        psychSafety.classList.remove('hidden');
+                    } else {
+                        psychSafety.classList.add('hidden');
+                    }
+
+                    // 3. PT Safety (Only for New Appointment)
+                    if (details.department === 'กายภาพบำบัด' && isNewAppt) {
                         ptSafety.classList.remove('hidden');
                     } else {
                         ptSafety.classList.add('hidden');
@@ -416,7 +437,7 @@
                             document.getElementById('ttm-confirm-view').classList.remove('hidden');
                         };
                     } else {
-                         approveBtn.onclick = () => checkSafetyAndApprove(details.department, details.uniqueId || appointmentId);
+                         approveBtn.onclick = () => checkSafetyAndApprove(details.department, details.uniqueId || appointmentId, details.appointmentType);
                          document.getElementById('redirect-warning-text').classList.add('hidden');
                     }
 
@@ -463,25 +484,36 @@
             }
         }
 
-        function checkSafetyAndApprove(department, appointmentId) {
-            // Dental Check
+        function checkSafetyAndApprove(department, appointmentId, appointmentType) {
+            // 1. Dental Check
             if (department === 'ห้องฟัน') {
                 const confirmed = document.getElementById('dental-confirm-call').checked;
                 if (!confirmed) {
-                    alert('กรุณาติ๊กยืนยันว่าได้แจ้ง จนท. ทันตกรรม ให้โทรนัดคิวแล้ว ก่อนกดอนุมัติ');
+                    alert('⚠️ กรุณาติ๊กยืนยันว่าได้แจ้ง จนท. ทันตกรรม ให้โทรนัดคิวแล้ว ก่อนกดอนุมัติ');
+                    return;
+                }
+            }
+
+            // 2. Psych Check (NEW)
+            const isPsych = department && (department.includes('คลินิกรักษ์จิต') || department.includes('จิตเวช'));
+            if (isPsych && appointmentType === 'นัดใหม่') {
+                const confirmed = document.getElementById('psych-confirm-call').checked;
+                if (!confirmed) {
+                    alert('⚠️ กรุณาประสานงาน จนท. และติ๊กยืนยันว่าได้แจ้งเบอร์โทรคนไข้แล้ว ก่อนกดอนุมัติ');
                     return;
                 }
             }
             
-            // PT Check
+            // 3. PT Check
             let extraOptions = {};
             if (department === 'กายภาพบำบัด') {
                 const ptRadios = document.getElementsByName('pt-pmr-status');
                 // Only check if radios are visible (meaning it's a new appointment)
-                if (document.getElementById('pt-safety-check').offsetParent !== null) {
+                // Use offsetParent check or simpler classList check
+                if (!document.getElementById('pt-safety-check').classList.contains('hidden')) {
                     let selected = Array.from(ptRadios).find(r => r.checked);
                     if (!selected) {
-                        alert('กรุณาระบุสถานะแพทย์ PMR (คนไข้นัดใหม่) ก่อนอนุมัติ');
+                        alert('⚠️ กรุณาระบุสถานะแพทย์ PMR (คนไข้นัดใหม่) ก่อนอนุมัติ');
                         return;
                     }
                     extraOptions.ptDoctorStatus = selected.value;
@@ -566,8 +598,6 @@
         }
 
         function setupAndShowRegistrationForm() {
-           // ... (Same as before, abbreviated for space, ensure full content in final file) ...
-           // Note: I will paste the previous registration code block here to be safe.
            const container = document.getElementById('registration-view');
             container.innerHTML = `
                 <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">ลงทะเบียน</h1>
