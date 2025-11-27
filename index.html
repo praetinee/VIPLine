@@ -15,7 +15,7 @@
         .btn-green { @apply bg-green-500 hover:bg-green-600 text-white; }
         .btn-red { @apply bg-red-500 hover:bg-red-600 text-white; }
         .btn-yellow { @apply bg-yellow-500 hover:bg-yellow-600 text-black; }
-        .btn-gray { @apply bg-gray-500 hover:bg-gray-600 text-white; } /* Added gray button style */
+        .btn-gray { @apply bg-gray-500 hover:bg-gray-600 text-white; } 
         .btn-disabled { @apply bg-gray-400 text-white cursor-not-allowed transform-none; }
     </style>
 </head>
@@ -105,7 +105,7 @@
             <div id="admin-action-buttons" class="hidden">
                 <div class="flex flex-row gap-2">
                     <button id="admin-approve-btn" class="btn btn-green flex-1">อนุมัติ</button>
-                    <button id="admin-deny-btn" class="btn btn-red flex-1">ปฏิเสธ</button> <!-- Text will change via JS -->
+                    <button id="admin-deny-btn" class="btn btn-red flex-1">ปฏิเสธ</button>
                     <button id="admin-reschedule-toggle-btn" class="btn btn-yellow flex-1">เลื่อนนัด</button>
                 </div>
             </div>
@@ -346,16 +346,27 @@
                 const dentalSafety = document.getElementById('dental-safety-check');
                 const ptSafety = document.getElementById('pt-safety-check');
                 
-                // --- ✅ MODIFIED: Reset button visibility first ---
-                document.getElementById('admin-approve-btn').classList.remove('hidden');
-                document.getElementById('admin-deny-btn').classList.remove('hidden');
-                document.getElementById('admin-reschedule-toggle-btn').classList.remove('hidden');
+                // Elements
+                const approveBtn = document.getElementById('admin-approve-btn');
+                const denyBtn = document.getElementById('admin-deny-btn');
+                const rescheduleBtn = document.getElementById('admin-reschedule-toggle-btn');
+
+                // Reset
+                approveBtn.classList.remove('hidden');
+                denyBtn.classList.remove('hidden');
+                rescheduleBtn.classList.remove('hidden');
+                denyBtn.className = 'btn btn-red flex-1'; // Reset class
 
                 if (details.status === 'pending') {
+                    // Case 1: Pending
                     statusBanner.classList.add('hidden');
                     actionButtons.classList.remove('hidden');
                     rescheduleWrapper.classList.add('hidden');
                     
+                    // Buttons
+                    denyBtn.textContent = "ปฏิเสธ";
+                    denyBtn.onclick = () => promptDenyOrCancel(appointmentId, 'deny');
+
                     // Show Safety Checks
                     safetyChecks.classList.remove('hidden');
                     
@@ -373,58 +384,67 @@
                         ptSafety.classList.add('hidden');
                     }
 
-                    // TTM Logic: Hide Approve Button if High Risk & Never Seen Doctor
+                    // TTM Logic
                     if (isHighRiskTTM && isNeverSeenDoctor) {
-                        document.getElementById('admin-approve-btn').classList.add('btn-disabled');
-                        document.getElementById('admin-approve-btn').disabled = true;
-                        document.getElementById('admin-approve-btn').textContent = "อนุมัติ (มีความเสี่ยง)";
-                        // Highlight Reschedule
-                        document.getElementById('admin-reschedule-toggle-btn').classList.add('ring-2', 'ring-red-500');
+                        approveBtn.classList.add('btn-disabled');
+                        approveBtn.disabled = true;
+                        approveBtn.textContent = "อนุมัติ (มีความเสี่ยง)";
+                        rescheduleBtn.classList.add('ring-2', 'ring-red-500');
                         document.getElementById('redirect-warning-text').classList.remove('hidden');
                         document.getElementById('reschedule-form-title').textContent = "เลื่อนนัด / เปลี่ยนแผนก (Redirect)";
                         
-                        // BUT: User wants a flow to "Confirm" approval if they really want to.
-                        // So let's enable it but change click behavior.
-                        document.getElementById('admin-approve-btn').disabled = false;
-                        document.getElementById('admin-approve-btn').classList.remove('btn-disabled');
-                        document.getElementById('admin-approve-btn').onclick = () => {
-                            // Show Confirm View
+                        approveBtn.disabled = false;
+                        approveBtn.classList.remove('btn-disabled');
+                        approveBtn.onclick = () => {
                             actionButtons.classList.add('hidden');
                             document.getElementById('ttm-confirm-view').classList.remove('hidden');
                         };
                     } else {
-                         document.getElementById('admin-approve-btn').onclick = () => checkSafetyAndApprove(details.department, details.uniqueId || appointmentId);
+                         approveBtn.onclick = () => checkSafetyAndApprove(details.department, details.uniqueId || appointmentId);
                          document.getElementById('redirect-warning-text').classList.add('hidden');
                     }
 
                 } else {
-                    // --- ✅ MODIFIED: Already processed case ---
-                    // Show banner
+                    // Case 2: Already Processed
                     statusBanner.classList.remove('hidden');
                     document.getElementById('admin-status-text').textContent = `สถานะ: ${details.status.toUpperCase()} โดย ${details.adminApprover || 'N/A'}`;
                     statusBanner.className = 'p-3 rounded-md mb-4 text-center font-semibold';
-                    const statusClasses = details.status.includes('approved') ? ['bg-green-100', 'text-green-800'] : ['bg-red-100', 'text-red-800'];
+                    
+                    let statusClasses = ['bg-gray-100', 'text-gray-800'];
+                    if (details.status.includes('approved')) statusClasses = ['bg-green-100', 'text-green-800'];
+                    if (details.status.includes('denied') || details.status.includes('cancelled')) statusClasses = ['bg-red-100', 'text-red-800'];
                     statusBanner.classList.add(...statusClasses);
 
-                    // Show Action Buttons, BUT Hide Approve
+                    // Show buttons but Hide Approve
                     actionButtons.classList.remove('hidden');
-                    document.getElementById('admin-approve-btn').classList.add('hidden'); // Hide Approve
-                    
-                    // Ensure Deny and Reschedule are visible
-                    document.getElementById('admin-deny-btn').classList.remove('hidden');
-                    document.getElementById('admin-reschedule-toggle-btn').classList.remove('hidden');
-
-                    // Hide Safety Checks & simplified wrapper
-                    safetyChecks.classList.add('hidden'); 
+                    approveBtn.classList.add('hidden');
+                    safetyChecks.classList.add('hidden');
                     rescheduleWrapper.classList.add('hidden');
+
+                    // Handle Cancel Button
+                    if (details.status.includes('approved')) {
+                        denyBtn.textContent = "ยกเลิกนัดหมาย";
+                        denyBtn.classList.remove('btn-red');
+                        denyBtn.classList.add('btn-gray');
+                        denyBtn.onclick = () => promptDenyOrCancel(appointmentId, 'cancel');
+                    } else {
+                        denyBtn.classList.add('hidden'); // Already denied/cancelled
+                    }
                 }
                 
-                // Reschedule & Deny Setup
                 setupRescheduleAndDeny(details.uniqueId || appointmentId, isHighRiskTTM && isNeverSeenDoctor);
-                
                 showView('admin-view');
             } catch (error) {
                 showError(`[loadAdminView] ${error.message}`);
+            }
+        }
+
+        // Helper for Deny/Cancel Prompt
+        function promptDenyOrCancel(appointmentId, actionType) {
+            const actionText = actionType === 'cancel' ? 'ยกเลิกนัดหมาย' : 'ปฏิเสธนัดหมาย';
+            const reason = prompt(`กรุณาระบุเหตุผลในการ${actionText}:`);
+            if (reason && reason.trim()) { 
+                handleAdminActionClick(actionType, appointmentId, { reason: reason.trim() }); 
             }
         }
 
@@ -458,15 +478,11 @@
         }
 
         function setupRescheduleAndDeny(appointmentId, isRedirectCase) {
-            document.getElementById('admin-deny-btn').onclick = () => {
-                const reason = prompt("กรุณาระบุเหตุผลในการปฏิเสธ:");
-                if (reason && reason.trim()) { handleAdminActionClick('deny', appointmentId, { reason: reason.trim() }); }
-            };
-
+            // Deny/Cancel button logic is handled dynamically in loadAdminView now.
+            
             const rescheduleForm = document.getElementById('admin-reschedule-form');
             const toggleReschedule = () => {
                 rescheduleForm.classList.toggle('hidden');
-                // Reset department dropdown
                 populateDepartmentDropdown('admin-new-department');
             };
             
@@ -684,183 +700,164 @@
                 document.getElementById('med-warning-wrapper').classList.toggle('hidden', e.target.value !== 'ห้องตรวจอายุรกรรม');
                 document.getElementById('ttm-triage-wrapper').classList.toggle('hidden', !isTTM);
                 
-                // --- Admin Action Logic ---
-                const statusBanner = document.getElementById('admin-status-banner');
-                const actionButtons = document.getElementById('admin-action-buttons');
-                const rescheduleWrapper = document.getElementById('reschedule-only-wrapper');
-                const safetyChecks = document.getElementById('admin-safety-checks');
-                const dentalSafety = document.getElementById('dental-safety-check');
-                const ptSafety = document.getElementById('pt-safety-check');
-                
-                // Button Elements
-                const approveBtn = document.getElementById('admin-approve-btn');
-                const denyBtn = document.getElementById('admin-deny-btn');
-                const rescheduleBtn = document.getElementById('admin-reschedule-toggle-btn');
-
-                // Reset visibility
-                approveBtn.classList.remove('hidden');
-                denyBtn.classList.remove('hidden');
-                rescheduleBtn.classList.remove('hidden');
-                
-                // --- LOGIC: Button Text & State ---
-                if (details.status === 'pending') {
-                    // Case 1: Pending
-                    statusBanner.classList.add('hidden');
-                    actionButtons.classList.remove('hidden');
-                    rescheduleWrapper.classList.add('hidden');
-                    
-                    // Buttons for pending
-                    denyBtn.textContent = "ปฏิเสธ";
-                    denyBtn.onclick = () => promptDenyOrCancel(appointmentId, 'deny'); // 'deny' action
-
-                    // Show Safety Checks
-                    safetyChecks.classList.remove('hidden');
-                    // ... (Existing safety check logic for Dental/PT/TTM) ...
-                    // Dental Safety
-                    if (details.department === 'ห้องฟัน') {
-                        dentalSafety.classList.remove('hidden');
-                    } else {
-                        dentalSafety.classList.add('hidden');
-                    }
-
-                    // PT Safety (Only for New Appointment)
-                    if (details.department === 'กายภาพบำบัด' && details.appointmentType === 'นัดใหม่') {
-                        ptSafety.classList.remove('hidden');
-                    } else {
-                        ptSafety.classList.add('hidden');
-                    }
-
-                    // TTM Logic
-                    if (isHighRiskTTM && isNeverSeenDoctor) {
-                        approveBtn.classList.add('btn-disabled');
-                        approveBtn.disabled = true;
-                        approveBtn.textContent = "อนุมัติ (มีความเสี่ยง)";
-                        rescheduleBtn.classList.add('ring-2', 'ring-red-500');
-                        document.getElementById('redirect-warning-text').classList.remove('hidden');
-                        document.getElementById('reschedule-form-title').textContent = "เลื่อนนัด / เปลี่ยนแผนก (Redirect)";
-                        
-                        approveBtn.disabled = false;
-                        approveBtn.classList.remove('btn-disabled');
-                        approveBtn.onclick = () => {
-                            actionButtons.classList.add('hidden');
-                            document.getElementById('ttm-confirm-view').classList.remove('hidden');
-                        };
-                    } else {
-                         approveBtn.onclick = () => checkSafetyAndApprove(details.department, details.uniqueId || appointmentId);
-                         document.getElementById('redirect-warning-text').classList.add('hidden');
-                    }
-
-                } else {
-                    // Case 2: Already Processed (Approved, Rescheduled, Denied, Cancelled)
-                    
-                    // Show Banner
-                    statusBanner.classList.remove('hidden');
-                    document.getElementById('admin-status-text').textContent = `สถานะ: ${details.status.toUpperCase()} โดย ${details.adminApprover || 'N/A'}`;
-                    statusBanner.className = 'p-3 rounded-md mb-4 text-center font-semibold';
-                    
-                    let statusClasses = ['bg-gray-100', 'text-gray-800'];
-                    if (details.status.includes('approved')) statusClasses = ['bg-green-100', 'text-green-800'];
-                    if (details.status.includes('denied') || details.status.includes('cancelled')) statusClasses = ['bg-red-100', 'text-red-800'];
-                    statusBanner.classList.add(...statusClasses);
-
-                    // Action Buttons Logic
-                    actionButtons.classList.remove('hidden');
-                    approveBtn.classList.add('hidden'); // Hide Approve
-                    safetyChecks.classList.add('hidden'); // Hide Checks
-                    rescheduleWrapper.classList.add('hidden');
-
-                    // If already denied/cancelled -> Hide everything except maybe "Reschedule" (to revive)?
-                    // Ideally, if denied/cancelled, we might want to disable buttons or allow 'Reschedule' to re-open.
-                    // For now, let's allow Reschedule/Cancel on 'Approved' items.
-                    
-                    if (details.status.includes('approved')) {
-                        denyBtn.textContent = "ยกเลิกนัดหมาย"; // Change Text
-                        denyBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
-                        denyBtn.classList.add('bg-gray-500', 'hover:bg-gray-600'); // Make it gray to differentiate
-                        denyBtn.onclick = () => promptDenyOrCancel(appointmentId, 'cancel'); // 'cancel' action
-                    } else {
-                        // If already denied/cancelled, maybe hide the deny/cancel button to prevent double action
-                        denyBtn.classList.add('hidden');
-                    }
-                }
-                
-                // Reschedule Setup
-                setupRescheduleAndDeny(details.uniqueId || appointmentId, isHighRiskTTM && isNeverSeenDoctor);
-                
-                showView('admin-view');
-            } catch (error) {
-                showError(`[loadAdminView] ${error.message}`);
-            }
-        }
-
-        // Helper for Deny/Cancel Prompt
-        function promptDenyOrCancel(appointmentId, actionType) {
-            const actionText = actionType === 'cancel' ? 'ยกเลิกนัดหมาย' : 'ปฏิเสธนัดหมาย';
-            const reason = prompt(`กรุณาระบุเหตุผลในการ${actionText}:`);
-            if (reason && reason.trim()) { 
-                // Use 'handleAdminAction' with specific action type
-                // Note: 'cancel' is a new action we will handle in Code.gs
-                handleAdminActionClick(actionType, appointmentId, { reason: reason.trim() }); 
-            }
-        }
-
-        function setupRescheduleAndDeny(appointmentId, isRedirectCase) {
-            // Note: The deny button onclick is now handled dynamically in loadAdminView based on status
-            // So we remove the static assignment here to avoid overwriting.
-            
-            const rescheduleForm = document.getElementById('admin-reschedule-form');
-            // ... rest of reschedule setup ...
-            const toggleReschedule = () => {
-                rescheduleForm.classList.toggle('hidden');
-                populateDepartmentDropdown('admin-new-department');
-            };
-            
-            document.getElementById('admin-reschedule-toggle-btn').addEventListener('click', toggleReschedule);
-            // document.getElementById('admin-reschedule-toggle-btn-processed').addEventListener('click', toggleReschedule); // Removed old wrapper btn logic
-            
-            // ... TTM Confirm buttons ...
-            document.getElementById('ttm-confirm-back-btn').onclick = () => {
-                document.getElementById('ttm-confirm-view').classList.add('hidden');
-                document.getElementById('admin-action-buttons').classList.remove('hidden');
-            };
-            document.getElementById('ttm-confirm-approve-btn').onclick = () => {
-                handleAdminActionClick('approve', appointmentId);
-            };
-            
-            // ... Reschedule form validation & submit ...
-            const adminDateTimeInput = document.getElementById('admin-new-datetime');
-            const adminDatetimeError = document.getElementById('admin-datetime-error');
-            const adminSubmitBtn = document.getElementById('admin-reschedule-submit');
-            
-            validateAndSetMinDate(adminDateTimeInput, adminDatetimeError, adminSubmitBtn);
-            
-            document.getElementById('admin-new-department').addEventListener('change', (e) => {
-                const isOther = e.target.value === 'อื่นๆ';
-                document.getElementById('admin-other-department-wrapper').classList.toggle('hidden', !isOther);
-                document.getElementById('admin-other-department-detail').required = isOther;
+                document.getElementById('other-department-detail').required = isOther;
+                document.querySelectorAll('input[name="dental-service"]').forEach(radio => radio.required = isDental);
+                document.querySelectorAll('input[name="dental-pain"]').forEach(radio => radio.required = isDental);
             });
 
-            rescheduleForm.onsubmit = (e) => {
-                e.preventDefault();
-                const newDateTime = document.getElementById('admin-new-datetime').value;
-                if (!newDateTime) {
-                    document.getElementById('admin-datetime-error').textContent = 'กรุณาเลือกวันเวลาใหม่';
-                    document.getElementById('admin-datetime-error').classList.remove('hidden');
-                    return;
-                }
-                let newDepartment = document.getElementById('admin-new-department').value;
-                if (newDepartment === 'อื่นๆ') {
-                    newDepartment = document.getElementById('admin-other-department-detail').value;
-                }
-                
-                handleAdminActionClick('reschedule', appointmentId, { 
-                    newDateTime, 
-                    newDepartment: newDepartment || '',
-                    isRedirect: isRedirectCase
+            // TTM High Risk Logic
+            const highRiskCheckboxes = document.querySelectorAll('input[name="ttm-symptom"][value="muscle_weakness"], input[name="ttm-symptom"][value="recent_accident"], input[name="ttm-symptom"][value="bone_issue"], input[name="ttm-symptom"][value="cancer"]');
+            highRiskCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const anyHighRisk = Array.from(highRiskCheckboxes).some(c => c.checked);
+                    document.getElementById('ttm-high-risk-followup').classList.toggle('hidden', !anyHighRisk);
                 });
-            };
+            });
+
+            document.querySelectorAll('input[name="dental-service"]').forEach(r => r.addEventListener('change', (e) => {
+                const isOtherDental = e.target.value === 'อื่นๆ';
+                document.getElementById('other-dental-service').classList.toggle('hidden', !isOtherDental);
+                document.getElementById('other-dental-service-detail').required = isOtherDental;
+            }));
+            
+            document.querySelectorAll('input[name="appointment-type"]').forEach(r => r.addEventListener('change', (e) => {
+                const isFollowUp = e.target.value === 'นัดเดิม';
+                document.getElementById('follow-up-details').classList.toggle('hidden', !isFollowUp);
+                document.getElementById('doctor-name-wrapper').classList.toggle('hidden', !isFollowUp);
+                document.querySelectorAll('input[name="follow-up-on-schedule"]').forEach(radio => radio.required = isFollowUp);
+            }));
+            
+            document.getElementById('submit-button').addEventListener('click', (e) => {
+                const form = document.getElementById('appointment-form');
+                handleAppointmentSubmit(e, form);
+            });
+            showView('main-form-view');
         }
-        // ... existing helper functions ...
+
+        function validateAndSetMinDate(inputElement, errorElement, submitButton) {
+            const now = new Date();
+            const minBookingDate = new Date(now);
+            minBookingDate.setHours(8, 0, 0, 0); 
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            if (currentHour > 15 || (currentHour === 15 && currentMinute >= 30)) { minBookingDate.setDate(now.getDate() + 2); } 
+            else { minBookingDate.setDate(now.getDate() + 1); }
+            const tempMinDate = new Date(minBookingDate);
+            tempMinDate.setMinutes(tempMinDate.getMinutes() - tempMinDate.getTimezoneOffset());
+            inputElement.min = tempMinDate.toISOString().slice(0, 16);
+            
+            const validate = () => {
+                if (!inputElement.value) { errorElement.classList.add('hidden'); errorElement.textContent = 'กรุณาเลือกวันเวลาที่ต้องการนัด'; submitButton.disabled = true; return; }
+                const selected = new Date(inputElement.value);
+                const day = selected.getDay();
+                const hour = selected.getHours();
+                const minute = selected.getMinutes();
+                if (day === 0 || day === 6) { errorElement.textContent = 'ขออภัย ระบบไม่เปิดรับการนัดหมายในวันเสาร์-อาทิตย์'; errorElement.classList.remove('hidden'); submitButton.disabled = true; return; }
+                if (hour < 8 || hour > 15 || (hour === 15 && minute > 30)) { errorElement.textContent = 'กรุณาเลือกเวลาในช่วงเวลาบริการ 08:00 - 15:30 น.'; errorElement.classList.remove('hidden'); submitButton.disabled = true; return; }
+                const minCompareDate = new Date(minBookingDate.getTime() - 60000); 
+                if (selected < minCompareDate) {
+                    let errorMessage = 'กรุณานัดหมายล่วงหน้า: ';
+                    if (currentHour > 15 || (currentHour === 15 && currentMinute >= 30)) { errorMessage += 'หลัง 15:30น. สามารถนัดหมายได้เร็วที่สุดคือวันมะรืนนี้'; } 
+                    else { errorMessage += 'หากต้องการนัดวันพรุ่งนี้ กรุณาทำรายการภายใน 15:30น. ของวันนี้'; }
+                    errorElement.textContent = errorMessage; errorElement.classList.remove('hidden'); submitButton.disabled = true; return;
+                }
+                errorElement.classList.add('hidden'); submitButton.disabled = false;
+            };
+            inputElement.addEventListener('input', validate);
+            validate(); 
+        }
+
+        async function handleAdminActionClick(adminActionType, appointmentId, options = {}) {
+            showView('loading-view');
+            try {
+                const payload = { 
+                    action: 'handleAdminAction', adminActionType: adminActionType, 
+                    appointmentId, adminName: userProfile.displayName, 
+                    extraOptions: options, ...options // Pass top level or inside extraOptions
+                };
+                const result = await postToServer(payload);
+                if (result.data && result.data.alreadyProcessed) { showError(`ไม่สามารถดำเนินการได้: ${result.data.message}`); } 
+                else if (result.status === 'success') { liff.closeWindow(); } 
+                else { showError(result.message || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'); }
+            } catch (error) { showError(`[handleAdminAction] ${error.message}`); }
+        }
+        
+        async function handleAppointmentSubmit(e, formElement) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-button');
+            const spinner = document.getElementById('submit-spinner');
+            const submitText = document.getElementById('submit-text');
+            const errorMsgElement = document.getElementById('form-error-message');
+            
+            submitBtn.disabled = true; spinner.classList.remove('hidden'); submitText.classList.add('hidden'); errorMsgElement.classList.add('hidden');
+            const formData = new FormData(formElement);
+            const data = Object.fromEntries(formData.entries());
+
+            const showFormError = (message) => {
+                console.error("Validation Error:", message);
+                errorMsgElement.textContent = message; errorMsgElement.classList.remove('hidden');
+                errorMsgElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                submitBtn.disabled = false; spinner.classList.add('hidden'); submitText.classList.remove('hidden');
+            };
+
+            if (data['patient-relation'] === 'อื่นๆ' && !data['other-relation-detail']?.trim()) { showFormError('คุณเลือก "ความสัมพันธ์อื่นๆ" กรุณาพิมพ์รายละเอียดในช่อง "โปรดระบุ" ด้วยครับ'); return; }
+            if (data.department === 'อื่นๆ' && !data['other-department-detail']?.trim()) { showFormError('คุณเลือก "แผนกอื่นๆ" กรุณาพิมพ์ชื่อแผนกในช่อง "โปรดระบุแผนก" ด้วยครับ'); return; }
+            if (data.department === 'ห้องฟัน' && data['dental-service'] === 'อื่นๆ' && !data['other-department-detail']?.trim()) { showFormError('คุณเลือก "บริการห้องฟันอื่นๆ" กรุณาพิมพ์รายละเอียดในช่อง "โปรดระบุ" ด้วยครับ'); return; }
+
+            // ✅ ADDED: Phone number validation
+            if (!data['patient-phone'] || !/^\d{10}$/.test(data['patient-phone'])) {
+                showFormError('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)');
+                return;
+            }
+
+            // TTM Validation
+            let ttmSymptoms = [];
+            let ttmSeenDoctor = '';
+            if (data.department === 'แพทย์แผนไทย') {
+                ttmSymptoms = formData.getAll('ttm-symptom');
+                const highRisks = ['muscle_weakness', 'recent_accident', 'bone_issue', 'cancer'];
+                const hasHighRisk = ttmSymptoms.some(s => highRisks.includes(s));
+                if (hasHighRisk) {
+                     ttmSeenDoctor = data['ttm-seen-doctor'];
+                     if (!ttmSeenDoctor) { showFormError('กรุณาระบุว่าท่านเคยพบแพทย์แผนปัจจุบันแล้วหรือไม่ (เนื่องจากท่านเลือกอาการที่มีความเสี่ยงสูง)'); return; }
+                }
+            }
+
+            let patientRelation = data['patient-relation'] === 'อื่นๆ' ? data['other-relation-detail'] : data['patient-relation'];
+            let department = data.department === 'อื่นๆ' ? data['other-department-detail'] : data.department;
+            let dentalService = (data['dental-service'] === 'อื่นๆ' ? data['other-dental-service-detail'] : data['dental-service']) || '';
+
+            const appointmentData = {
+                action: 'submitAppointment', userId: userProfile.userId, staffFullName: staffInfo.fullName,
+                staffHn: staffInfo.hn, patientRelation, patientFullName: data['patient-fullname'],
+                patientId: data['patient-id'] || '', patientPhone: data['patient-phone'], 
+                patientStatus: data['patient-status'], symptoms: data.symptoms,
+                appointmentType: data['appointment-type'], department,
+                doctorName: data['doctor-name'] || '', followUpOnSchedule: data['follow-up-on-schedule'] || '', 
+                appointmentDateTime: data['appointment-datetime'], notes: data.notes, 
+                isOtherRelation: data['patient-relation'] === 'อื่นๆ', dentalService, dentalPain: data['dental-pain'] || '',
+                ttmSymptoms: ttmSymptoms, // Array
+                ttmSeenDoctor: ttmSeenDoctor
+            };
+            
+            try { await postToServer(appointmentData); showView('success-view'); } 
+            catch (error) { showFormError(error.message); }
+        }
+
+        async function postToServer(data) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST', body: JSON.stringify(data),
+                    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                });
+                if (!response.ok) { const errorText = await response.text(); throw new Error(`Server ${response.status}: ${errorText}`); }
+                const result = await response.json();
+                if (result.status === 'error') { throw new Error(result.message); }
+                return result; 
+            } catch (error) { throw error; }
+        }
+
+        main();
     </script>
 </body>
 </html>
