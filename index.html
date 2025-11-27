@@ -772,6 +772,12 @@
             if (data.department === 'อื่นๆ' && !data['other-department-detail']?.trim()) { showFormError('คุณเลือก "แผนกอื่นๆ" กรุณาพิมพ์ชื่อแผนกในช่อง "โปรดระบุแผนก" ด้วยครับ'); return; }
             if (data.department === 'ห้องฟัน' && data['dental-service'] === 'อื่นๆ' && !data['other-department-detail']?.trim()) { showFormError('คุณเลือก "บริการห้องฟันอื่นๆ" กรุณาพิมพ์รายละเอียดในช่อง "โปรดระบุ" ด้วยครับ'); return; }
 
+            // ✅ ADDED: Phone number validation
+            if (!data['patient-phone'] || !/^\d{10}$/.test(data['patient-phone'])) {
+                showFormError('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)');
+                return;
+            }
+
             // TTM Validation
             let ttmSymptoms = [];
             let ttmSeenDoctor = '';
