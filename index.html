@@ -61,13 +61,18 @@
             <div id="admin-ttm-info-wrapper" class="hidden mt-3 pt-3 border-t">
                 <h3 class="font-semibold text-gray-800">ข้อมูลการประเมินอาการเบื้องต้น</h3>
                 <div id="admin-ttm-symptoms-list" class="mt-2 text-sm space-y-1"></div>
-                <!-- ✅ Added explicit seen doctor status display -->
                 <div class="mt-2"><strong>ประวัติพบแพทย์แผนปัจจุบัน:</strong> <span id="admin-ttm-seen-doctor-status" class="font-bold"></span></div>
                 <div id="admin-ttm-alert-box" class="mt-2 p-2 rounded text-xs font-bold hidden"></div>
             </div>
 
             <div class="mt-3 pt-3 border-t"><p><strong>อาการ/ความผิดปกติ:</strong></p><p id="admin-symptoms" class="mt-1 p-2 bg-gray-50 rounded break-words"></p></div>
             <div class="mt-3 pt-3 border-t"><p><strong>หมายเหตุ:</strong></p><p id="admin-notes" class="mt-1 p-2 bg-gray-50 rounded break-words"></p></div>
+        </div>
+
+        <!-- History Log Section -->
+        <div id="admin-history-section" class="mt-4 p-4 border rounded-md bg-gray-50 hidden">
+            <h3 class="font-bold text-gray-700 mb-2">📜 ประวัติการดำเนินการ (History)</h3>
+            <div id="admin-history-list" class="text-xs text-gray-600 space-y-3 whitespace-pre-wrap"></div>
         </div>
 
         <!-- Admin Safety Checks (Visible before actions) -->
@@ -265,6 +270,14 @@
                 document.getElementById('admin-symptoms').textContent = details.symptoms || '-';
                 document.getElementById('admin-notes').textContent = details.notes || '-';
                 
+                // Show History
+                if (details.actionHistory) {
+                    document.getElementById('admin-history-section').classList.remove('hidden');
+                    document.getElementById('admin-history-list').textContent = details.actionHistory;
+                } else {
+                    document.getElementById('admin-history-section').classList.add('hidden');
+                }
+
                 // --- Department Specific Logic ---
                 const dentalWrapper = document.getElementById('admin-dental-info-wrapper');
                 const ttmWrapper = document.getElementById('admin-ttm-info-wrapper');
@@ -292,7 +305,10 @@
                     ttmList.innerHTML = '';
                     ttmAlert.className = 'mt-2 p-2 rounded text-xs font-bold hidden';
                     
-                    const symptoms = JSON.parse(details.ttmSymptoms);
+                    // Safe parse in case of unexpected data, though server handles it well now
+                    let symptoms = [];
+                    try { symptoms = JSON.parse(details.ttmSymptoms); } catch(e) {}
+                    
                     const highRisks = ['muscle_weakness', 'recent_accident', 'bone_issue', 'cancer'];
                     
                     symptoms.forEach(sym => {
@@ -351,7 +367,7 @@
                 const denyBtn = document.getElementById('admin-deny-btn');
                 const rescheduleBtn = document.getElementById('admin-reschedule-toggle-btn');
 
-                // Reset
+                // Reset visibility
                 approveBtn.classList.remove('hidden');
                 denyBtn.classList.remove('hidden');
                 rescheduleBtn.classList.remove('hidden');
@@ -439,7 +455,6 @@
             }
         }
 
-        // Helper for Deny/Cancel Prompt
         function promptDenyOrCancel(appointmentId, actionType) {
             const actionText = actionType === 'cancel' ? 'ยกเลิกนัดหมาย' : 'ปฏิเสธนัดหมาย';
             const reason = prompt(`กรุณาระบุเหตุผลในการ${actionText}:`);
@@ -478,8 +493,6 @@
         }
 
         function setupRescheduleAndDeny(appointmentId, isRedirectCase) {
-            // Deny/Cancel button logic is handled dynamically in loadAdminView now.
-            
             const rescheduleForm = document.getElementById('admin-reschedule-form');
             const toggleReschedule = () => {
                 rescheduleForm.classList.toggle('hidden');
@@ -489,7 +502,6 @@
             document.getElementById('admin-reschedule-toggle-btn').addEventListener('click', toggleReschedule);
             document.getElementById('admin-reschedule-toggle-btn-processed').addEventListener('click', toggleReschedule);
             
-            // TTM Confirm Buttons
             document.getElementById('ttm-confirm-back-btn').onclick = () => {
                 document.getElementById('ttm-confirm-view').classList.add('hidden');
                 document.getElementById('admin-action-buttons').classList.remove('hidden');
@@ -523,7 +535,6 @@
                     newDepartment = document.getElementById('admin-other-department-detail').value;
                 }
                 
-                // If it's the High Risk TTM case, we mark it as isRedirect
                 handleAdminActionClick('reschedule', appointmentId, { 
                     newDateTime, 
                     newDepartment: newDepartment || '',
