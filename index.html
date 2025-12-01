@@ -83,17 +83,19 @@
                 <p class="font-bold text-yellow-800 text-sm mb-2">⚠️ เช็คความพร้อมก่อนอนุมัติ (ห้องฟัน)</p>
                 <label class="flex items-start space-x-2">
                     <input type="checkbox" id="dental-confirm-call" class="mt-1 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
-                    <span class="text-sm text-gray-700">ยืนยันว่าได้แจ้ง จนท. ทันตกรรม ให้โทรนัดคิว/ตรวจสอบช่วงเวลากับผู้ป่วยแล้ว</span>
+                    <span class="text-sm text-gray-700">ยืนยันว่าได้แจ้ง (บริการ+อาการปวด) ให้ห้องฟันประเมินคิวแล้ว</span>
                 </label>
             </div>
 
             <!-- Psych Safety Check (New) -->
             <div id="psych-safety-check" class="hidden bg-red-50 border border-red-300 p-3 rounded mb-3">
                 <p class="font-bold text-red-800 text-sm mb-2">⚠️ เช็คความพร้อม (นัดใหม่จิตเวช)</p>
-                <p class="text-xs text-gray-700 mb-2">กรุณาประสานงาน จนท. คลินิกเพื่อโทรคอนเฟิร์มวันเวลากับคนไข้ก่อนกดอนุมัติ</p>
+                <!-- ✅ FIX: เปลี่ยนคำแนะนำให้ชัดเจน -->
+                <p class="text-xs text-gray-700 mb-2">กรุณาแจ้งเบอร์โทรคนไข้ ให้ จนท. คลินิกรักษ์จิต เพื่อโทรนัดวันเวลากับคนไข้ (แอดมินไม่ต้องโทรเอง)</p>
                 <label class="flex items-start space-x-2">
                     <input type="checkbox" id="psych-confirm-call" class="mt-1 h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
-                    <span class="text-sm text-gray-700">ยืนยันว่าได้แจ้งเบอร์คนไข้ให้ จนท. โทรนัดเรียบร้อยแล้ว</span>
+                    <!-- ✅ FIX: เปลี่ยนข้อความ Checkbox -->
+                    <span class="text-sm text-gray-700">ยืนยันว่าได้ส่งเบอร์ให้คลินิกเรียบร้อยแล้ว</span>
                 </label>
             </div>
 
@@ -128,7 +130,7 @@
             <!-- Special Confirmation for High Risk TTM -->
             <div id="ttm-confirm-view" class="hidden bg-red-50 border border-red-200 p-4 rounded-md">
                 <h3 class="text-red-700 font-bold text-lg mb-2">⚠️ ยืนยันการอนุมัติ?</h3>
-                <p class="text-sm text-gray-700 mb-4">ผู้ป่วยมีอาการในกลุ่มที่ควรได้รับการประเมิน แต่ท่านต้องการยืนยันให้เข้ารับบริการที่ <strong>แพทย์แผนไทย</strong> ทันทีใช่หรือไม่?</p>
+                <p class="text-sm text-gray-700 mb-4">ผู้ป่วยมีอาการเสี่ยงสูงและยังไม่เคยพบแพทย์ (แนะนำให้ Redirect)</p>
                 <div class="flex gap-2">
                     <button id="ttm-confirm-back-btn" class="btn bg-gray-300 text-gray-700 hover:bg-gray-400">กลับไปแก้ไข</button>
                     <button id="ttm-confirm-approve-btn" class="btn bg-red-600 text-white hover:bg-red-700">ยืนยัน (อนุมัติ)</button>
@@ -140,7 +142,7 @@
             <!-- Reschedule Form -->
             <form id="admin-reschedule-form" class="mt-3 p-4 border rounded-md hidden bg-yellow-50">
                 <h3 id="reschedule-form-title" class="font-bold mb-3">เลื่อนนัดหมาย</h3>
-                <p id="redirect-warning-text" class="text-xs text-red-600 mb-2 hidden">แนะนำให้เปลี่ยนแผนกเป็น "ห้องตรวจโรคทั่วไป" หรือ "จุดคัดกรอง"</p>
+                <p id="redirect-warning-text" class="text-xs text-red-600 mb-2 hidden">⚠️ แนะนำให้เปลี่ยนแผนก (Redirect) เพื่อส่งต่อผู้ป่วย</p>
 
                 <label for="admin-new-datetime" class="block text-sm font-medium text-gray-700">เลือกวันและเวลาใหม่</label>
                 <input type="datetime-local" id="admin-new-datetime" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
@@ -303,7 +305,14 @@
                 if (details.dentalService) {
                     dentalWrapper.classList.remove('hidden');
                     document.getElementById('admin-dental-service').textContent = details.dentalService;
-                    document.getElementById('admin-dental-pain').textContent = details.dentalPain || '-';
+                    // Highlight Pain Status
+                    const painElem = document.getElementById('admin-dental-pain');
+                    painElem.textContent = details.dentalPain || '-';
+                    if(details.dentalPain === 'มี') {
+                        painElem.className = 'text-red-600 font-bold';
+                    } else {
+                        painElem.className = '';
+                    }
                 }
 
                 // TTM View (Logic: Green/Orange/Red)
@@ -313,7 +322,6 @@
                 if (details.department === 'แพทย์แผนไทย' && details.ttmSymptoms) {
                     ttmWrapper.classList.remove('hidden');
                     ttmList.innerHTML = '';
-                    ttmAlert.className = 'mt-2 p-2 rounded text-xs font-bold hidden';
                     
                     // Safe parse in case of unexpected data, though server handles it well now
                     let symptoms = [];
@@ -350,18 +358,17 @@
                         if (details.ttmSeenDoctor === 'no') {
                             isNeverSeenDoctor = true;
                             ttmAlert.textContent = "⛔ ความเสี่ยงสูง: ผู้ป่วยยังไม่เคยพบแพทย์ (แนะนำให้เลื่อนนัด/เปลี่ยนแผนก)";
-                            ttmAlert.classList.add('bg-red-100', 'text-red-700', 'block');
-                            ttmAlert.classList.remove('hidden');
+                            ttmAlert.className = 'mt-2 p-2 rounded text-xs font-bold bg-red-100 text-red-700 block';
                         } else {
                             ttmAlert.textContent = "⚠️ ความเสี่ยงสูง: แต่เคยพบแพทย์แล้ว (โปรดโทรประสานงานห้องแผนไทยก่อนอนุมัติ)";
-                            ttmAlert.classList.add('bg-orange-100', 'text-orange-700', 'block');
-                            ttmAlert.classList.remove('hidden');
+                            ttmAlert.className = 'mt-2 p-2 rounded text-xs font-bold bg-orange-100 text-orange-700 block';
                         }
                     } else {
-                        ttmAlert.textContent = "✅ กลุ่มเสี่ยงต่ำ: สามารถอนุมัติได้ปกติ";
-                        ttmAlert.classList.add('bg-green-100', 'text-green-700', 'block');
-                        ttmAlert.classList.remove('hidden');
+                        // ✅ FIX: Even Low Risk needs to warn about calling queue
+                        ttmAlert.textContent = "⚠️ กลุ่มเสี่ยงต่ำ: โปรดโทรลงคิวห้องแผนไทยก่อนอนุมัติ";
+                        ttmAlert.className = 'mt-2 p-2 rounded text-xs font-bold bg-yellow-100 text-yellow-700 block';
                     }
+                    ttmAlert.classList.remove('hidden');
                 }
 
                 // --- Admin Action Logic ---
@@ -489,7 +496,7 @@
             if (department === 'ห้องฟัน') {
                 const confirmed = document.getElementById('dental-confirm-call').checked;
                 if (!confirmed) {
-                    alert('⚠️ กรุณาติ๊กยืนยันว่าได้แจ้ง จนท. ทันตกรรม ให้โทรนัดคิวแล้ว ก่อนกดอนุมัติ');
+                    alert('⚠️ กรุณาติ๊กยืนยันว่าได้แจ้ง (บริการ+อาการปวด) ให้ห้องฟันประเมินคิวแล้ว ก่อนกดอนุมัติ');
                     return;
                 }
             }
@@ -570,7 +577,8 @@
                 handleAdminActionClick('reschedule', appointmentId, { 
                     newDateTime, 
                     newDepartment: newDepartment || '',
-                    isRedirect: isRedirectCase
+                    isRedirect: isRedirectCase,
+                    redirectReason: isRedirectCase ? 'ความเสี่ยงสูง+ไม่เคยพบแพทย์' : ''
                 });
             };
         }
