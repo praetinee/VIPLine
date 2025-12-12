@@ -839,6 +839,7 @@
             const errorMsgElement = document.getElementById('form-error-message');
             
             // --- FIX 2: Manually check form validity to ensure required fields (like symptoms) are filled ---
+            // We use checkValidity() first to trigger native browser tooltips
             if (!formElement.checkValidity()) {
                 formElement.reportValidity(); // Trigger native browser validation UI
                 submitBtn.disabled = false; spinner.classList.add('hidden'); submitText.classList.remove('hidden');
@@ -855,6 +856,12 @@
                 errorMsgElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
                 submitBtn.disabled = false; spinner.classList.add('hidden'); submitText.classList.remove('hidden');
             };
+
+            // --- EXPLICIT SYMPTOMS VALIDATION ---
+            if (!data.symptoms || data.symptoms.trim() === '') {
+                showFormError('กรุณาระบุ "อาการ/ความผิดปกติ (จำเป็นต้องระบุ)" ก่อนส่งข้อมูล');
+                return;
+            }
 
             if (data['patient-relation'] === 'อื่นๆ' && !data['other-relation-detail']?.trim()) { showFormError('คุณเลือก "ความสัมพันธ์อื่นๆ" กรุณาพิมพ์รายละเอียดในช่อง "โปรดระบุ" ด้วยครับ'); return; }
             if (data.department === 'อื่นๆ' && !data['other-department-detail']?.trim()) { showFormError('คุณเลือก "แผนกอื่นๆ" กรุณาพิมพ์ชื่อแผนกในช่อง "โปรดระบุแผนก" ด้วยครับ'); return; }
