@@ -279,6 +279,8 @@
                 document.getElementById('admin-patient-status').textContent = details.patientStatus;
                 document.getElementById('admin-datetime-request').textContent = new Date(details.appointmentDateTime).toLocaleString('th-TH');
                 document.getElementById('admin-department').textContent = details.department || '-';
+                // ✅ FIX: แสดงผลประเภทนัด (Appointment Type) ในหน้า Admin View
+                document.getElementById('admin-appointment-type').textContent = details.appointmentType || '-'; 
                 document.getElementById('admin-symptoms').textContent = details.symptoms || '-';
                 document.getElementById('admin-notes').textContent = details.notes || '-';
                 
