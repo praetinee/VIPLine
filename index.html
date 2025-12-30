@@ -679,7 +679,7 @@
                     if (response.data.success) { staffInfo = response.data.staffInfo; setupAndShowMainForm(); } 
                     else { 
                         // ✅ MODIFIED: เพิ่มข้อความช่วยเหลือเมื่อลงทะเบียนไม่สำเร็จ + เลื่อนหน้าจอ
-                        regError.innerHTML = `${response.data.message}<br><br><span class="font-bold underline text-red-800">หากท่านลงทะเบียนไม่ได้ กรุณาแจ้งแอดมินทางไลน์นี้ได้เลยค่ะ</span>`;
+                        regError.innerHTML = `${response.data.message}<br><br><span class="font-bold underline text-red-800">หากท่านลงทะเบียนไม่ได้ กรุณาแจ้ง ชื่อ นามสกุล และเลขบัตรประชาขน มาทางไลน์นี้ เพื่อให้เจ้าหน้าที่ทำการตรวจสอบการลงทะเบียนให้แก่ท่าน</span>`;
                         regError.classList.remove('hidden'); 
                         regError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         regSubmitButton.disabled = false; 
@@ -687,7 +687,7 @@
                     }
                 } catch (error) {
                     // ✅ MODIFIED: เพิ่มข้อความช่วยเหลือในส่วน catch + เลื่อนหน้าจอ
-                    regError.innerHTML = `${error.message}<br><br><span class="font-bold underline text-red-800">หากท่านลงทะเบียนไม่ได้ กรุณาแจ้งแอดมินทางไลน์นี้ได้เลยค่ะ</span>`;
+                    regError.innerHTML = `${error.message}<br><br><span class="font-bold underline text-red-800">หากท่านลงทะเบียนไม่ได้ กรุณาแจ้ง ชื่อ นามสกุล และเลขบัตรประชาขน มาทางไลน์นี้ เพื่อให้เจ้าหน้าที่ทำการตรวจสอบการลงทะเบียนให้แก่ท่าน</span>`;
                     regError.classList.remove('hidden'); 
                     regError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     regSubmitButton.disabled = false; 
