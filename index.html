@@ -643,9 +643,19 @@
                 try {
                     const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn, thaiId });
                     if (response.data.success) { staffInfo = response.data.staffInfo; setupAndShowMainForm(); } 
-                    else { regError.textContent = response.data.message; regError.classList.remove('hidden'); regSubmitButton.disabled = false; regSubmitButton.textContent = 'ยอมรับและลงทะเบียน'; }
+                    else { 
+                        // ✅ MODIFIED: เพิ่มข้อความช่วยเหลือเมื่อลงทะเบียนไม่สำเร็จ
+                        regError.innerHTML = `${response.data.message}<br><br><span class="font-bold underline text-red-800">หากท่านลงทะเบียนไม่ได้ กรุณาแจ้งแอดมินทางไลน์นี้ได้เลยค่ะ</span>`;
+                        regError.classList.remove('hidden'); 
+                        regSubmitButton.disabled = false; 
+                        regSubmitButton.textContent = 'ยอมรับและลงทะเบียน'; 
+                    }
                 } catch (error) {
-                    regError.textContent = error.message; regError.classList.remove('hidden'); regSubmitButton.disabled = false; regSubmitButton.textContent = 'ยอมรับและลงทะเบียน';
+                    // ✅ MODIFIED: เพิ่มข้อความช่วยเหลือในส่วน catch
+                    regError.innerHTML = `${error.message}<br><br><span class="font-bold underline text-red-800">หากท่านลงทะเบียนไม่ได้ กรุณาแจ้งแอดมินทางไลน์นี้ได้เลยค่ะ</span>`;
+                    regError.classList.remove('hidden'); 
+                    regSubmitButton.disabled = false; 
+                    regSubmitButton.textContent = 'ยอมรับและลงทะเบียน';
                 }
             });
             showView('registration-view');
