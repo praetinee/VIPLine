@@ -618,7 +618,36 @@
                     <div><label for="reg-hn" class="block text-sm font-medium text-gray-700">หมายเลข HN</label><input type="text" id="reg-hn" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></div>
                     <p class="text-center text-gray-500 text-sm">หรือ</p>
                     <div><label for="reg-thai-id" class="block text-sm font-medium text-gray-700">เลขบัตรประชาชน</label><input type="tel" id="reg-thai-id" pattern="\\d{13}" maxlength="13" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="1234567890123"></div>
-                    <div class="mt-6 border rounded-md p-4 bg-gray-50"><h3 class="text-base font-semibold text-center mb-3">คำประกาศเกี่ยวกับความเป็นส่วนตัว (Privacy Notice)</h3><div class="h-40 overflow-y-auto border rounded-md p-3 bg-white text-xs text-gray-600 space-y-2"><p>โรงพยาบาลสันทราย ให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน...</p></div><div class="mt-4"><label class="flex items-center"><input type="checkbox" id="reg-consent-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded"><span class="ml-2 text-sm text-gray-700">ข้าพเจ้ารับทราบและยินยอมตามคำประกาศนี้</span></label></div></div>
+                    
+                    <!-- ✅ UPDATED: PDPA Privacy Notice -->
+                    <div class="mt-6 border rounded-md p-4 bg-gray-50">
+                        <h3 class="text-base font-semibold text-center mb-3 text-gray-800 underline">คำประกาศเกี่ยวกับความเป็นส่วนตัว (Privacy Notice)</h3>
+                        <div class="h-60 overflow-y-auto border rounded-md p-3 bg-white text-xs text-gray-600 space-y-3 leading-relaxed">
+                            <p>โรงพยาบาลสันทราย ให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน เพื่อให้ท่านมั่นใจได้ว่าข้อมูลส่วนบุคคลของท่านที่เราได้รับจะถูกนำไปใช้ตรงตามความต้องการของท่านและถูกต้องตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล</p>
+                            
+                            <p class="font-bold text-gray-800">วัตถุประสงค์ในการเก็บรวบรวม ใช้ หรือเปิดเผยข้อมูลส่วนบุคคล</p>
+                            <ul class="list-disc pl-4 space-y-1">
+                                <li>เพื่อใช้ในการระบุและยืนยันตัวตนของท่านก่อนเข้าใช้งานระบบรายงานผลตรวจสุขภาพ</li>
+                                <li>เพื่อแสดงผลการตรวจสุขภาพและข้อมูลที่เกี่ยวข้องซึ่งเป็นข้อมูลส่วนบุคคลที่มีความอ่อนไหว</li>
+                                <li>เพื่อการวิเคราะห์ข้อมูลในภาพรวมสำหรับการพัฒนาคุณภาพบริการ (โดยไม่ระบุตัวตน)</li>
+                            </ul>
+                            
+                            <p class="font-bold text-gray-800">การรักษาความปลอดภัยของข้อมูล</p>
+                            <p>ระบบมีมาตรการรักษาความปลอดภัยของข้อมูลส่วนบุคคลของท่านอย่างเข้มงวด เพื่อป้องกันการเข้าถึง การใช้ หรือการเปิดเผยข้อมูลโดยไม่ได้รับอนุญาต</p>
+                            
+                            <p class="font-bold text-gray-800">การเปิดเผยข้อมูลส่วนบุคคล</p>
+                            <p>ระบบจะไม่เปิดเผยข้อมูลส่วนบุคคลของท่านแก่บุคคลภายนอก เว้นแต่จะได้รับความยินยอมจากท่าน หรือเป็นไปตามที่กฎหมายกำหนด</p>
+                            
+                            <p class="mt-2 pt-2 border-t font-medium text-gray-700 italic">โดยการคลิกปุ่ม "ยอมรับ" ด้านล่างนี้ ท่านรับทราบและยินยอมให้ระบบเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของท่านตามวัตถุประสงค์ที่ระบุไว้ในคำประกาศนี้</p>
+                        </div>
+                        <div class="mt-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="reg-consent-checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                                <span class="ml-2 text-sm text-gray-700">ยอมรับ</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <button type="submit" id="reg-submit-button" class="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>ยอมรับและลงทะเบียน</button>
                 </form>`;
             
