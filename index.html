@@ -669,23 +669,27 @@
                 const thaiId = document.getElementById('reg-thai-id').value.trim();
                 if (!hn && !thaiId) {
                     regError.textContent = 'กรุณากรอกหมายเลข HN หรือ เลขบัตรประชาชน อย่างใดอย่างหนึ่ง';
-                    regError.classList.remove('hidden'); regSubmitButton.disabled = false; regSubmitButton.textContent = 'ยอมรับและลงทะเบียน';
+                    regError.classList.remove('hidden'); 
+                    regError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    regSubmitButton.disabled = false; regSubmitButton.textContent = 'ยอมรับและลงทะเบียน';
                     return;
                 }
                 try {
                     const response = await postToServer({ action: 'registerUser', userId: userProfile.userId, fullName, hn, thaiId });
                     if (response.data.success) { staffInfo = response.data.staffInfo; setupAndShowMainForm(); } 
                     else { 
-                        // ✅ MODIFIED: เพิ่มข้อความช่วยเหลือเมื่อลงทะเบียนไม่สำเร็จ
+                        // ✅ MODIFIED: เพิ่มข้อความช่วยเหลือเมื่อลงทะเบียนไม่สำเร็จ + เลื่อนหน้าจอ
                         regError.innerHTML = `${response.data.message}<br><br><span class="font-bold underline text-red-800">หากท่านลงทะเบียนไม่ได้ กรุณาแจ้งแอดมินทางไลน์นี้ได้เลยค่ะ</span>`;
                         regError.classList.remove('hidden'); 
+                        regError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         regSubmitButton.disabled = false; 
                         regSubmitButton.textContent = 'ยอมรับและลงทะเบียน'; 
                     }
                 } catch (error) {
-                    // ✅ MODIFIED: เพิ่มข้อความช่วยเหลือในส่วน catch
+                    // ✅ MODIFIED: เพิ่มข้อความช่วยเหลือในส่วน catch + เลื่อนหน้าจอ
                     regError.innerHTML = `${error.message}<br><br><span class="font-bold underline text-red-800">หากท่านลงทะเบียนไม่ได้ กรุณาแจ้งแอดมินทางไลน์นี้ได้เลยค่ะ</span>`;
                     regError.classList.remove('hidden'); 
+                    regError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     regSubmitButton.disabled = false; 
                     regSubmitButton.textContent = 'ยอมรับและลงทะเบียน';
                 }
