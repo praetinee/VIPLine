@@ -67,7 +67,7 @@
                 fetchAppointments();
             } catch (err) {
                 console.error('LIFF Error:', err);
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อ LINE ได้ กรุณาลองใหม่', 'error');
+                Swal.fire('ข้อผิดพลาด', 'LIFF Error: ' + err.message, 'error');
             }
         }
 
