@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการนัดหมายของฉัน</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SweetAlert2 สำหรับหน้าต่างแจ้งเตือนและยืนยัน -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- LIFF SDK -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
+        .loader { border-top-color: #3498db; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+        <!-- Header -->
+        <div class="bg-blue-600 text-white p-4 text-center shadow">
+            <h1 class="text-xl font-bold">จัดการนัดหมายของฉัน</h1>
+            <p class="text-sm opacity-90 mt-1">โรงพยาบาลสันทราย</p>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading" class="flex flex-col items-center justify-center p-10">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+            <p class="text-gray-500 font-medium">กำลังโหลดข้อมูล...</p>
+        </div>
+
+        <!-- Content Area -->
+        <div id="content" class="p-4 hidden">
+            <div id="appointments-list" class="space-y-4">
+                <!-- รายการนัดหมายจะถูกดึงมาแสดงที่นี่ผ่าน JS -->
+            </div>
+            
+            <div id="no-data" class="hidden text-center py-10">
+                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <p class="text-gray-500 font-medium">คุณไม่มีประวัติการนัดหมายที่รอดำเนินการ</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚠️ กรุณาเปลี่ยนค่าด้านล่างให้ตรงกับโปรเจกต์คุณ
+        // ==========================================
+        const LIFF_ID = "2008050252-bNYeKBrd"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwH3SqQVKGaIVPRouLHD7iwaSk5wYCSLdIYYxRBvgaaSNNmOnXkl356sqNUX4UiOoex2w/exec"; // นำ URL จาก Apps Script มาวางที่นี่
+        
+        let currentUserId = null;
+
+        // Initialize LIFF
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                const profile = await liff.getProfile();
+                currentUserId = profile.userId;
+                fetchAppointments();
+            } catch (err) {
+                console.error('LIFF Error:', err);
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อ LINE ได้ กรุณาลองใหม่', 'error');
+            }
+        }
+
+        // ดึงรายการนัดหมายจาก Apps Script
+        async function fetchAppointments() {
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getUserAppointments', userId: currentUserId })
+                });
+                const result = await response.json();
+                
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+
+                if (result.status === 'success' && result.data.success) {
+                    renderAppointments(result.data.appointments);
+                } else {
+                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถดึงข้อมูลได้', 'error');
+                }
+            } catch (error) {
+                Swal.fire('ข้อผิดพลาด', 'ระบบเซิร์ฟเวอร์ขัดข้อง', 'error');
+            }
+        }
+
+        // สร้างการ์ดนัดหมายบนหน้าเว็บ
+        function renderAppointments(appointments) {
+            const listContainer = document.getElementById('appointments-list');
+            const noData = document.getElementById('no-data');
+            listContainer.innerHTML = '';
+
+            if (!appointments || appointments.length === 0) {
+                noData.classList.remove('hidden');
+                return;
+            }
+
+            appointments.forEach(appt => {
+                const apptDate = new Date(appt.dateTime);
+                const dateStr = apptDate.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+                const timeStr = apptDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
+                
+                // ตกแต่งป้ายสถานะ
+                let statusBadge = '';
+                if (appt.status === 'pending') {
+                    statusBadge = `<span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-yellow-300">รออนุมัติ</span>`;
+                } else if (appt.status.includes('approved')) {
+                    statusBadge = `<span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-green-300">ยืนยันแล้ว</span>`;
+                }
+
+                const card = `
+                    <div class="bg-white border rounded-xl shadow-sm p-4 hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-gray-800 text-lg">${appt.patientName}</h3>
+                            ${statusBadge}
+                        </div>
+                        <div class="text-sm text-gray-600 mb-1"><span class="font-semibold text-gray-700">แผนก:</span> ${appt.department}</div>
+                        <div class="text-sm text-gray-600 mb-1"><span class="font-semibold text-gray-700">วันที่:</span> ${dateStr}</div>
+                        <div class="text-sm text-gray-600 mb-4"><span class="font-semibold text-gray-700">เวลา:</span> ${timeStr}</div>
+                        
+                        <div class="flex space-x-2 border-t pt-3">
+                            <button onclick="confirmReschedule('${appt.appointmentId}')" class="flex-1 bg-orange-50 text-orange-600 border border-orange-200 py-1.5 rounded-lg text-sm font-medium hover:bg-orange-100 transition">
+                                เลื่อนนัด
+                            </button>
+                            <button onclick="confirmCancel('${appt.appointmentId}')" class="flex-1 bg-red-50 text-red-600 border border-red-200 py-1.5 rounded-lg text-sm font-medium hover:bg-red-100 transition">
+                                ยกเลิกนัด
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listContainer.innerHTML += card;
+            });
+        }
+
+        // ยืนยันการยกเลิกนัด
+        function confirmCancel(appointmentId) {
+            Swal.fire({
+                title: 'ยืนยันการยกเลิก?',
+                text: "หากยกเลิกแล้วจะไม่สามารถกู้คืนคิวนี้ได้",
+                icon: 'warning',
+                input: 'text',
+                inputPlaceholder: 'เหตุผลการยกเลิก (ไม่บังคับ)',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#cbd5e1',
+                confirmButtonText: 'ใช่, ยกเลิกนัด',
+                cancelButtonText: 'ปิด'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    processAction('userCancelAppointment', { 
+                        appointmentId: appointmentId, 
+                        reason: result.value || '' 
+                    });
+                }
+            });
+        }
+
+        // ยืนยันการเลื่อนนัด
+        function confirmReschedule(appointmentId) {
+            Swal.fire({
+                title: 'ต้องการเลื่อนนัดหมาย?',
+                html: `
+                    <p class="text-sm text-gray-500 mb-3">เมื่อขอเลื่อนนัด คิวเดิมจะถูกยกเลิก และต้องรอแอดมินอนุมัติวันเวลาใหม่</p>
+                    <input type="datetime-local" id="new-datetime" class="swal2-input !w-full !text-base" style="margin: 0; padding: 10px;">
+                    <input type="text" id="reschedule-reason" class="swal2-input !w-full !text-base" placeholder="เหตุผลที่ขอเลื่อน (ไม่บังคับ)" style="margin-top: 10px; padding: 10px;">
+                `,
+                showCancelButton: true,
+                confirmButtonColor: '#f97316',
+                cancelButtonColor: '#cbd5e1',
+                confirmButtonText: 'ยืนยันการเลื่อน',
+                cancelButtonText: 'ปิด',
+                preConfirm: () => {
+                    const newDateTime = document.getElementById('new-datetime').value;
+                    const reason = document.getElementById('reschedule-reason').value;
+                    if (!newDateTime) {
+                        Swal.showValidationMessage('กรุณาเลือกวันและเวลาใหม่');
+                    }
+                    return { newDateTime, reason };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    processAction('userRescheduleAppointment', { 
+                        appointmentId: appointmentId, 
+                        newDateTime: result.value.newDateTime,
+                        reason: result.value.reason
+                    });
+                }
+            });
+        }
+
+        // ส่งคำสั่งไปยัง Backend (Apps Script)
+        async function processAction(action, data) {
+            Swal.fire({ title: 'กำลังดำเนินการ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            
+            const payload = { action: action, userId: currentUserId, ...data };
+
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.status === 'success' && result.data.success) {
+                    Swal.fire('สำเร็จ!', 'ทำรายการเรียบร้อยแล้ว', 'success').then(() => {
+                        // โหลดข้อมูลใหม่
+                        document.getElementById('loading').classList.remove('hidden');
+                        document.getElementById('content').classList.add('hidden');
+                        fetchAppointments();
+                    });
+                } else {
+                    Swal.fire('ล้มเหลว', result.data.message || 'เกิดข้อผิดพลาดบางอย่าง', 'error');
+                }
+            } catch (error) {
+                Swal.fire('ล้มเหลว', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+            }
+        }
+
+        // Start App
+        document.addEventListener("DOMContentLoaded", () => {
+            initializeLiff();
+        });
+    </script>
+</body>
+</html>
