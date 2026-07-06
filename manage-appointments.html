@@ -67,7 +67,7 @@
                 fetchAppointments();
             } catch (err) {
                 console.error('LIFF Error:', err);
-                Swal.fire('ข้อผิดพลาด', 'LIFF Error: ' + err.message, 'error');
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อ LINE ได้: ' + err.message, 'error');
             }
         }
 
@@ -75,9 +75,18 @@
         async function fetchAppointments() {
             try {
                 const response = await fetch(WEB_APP_URL, {
+                    redirect: 'follow', // ป้องกันปัญหา Redirect ของ Google
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8' // ป้องกัน CORS Preflight Error
+                    },
                     body: JSON.stringify({ action: 'getUserAppointments', userId: currentUserId })
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
                 const result = await response.json();
                 
                 document.getElementById('loading').classList.add('hidden');
@@ -86,10 +95,13 @@
                 if (result.status === 'success' && result.data.success) {
                     renderAppointments(result.data.appointments);
                 } else {
-                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถดึงข้อมูลได้', 'error');
+                    // ดึงข้อความ Error จาก Server มาโชว์
+                    let errorMsg = result.message || (result.data && result.data.message) || 'ไม่สามารถดึงข้อมูลได้';
+                    Swal.fire('ข้อผิดพลาด', errorMsg, 'error');
                 }
             } catch (error) {
-                Swal.fire('ข้อผิดพลาด', 'ระบบเซิร์ฟเวอร์ขัดข้อง', 'error');
+                document.getElementById('loading').classList.add('hidden');
+                Swal.fire('ระบบขัดข้อง', 'รายละเอียด: ' + error.message, 'error');
             }
         }
 
@@ -205,9 +217,18 @@
 
             try {
                 const response = await fetch(WEB_APP_URL, {
+                    redirect: 'follow', // ป้องกันปัญหา Redirect ของ Google
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8' // ป้องกัน CORS Preflight Error
+                    },
                     body: JSON.stringify(payload)
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
                 const result = await response.json();
 
                 if (result.status === 'success' && result.data.success) {
@@ -218,10 +239,11 @@
                         fetchAppointments();
                     });
                 } else {
-                    Swal.fire('ล้มเหลว', result.data.message || 'เกิดข้อผิดพลาดบางอย่าง', 'error');
+                    let errorMsg = result.message || (result.data && result.data.message) || 'เกิดข้อผิดพลาดบางอย่าง';
+                    Swal.fire('ล้มเหลว', errorMsg, 'error');
                 }
             } catch (error) {
-                Swal.fire('ล้มเหลว', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+                Swal.fire('ระบบขัดข้อง', 'รายละเอียด: ' + error.message, 'error');
             }
         }
 
