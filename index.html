@@ -90,11 +90,9 @@
             <!-- Psych Safety Check (New) -->
             <div id="psych-safety-check" class="hidden bg-red-50 border border-red-300 p-3 rounded mb-3">
                 <p class="font-bold text-red-800 text-sm mb-2">⚠️ เช็คความพร้อม (นัดใหม่จิตเวช)</p>
-                <!-- ✅ FIX: เปลี่ยนคำแนะนำให้ชัดเจน -->
                 <p class="text-xs text-gray-700 mb-2">กรุณาแจ้งเบอร์โทรคนไข้ ให้ จนท. คลินิกรักษ์จิต เพื่อโทรนัดวันเวลากับคนไข้ (แอดมินไม่ต้องโทรเอง)</p>
                 <label class="flex items-start space-x-2">
                     <input type="checkbox" id="psych-confirm-call" class="mt-1 h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
-                    <!-- ✅ FIX: เปลี่ยนข้อความ Checkbox -->
                     <span class="text-sm text-gray-700">ยืนยันว่าได้ส่งเบอร์ให้คลินิกเรียบร้อยแล้ว</span>
                 </label>
             </div>
@@ -124,6 +122,13 @@
                     <button id="admin-approve-btn" class="btn btn-green flex-1">อนุมัติ</button>
                     <button id="admin-deny-btn" class="btn btn-red flex-1">ปฏิเสธ</button>
                     <button id="admin-reschedule-toggle-btn" class="btn btn-yellow flex-1">เลื่อนนัด</button>
+                </div>
+                <!-- 🌟 เพิ่มปุ่มใหม่: สอบถามเพิ่มเติม 🌟 -->
+                <div class="mt-2">
+                    <button id="admin-ask-info-btn" class="btn bg-blue-500 hover:bg-blue-600 text-white w-full flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                        สอบถามเพิ่มเติม
+                    </button>
                 </div>
             </div>
 
@@ -181,6 +186,9 @@
             <p class="text-sm text-gray-500 mt-4">ท่านสามารถปิดหน้าต่างการนัดหมายนี้ได้</p>
         </div>
     </div>
+
+    <!-- 🌟 เพิ่ม SweetAlert2 ไว้สำหรับหน้าต่างถามข้อมูล -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwH3SqQVKGaIVPRouLHD7iwaSk5wYCSLdIYYxRBvgaaSNNmOnXkl356sqNUX4UiOoex2w/exec";
@@ -388,11 +396,12 @@
                 const approveBtn = document.getElementById('admin-approve-btn');
                 const denyBtn = document.getElementById('admin-deny-btn');
                 const rescheduleBtn = document.getElementById('admin-reschedule-toggle-btn');
+                const askInfoBtn = document.getElementById('admin-ask-info-btn'); // 🌟 ปุ่มใหม่
 
                 // Reset visibility
                 approveBtn.classList.remove('hidden');
-                denyBtn.classList.remove('hidden');
                 rescheduleBtn.classList.remove('hidden');
+                askInfoBtn.classList.remove('hidden'); // 🌟 โชว์ปุ่มสอบถามเสมอถ้ายังรอทำรายการ
                 denyBtn.className = 'btn btn-red flex-1'; // Reset class
 
                 if (details.status === 'pending') {
@@ -401,9 +410,19 @@
                     actionButtons.classList.remove('hidden');
                     rescheduleWrapper.classList.add('hidden');
                     
-                    // Buttons
+                    // 🌟 ตรวจสอบว่าเป็นเคสเลื่อนนัดจากคนไข้หรือไม่ (เช็คจาก Note)
+                    const isUserReschedule = details.notes && details.notes.includes('[ขอเลื่อนนัดเอง:');
+                    
+                    if (isUserReschedule) {
+                        denyBtn.classList.add('hidden'); // 🌟 ซ่อนปุ่มปฏิเสธ หากเป็นการเลื่อนนัด
+                    } else {
+                        denyBtn.classList.remove('hidden'); // แสดงปุ่มปฏิเสธตามปกติ
+                    }
+
+                    // Buttons Events
                     denyBtn.textContent = "ปฏิเสธ";
                     denyBtn.onclick = () => promptDenyOrCancel(appointmentId, 'deny');
+                    askInfoBtn.onclick = () => promptAskMoreInfo(appointmentId, details.patientFullName); // 🌟 ผูกฟังก์ชันสอบถาม
 
                     // Show Safety Checks Container
                     safetyChecks.classList.remove('hidden');
@@ -463,9 +482,10 @@
                     if (details.status.includes('denied') || details.status.includes('cancelled')) statusClasses = ['bg-red-100', 'text-red-800'];
                     statusBanner.classList.add(...statusClasses);
 
-                    // Show buttons but Hide Approve
+                    // Show buttons but Hide Approve and Ask Info
                     actionButtons.classList.remove('hidden');
                     approveBtn.classList.add('hidden');
+                    askInfoBtn.classList.add('hidden'); // 🌟 ซ่อนปุ่มสอบถาม หากประมวลผลไปแล้ว
                     safetyChecks.classList.add('hidden');
                     rescheduleWrapper.classList.add('hidden');
 
@@ -474,6 +494,7 @@
                         denyBtn.textContent = "ยกเลิกนัดหมาย";
                         denyBtn.classList.remove('btn-red');
                         denyBtn.classList.add('btn-gray');
+                        denyBtn.classList.remove('hidden');
                         denyBtn.onclick = () => promptDenyOrCancel(appointmentId, 'cancel');
                     } else {
                         denyBtn.classList.add('hidden'); // Already denied/cancelled
@@ -484,6 +505,51 @@
                 showView('admin-view');
             } catch (error) {
                 showError(`[loadAdminView] ${error.message}`);
+            }
+        }
+
+        // 🌟 ฟังก์ชันใหม่: แสดงกล่องข้อความให้แอดมินพิมพ์
+        function promptAskMoreInfo(appointmentId, patientName) {
+            Swal.fire({
+                title: `ส่งข้อความถึง: ${patientName}`,
+                input: 'textarea',
+                inputLabel: 'พิมพ์ข้อความที่ต้องการสอบถาม',
+                inputPlaceholder: 'เช่น รบกวนถ่ายรูปใบนัดเดิมให้ดูหน่อยค่ะ...',
+                showCancelButton: true,
+                confirmButtonText: 'ส่งข้อความ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#3085d6',
+            }).then((result) => {
+                if (result.isConfirmed && result.value.trim() !== '') {
+                    sendAskMoreInfo(appointmentId, result.value.trim());
+                }
+            });
+        }
+
+        // 🌟 ฟังก์ชันใหม่: ส่งข้อความผ่าน Backend
+        async function sendAskMoreInfo(appointmentId, messageText) {
+            Swal.fire({ title: 'กำลังส่งข้อความ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            try {
+                const payload = {
+                    action: 'askMoreInfo',
+                    appointmentId: appointmentId,
+                    adminName: userProfile ? userProfile.displayName : 'Admin',
+                    messageText: messageText
+                };
+                
+                const result = await postToServer(payload);
+                if (result.status === 'success') {
+                    Swal.fire('สำเร็จ', 'ส่งข้อความเรียบร้อยแล้ว สถานะคิวยังคงเดิมรอการอนุมัติ', 'success').then(() => {
+                        window.location.reload(); 
+                    });
+                } else {
+                    showError(result.message || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ');
+                    Swal.close();
+                }
+            } catch (error) {
+                showError(`[sendAskMoreInfo] ${error.message}`);
+                Swal.close();
             }
         }
 
